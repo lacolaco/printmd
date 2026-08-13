@@ -44,9 +44,11 @@ export class EditorStore {
 
   /**
    * 強制改ページ (breaks Set またはファイル境界) のクラスを反映したマスター要素。
-   * 印刷用の直接表示とプレビューのクローン元を兼ねる、唯一の DOM 実体
+   * 印刷用の直接表示とプレビューのクローン元を兼ねる、唯一の DOM 実体。
+   * container は同一参照のまま変異するため、素の要素を返すと computed の等価判定
+   * (Object.is) で変更が下流へ伝播しない。毎回新しいラッパを返して伝播を保証する
    */
-  readonly printableMaster = computed<HTMLElement | null>(() => {
+  readonly printableMaster = computed<{ readonly container: HTMLElement } | null>(() => {
     const master = this.masterSignal();
     if (master === null) return null;
     const breaks = this.breaksSignal();
@@ -54,7 +56,7 @@ export class EditorStore {
       const block = master.blocks[i];
       el.classList.toggle('forced-break', block.isFileBoundary || breaks.has(block.id));
     });
-    return master.container;
+    return { container: master.container };
   });
 
   async addFiles(files: readonly { name: string; text(): Promise<string> }[]): Promise<void> {

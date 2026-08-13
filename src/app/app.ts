@@ -19,7 +19,7 @@ export class App {
       const master = this.store.printableMaster();
       const host = this.printRoot().nativeElement;
       host.replaceChildren();
-      if (master !== null) host.append(master);
+      if (master !== null) host.append(master.container);
     });
   }
 

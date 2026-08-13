@@ -67,7 +67,7 @@ export class Preview {
 
   constructor() {
     effect(() => {
-      this.rebuild(this.store.printableMaster());
+      this.rebuild(this.store.printableMaster()?.container ?? null);
     });
   }
 
