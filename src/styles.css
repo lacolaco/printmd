@@ -1,3 +1,92 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+@import 'github-markdown-css/github-markdown-light.css';
+
+* {
+  box-sizing: border-box;
+}
+
+/* 分割ポリシー (画面・印刷共通)。収まる表・図もページをまたがせず丸ごと送る */
+.markdown-body pre,
+.markdown-body table,
+.markdown-body figure,
+.markdown-body blockquote {
+  orphans: 2;
+  widows: 2;
+  break-inside: avoid;
+}
+
+.markdown-body p,
+.markdown-body li {
+  orphans: 2;
+  widows: 2;
+}
+
+.markdown-body .mermaid svg {
+  max-width: 178mm;
+  max-height: 265mm;
+  width: auto;
+  height: auto;
+}
+
+/* 強制改ページ: 改ページ調整パネルでチェックしたブロックとファイル境界に付与される */
+@media screen {
+  .forced-break {
+    break-before: column;
+  }
+}
+@media print {
+  .forced-break {
+    break-before: page;
+  }
+}
+
+/* プレビュー: 多段組を A4 版面 (178mm × 265mm) に固定し、段 = ページとして扱う */
+.mc {
+  width: 178mm;
+  height: 265mm;
+  column-width: 178mm;
+  column-gap: 16mm;
+  column-fill: auto;
+}
+
+.preview-probe {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  visibility: hidden;
+}
+
+.sheet {
+  width: 210mm;
+  height: 297mm;
+  padding: 16mm;
+  background: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  margin: 0 auto 16px;
+}
+
+.clip {
+  width: 178mm;
+  height: 265mm;
+  overflow: hidden;
+}
+
+/* 印刷対象マスター。画面では常に非表示、@media print でのみ可視化する */
+.print-root {
+  display: none;
+}
+
+@media print {
+  .app-ui {
+    display: none;
+  }
+  .print-root {
+    display: block;
+  }
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+}
