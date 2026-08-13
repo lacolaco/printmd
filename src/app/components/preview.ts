@@ -44,7 +44,8 @@ const COLUMN_STEP_MM = 194;
           ＋
         </button>
       </div>
-      <div class="min-h-0 flex-1 overflow-auto bg-stone-200 py-4">
+      <!-- 紙面は視覚プレビュー。支援技術には原稿ファイルとブロック一覧が本文を担う -->
+      <div class="min-h-0 flex-1 overflow-auto bg-stone-200 py-4" aria-hidden="true">
         <div class="mx-auto w-fit" #sheetsHost [style.zoom]="zoom()"></div>
       </div>
     </div>
@@ -75,8 +76,13 @@ export class Preview {
     this.zoomIndex.update((i) => Math.min(ZOOMS.length - 1, Math.max(0, i + delta)));
   }
 
+  /** 可視シートの遅延実体化に使う。rebuild ごとに張り直す */
+  private observer: IntersectionObserver | null = null;
+
   private rebuild(master: HTMLElement | null): void {
     const host = this.sheetsHost().nativeElement;
+    this.observer?.disconnect();
+    this.observer = null;
     host.replaceChildren();
     if (master === null) {
       this.pageCount.set(0);
@@ -84,9 +90,41 @@ export class Preview {
     }
     const count = this.measurePageCount(master);
     this.pageCount.set(count);
-    for (let index = 0; index < count; index++) {
-      host.append(this.buildSheet(master, index));
+    // 大部数対策: シートは空の枠だけ並べ、可視域に入ったものだけ中身を実体化する。
+    // 全クローン実体化は 62 ページ実測でトグル 1 回 15 秒超のメインスレッド専有になった
+    const lazy = typeof IntersectionObserver !== 'undefined';
+    if (lazy) {
+      this.observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            this.fillSheet(entry.target as HTMLElement, master);
+            this.observer?.unobserve(entry.target);
+          }
+        },
+        { rootMargin: '600px 0px' },
+      );
     }
+    for (let index = 0; index < count; index++) {
+      const sheet = document.createElement('div');
+      sheet.className = 'sheet';
+      sheet.dataset['page'] = String(index + 1);
+      host.append(sheet);
+      if (lazy) this.observer?.observe(sheet);
+      else this.fillSheet(sheet, master);
+    }
+  }
+
+  /** シートへ段組クローンの窓を実体化する。実体化済みなら何もしない */
+  private fillSheet(sheet: HTMLElement, master: HTMLElement): void {
+    if (sheet.childElementCount > 0) return;
+    const index = Number(sheet.dataset['page']) - 1;
+    const clip = document.createElement('div');
+    clip.className = 'clip';
+    const mc = this.buildColumnClone(master);
+    mc.style.marginLeft = `${-(index * COLUMN_STEP_MM)}mm`;
+    clip.append(mc);
+    sheet.append(clip);
   }
 
   /** 段組クローンを 1 つ作る。段数の計測とページ切り出しの両方で使う */
@@ -106,17 +144,5 @@ export class Preview {
     const count = Math.max(1, Math.round((probeMc.scrollWidth + 16 * MM) / (COLUMN_STEP_MM * MM)));
     probe.remove();
     return count;
-  }
-
-  private buildSheet(master: HTMLElement, index: number): HTMLElement {
-    const sheet = document.createElement('div');
-    sheet.className = 'sheet';
-    const clip = document.createElement('div');
-    clip.className = 'clip';
-    const mc = this.buildColumnClone(master);
-    mc.style.marginLeft = `${-(index * COLUMN_STEP_MM)}mm`;
-    clip.append(mc);
-    sheet.append(clip);
-    return sheet;
   }
 }

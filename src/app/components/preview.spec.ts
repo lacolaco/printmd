@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../mermaid/mermaid-renderer';
 import { EditorStore } from '../state/editor-store';
 import { Preview } from './preview';
@@ -43,6 +43,41 @@ describe('Preview', () => {
     expect(sheets[0].querySelector('.clip > .mc.markdown-body')).not.toBeNull();
     expect(sheets[0].querySelector('h1')?.textContent).toBe('見出し');
     expect(el.textContent).toContain('1 ページ');
+  });
+
+  it('IntersectionObserver がある環境では、シートは可視になるまで実体化しない', async () => {
+    const observed: Element[] = [];
+    let callback!: (entries: { target: Element; isIntersecting: boolean }[]) => void;
+    class StubIntersectionObserver {
+      constructor(cb: typeof callback) {
+        callback = cb;
+      }
+      observe(el: Element) {
+        observed.push(el);
+      }
+      unobserve() {}
+      disconnect() {}
+    }
+    vi.stubGlobal('IntersectionObserver', StubIntersectionObserver);
+    try {
+      const store = TestBed.inject(EditorStore);
+      await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文') }]);
+
+      const fixture = TestBed.createComponent(Preview);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const el = fixture.nativeElement as HTMLElement;
+      const sheet = el.querySelector('.sheet')!;
+      expect(observed).toContain(sheet);
+      expect(sheet.querySelector('.mc')).toBeNull();
+
+      callback([{ target: sheet, isIntersecting: true }]);
+      expect(sheet.querySelector('.clip > .mc.markdown-body')).not.toBeNull();
+      expect(sheet.querySelector('h1')?.textContent).toBe('見出し');
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('ズームボタンで表示倍率ラベルが変わり、境界で disabled になる', async () => {
