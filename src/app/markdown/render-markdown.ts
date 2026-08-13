@@ -1,3 +1,4 @@
+import hljs from 'highlight.js/lib/common';
 import MarkdownIt from 'markdown-it';
 import taskLists from 'markdown-it-task-lists';
 
@@ -12,7 +13,17 @@ export interface RenderMarkdownResult {
   readonly mermaidBlocks: readonly MermaidBlock[];
 }
 
-const md = new MarkdownIt({ html: false, linkify: true }).use(taskLists);
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  // GitHub 同等のシンタックスハイライト。未知の言語は既定のエスケープに任せる
+  highlight: (code, lang) => {
+    if (lang && hljs.getLanguage(lang)) {
+      return hljs.highlight(code, { language: lang, ignoreIllegals: true }).value;
+    }
+    return '';
+  },
+}).use(taskLists);
 
 let mermaidSeq = 0;
 

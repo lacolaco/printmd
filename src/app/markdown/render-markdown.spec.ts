@@ -39,15 +39,27 @@ describe('renderMarkdown', () => {
     expect(html).not.toContain('graph TD');
   });
 
-  it('通常のコードフェンスはそのままコードブロックにする', () => {
+  it('通常のコードフェンスは mermaid 扱いせずコードブロックにする', () => {
     const { html, mermaidBlocks } = renderMarkdown('```ts\nconst x = 1;\n```');
     expect(mermaidBlocks).toHaveLength(0);
-    expect(html).toContain('<pre><code class="language-ts">const x = 1;\n</code></pre>');
+    expect(html).toContain('<pre><code class="language-ts">');
   });
 
   it('複数の mermaid ブロックに一意な ID を振る', () => {
     const { mermaidBlocks } = renderMarkdown('```mermaid\nA\n```\n\n```mermaid\nB\n```');
     expect(mermaidBlocks).toHaveLength(2);
     expect(mermaidBlocks[0].id).not.toBe(mermaidBlocks[1].id);
+  });
+
+  it('言語付きコードフェンスをシンタックスハイライトする', () => {
+    const { html } = renderMarkdown('```ts\nconst x: number = 1;\n```');
+    expect(html).toContain('hljs-keyword');
+    expect(html).toContain('language-ts');
+  });
+
+  it('未知の言語のフェンスは素のエスケープで出す', () => {
+    const { html } = renderMarkdown('```unknownlang\n<tag> & text\n```');
+    expect(html).toContain('&lt;tag&gt; &amp; text');
+    expect(html).not.toContain('hljs-');
   });
 });
