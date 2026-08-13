@@ -44,9 +44,17 @@ const COLUMN_STEP_MM = 194;
           ＋
         </button>
       </div>
-      <!-- 紙面は視覚プレビュー。支援技術には原稿ファイルとブロック一覧が本文を担う -->
-      <div class="min-h-0 flex-1 overflow-auto bg-stone-200 py-4" aria-hidden="true">
-        <div class="mx-auto w-fit" #sheetsHost [style.zoom]="zoom()"></div>
+      <!-- 紙面は視覚プレビュー。支援技術には原稿ファイルとブロック一覧が本文を担うため、
+           複製された紙面は inert で焦点・読み上げの対象から外す (リンク等の複製が
+           フォーカス可能なまま残ると aria-hidden-focus 違反になる)。
+           スクロール領域自体はキーボードで操作できるよう focusable にする -->
+      <div
+        class="min-h-0 flex-1 overflow-auto bg-stone-200 py-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-600"
+        tabindex="0"
+        role="region"
+        aria-label="印刷プレビューの紙面 (矢印キーでスクロール)"
+      >
+        <div class="mx-auto w-fit" #sheetsHost [style.zoom]="zoom()" inert></div>
       </div>
     </div>
   `,
