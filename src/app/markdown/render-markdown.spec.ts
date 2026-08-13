@@ -62,4 +62,23 @@ describe('renderMarkdown', () => {
     expect(html).toContain('&lt;tag&gt; &amp; text');
     expect(html).not.toContain('hljs-');
   });
+
+  it('生 HTML の GFM 相当サブセットを通す', () => {
+    const { html } = renderMarkdown('<b>太字</b> と <details><summary>開閉</summary>中身</details>');
+    expect(html).toContain('<b>太字</b>');
+    expect(html).toContain('<summary>開閉</summary>');
+  });
+
+  it('script 等の危険な生 HTML は除去しテキストも残さない', () => {
+    const { html } = renderMarkdown('前 <script>alert(1)</script> 後');
+    expect(html).not.toContain('<script');
+    expect(html).not.toContain('alert(1)');
+    expect(html).toContain('前');
+  });
+
+  it('未対応タグはタグだけ剥いでテキストを残す', () => {
+    const { html } = renderMarkdown('<marquee>流れる文字</marquee>');
+    expect(html).not.toContain('<marquee');
+    expect(html).toContain('流れる文字');
+  });
 });
