@@ -7,8 +7,8 @@ describe('buildMaster', () => {
       { fileIndex: 0, fileName: 'a.md', html: '<h1>見出し</h1><p>本文</p>' },
     ];
     const { container, blocks } = buildMaster(fragments);
-    expect(container.children[0].id).toBe('f0b0');
-    expect(container.children[1].id).toBe('f0b1');
+    expect(container.children[0].getAttribute('data-block-id')).toBe('f0b0');
+    expect(container.children[1].getAttribute('data-block-id')).toBe('f0b1');
     expect(blocks.map((b) => b.id)).toEqual(['f0b0', 'f0b1']);
   });
 
@@ -83,5 +83,28 @@ describe('buildMaster', () => {
     expect(blocks).toHaveLength(1);
     expect(blocks[0].id).toBe('f1b0');
     expect(blocks[0].isFileBoundary).toBe(true);
+  });
+
+  it('mermaid でない生 HTML の figure は mermaid 扱いしない', () => {
+    const fragments: FileFragment[] = [
+      {
+        fileIndex: 0,
+        fileName: 'a.md',
+        html: '<figure><img src="a.png" alt=""><figcaption>写真の説明</figcaption></figure>',
+      },
+    ];
+    const { blocks } = buildMaster(fragments);
+    expect(blocks[0].kind).not.toBe('mermaid');
+    expect(blocks[0].label).toContain('写真の説明');
+  });
+
+  it('著者が書いた id を上書きせず、ブロック ID は data-block-id で持つ', () => {
+    const fragments: FileFragment[] = [
+      { fileIndex: 0, fileName: 'a.md', html: '<h2 id="intro">導入</h2>' },
+    ];
+    const { container, blocks } = buildMaster(fragments);
+    expect(container.children[0].id).toBe('intro');
+    expect(container.children[0].getAttribute('data-block-id')).toBe('f0b0');
+    expect(blocks[0].id).toBe('f0b0');
   });
 });

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import type { Block, BlockKind } from '../markdown/block-extractor';
 import { EditorStore } from '../state/editor-store';
 
@@ -124,6 +124,15 @@ export class BreakPanel {
   protected readonly showAll = signal(false);
   /** フィルタ対象でも表示を維持する ID (操作した行が消えないように)。フィルタ切り替えでリセット */
   private readonly stickyIds = signal<ReadonlySet<string>>(new Set());
+
+  constructor() {
+    // ID は位置由来 (f{n}b{m}) のため、ファイルの削除・並べ替えで同じ ID が別の
+    // ブロックを指し直す。構造変更の世代に合わせて維持リストを破棄する
+    effect(() => {
+      this.store.structureVersion();
+      this.stickyIds.set(new Set());
+    });
+  }
 
   protected readonly multiFile = computed(
     () => new Set(this.store.blocks().map((b) => b.fileIndex)).size > 1,

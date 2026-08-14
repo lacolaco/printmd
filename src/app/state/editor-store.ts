@@ -28,6 +28,7 @@ export class EditorStore {
   private nextFileId = 1;
   private rebuilding = false;
   private rebuildRequested = false;
+  private pendingRebuild: Promise<void> | null = null;
 
   private readonly filesSignal = signal<readonly ManuscriptFile[]>([]);
   private readonly breaksSignal = signal<ReadonlySet<string>>(new Set());
@@ -152,22 +153,27 @@ export class EditorStore {
 
   /**
    * 単飛行 + 後追い: 実行中に入力が変わったら、いま投げた構築を積み増さず、
-   * 完了後に最新入力でもう 1 回だけ実行する
+   * 完了後に最新入力でもう 1 回だけ実行する。合流した呼び出しにも後追い実行の
+   * 完了まで解決しない Promise を返す (await 直後に古い状態を見せない)
    */
-  private async rebuild(): Promise<void> {
+  private rebuild(): Promise<void> {
     if (this.rebuilding) {
       this.rebuildRequested = true;
-      return;
+      return this.pendingRebuild ?? Promise.resolve();
     }
     this.rebuilding = true;
-    try {
-      do {
-        this.rebuildRequested = false;
-        await this.runPipeline();
-      } while (this.rebuildRequested);
-    } finally {
-      this.rebuilding = false;
-    }
+    this.pendingRebuild = (async () => {
+      try {
+        do {
+          this.rebuildRequested = false;
+          await this.runPipeline();
+        } while (this.rebuildRequested);
+      } finally {
+        this.rebuilding = false;
+        this.pendingRebuild = null;
+      }
+    })();
+    return this.pendingRebuild;
   }
 
   private async runPipeline(): Promise<void> {

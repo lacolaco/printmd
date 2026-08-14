@@ -99,10 +99,10 @@ describe('EditorStore', () => {
     const id = store.blocks()[1].id;
     store.toggleBreak(id);
     const master = store.printableMaster();
-    const target = master?.container.querySelector(`#${id}`);
+    const target = master?.container.querySelector(`[data-block-id="${id}"]`);
     expect(target?.classList.contains('forced-break')).toBe(true);
     store.toggleBreak(id);
-    expect(store.printableMaster()?.container.querySelector(`#${id}`)?.classList.contains('forced-break')).toBe(
+    expect(store.printableMaster()?.container.querySelector(`[data-block-id="${id}"]`)?.classList.contains('forced-break')).toBe(
       false,
     );
   });
@@ -112,5 +112,24 @@ describe('EditorStore', () => {
     expect(store.breaks().has('f0b0')).toBe(true);
     store.toggleBreak('f0b0');
     expect(store.breaks().has('f0b0')).toBe(false);
+  });
+
+  it('存在しない ID の removeFile では改ページ指定を消さない', async () => {
+    await store.addFiles([file('a.md', '# A')]);
+    store.toggleBreak(store.blocks()[0].id);
+    store.removeFile(9999);
+    expect(store.breaks().size).toBe(1);
+    expect(store.files()).toHaveLength(1);
+  });
+
+  it('構造変更 (削除・並べ替え) で structureVersion が進み、追加では進まない', async () => {
+    await store.addFiles([file('a.md', '# A'), file('b.md', '# B')]);
+    const v0 = store.structureVersion();
+    await store.addFiles([file('c.md', '# C')]);
+    expect(store.structureVersion()).toBe(v0);
+    store.reorderFile(0, 1);
+    expect(store.structureVersion()).toBe(v0 + 1);
+    store.removeFile(store.files()[0].id);
+    expect(store.structureVersion()).toBe(v0 + 2);
   });
 });

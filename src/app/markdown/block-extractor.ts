@@ -20,7 +20,6 @@ const KIND_BY_TAG: Readonly<Record<string, BlockKind>> = {
   P: 'paragraph',
   TABLE: 'table',
   PRE: 'code',
-  FIGURE: 'mermaid',
   BLOCKQUOTE: 'blockquote',
   UL: 'list',
   OL: 'list',
@@ -53,7 +52,14 @@ export interface MasterDocument {
   readonly blocks: readonly Block[];
 }
 
+function isMermaidFigure(el: Element): boolean {
+  // mermaid 由来かは applyMermaidResults が付ける class で判定する
+  // (生 HTML の figure も許可しているため、タグでは判別できない)
+  return el.tagName === 'FIGURE' && el.classList.contains('mermaid');
+}
+
 function toKind(el: Element): BlockKind {
+  if (isMermaidFigure(el)) return 'mermaid';
   return KIND_BY_TAG[el.tagName] ?? 'other';
 }
 
@@ -64,7 +70,7 @@ function toLevel(el: Element): number | null {
 
 function toLabel(el: Element): string {
   if (el.tagName === 'HR') return '———';
-  if (el.tagName === 'FIGURE') return 'mermaid 図';
+  if (isMermaidFigure(el)) return 'mermaid 図';
   const text = (el.textContent ?? '').trim().replaceAll(/\s+/g, ' ');
   return text.length > LABEL_MAX_LENGTH ? text.slice(0, LABEL_MAX_LENGTH) : text;
 }
@@ -83,7 +89,8 @@ export function buildMaster(fragments: readonly FileFragment[]): MasterDocument 
     temp.innerHTML = fragment.html;
     [...temp.children].forEach((el, blockIndex) => {
       const id = `f${fragment.fileIndex}b${blockIndex}`;
-      el.id = id;
+      // 著者が書いた id (アンカー) を潰さないよう、ブロック ID は data 属性で持つ
+      el.setAttribute('data-block-id', id);
       blocks.push({
         id,
         kind: toKind(el),
