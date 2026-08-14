@@ -34,11 +34,14 @@ export class EditorStore {
   private readonly phaseSignal = signal<EditorPhase>('idle');
   private readonly masterSignal = signal<MasterDocument | null>(null);
   private readonly importWarningsSignal = signal<readonly string[]>([]);
+  /** ファイル並びの構造変更 (削除・並べ替え) の世代。パネル側の表示状態リセットに使う */
+  private readonly structureVersionSignal = signal(0);
 
   readonly files = this.filesSignal.asReadonly();
   readonly breaks = this.breaksSignal.asReadonly();
   readonly phase = this.phaseSignal.asReadonly();
   readonly warnings = this.importWarningsSignal.asReadonly();
+  readonly structureVersion = this.structureVersionSignal.asReadonly();
   readonly hasFiles = computed(() => this.files().length > 0);
   readonly blocks = computed<readonly Block[]>(() => this.masterSignal()?.blocks ?? []);
 
@@ -87,32 +90,19 @@ export class EditorStore {
   }
 
   removeFile(id: number): void {
-    const before = this.filesSignal();
-    this.filesSignal.update((current) => current.filter((f) => f.id !== id));
-    if (this.filesSignal() !== before) this.resetBreaks();
-    void this.rebuild();
+    this.applyStructuralChange((current) =>
+      current.some((f) => f.id === id) ? current.filter((f) => f.id !== id) : current,
+    );
   }
 
   /** ファイルを 1 つ上/下へ動かす。実際に動いたら true (呼び出し側の告知・フォーカス制御用) */
   moveFile(id: number, delta: -1 | 1): boolean {
-    const before = this.filesSignal();
-    this.filesSignal.update((current) => {
-      const index = current.findIndex((f) => f.id === id);
-      const target = index + delta;
-      if (index < 0 || target < 0 || target >= current.length) return current;
-      const next = [...current];
-      [next[index], next[target]] = [next[target], next[index]];
-      return next;
-    });
-    const changed = this.filesSignal() !== before;
-    if (changed) this.resetBreaks();
-    void this.rebuild();
-    return changed;
+    const index = this.filesSignal().findIndex((f) => f.id === id);
+    return this.reorderFile(index, index + delta);
   }
 
   reorderFile(fromIndex: number, toIndex: number): boolean {
-    const before = this.filesSignal();
-    this.filesSignal.update((current) => {
+    return this.applyStructuralChange((current) => {
       if (
         fromIndex === toIndex ||
         fromIndex < 0 ||
@@ -127,8 +117,22 @@ export class EditorStore {
       next.splice(toIndex, 0, moved);
       return next;
     });
+  }
+
+  /**
+   * ファイル並びの構造変更 (削除・並べ替え) を 1 か所で扱う。updater が同一参照を
+   * 返したら無変更とみなし、改ページ指定のリセットも再構築の要求も行わない
+   */
+  private applyStructuralChange(
+    updater: (current: readonly ManuscriptFile[]) => readonly ManuscriptFile[],
+  ): boolean {
+    const before = this.filesSignal();
+    this.filesSignal.update(updater);
     const changed = this.filesSignal() !== before;
-    if (changed) this.resetBreaks();
+    if (changed) {
+      this.resetBreaks();
+      this.structureVersionSignal.update((v) => v + 1);
+    }
     void this.rebuild();
     return changed;
   }
