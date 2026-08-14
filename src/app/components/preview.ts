@@ -135,11 +135,14 @@ export class Preview {
     sheet.append(clip);
   }
 
-  /** 段組クローンを 1 つ作る。段数の計測とページ切り出しの両方で使う */
+  /**
+   * 段組クローンを 1 つ作る。段数の計測とページ切り出しの両方で使う。
+   * innerHTML の直列化 + 再パースはシートごとに全文を再解析して高くつくため、
+   * cloneNode で複製する (マスターはリスナーを持たない静的マークアップ)
+   */
   private buildColumnClone(master: HTMLElement): HTMLElement {
-    const mc = document.createElement('div');
+    const mc = master.cloneNode(true) as HTMLElement;
     mc.className = 'mc markdown-body';
-    mc.innerHTML = master.innerHTML;
     return mc;
   }
 

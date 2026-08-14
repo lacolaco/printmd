@@ -29,6 +29,8 @@ export class EditorStore {
   private rebuilding = false;
   private rebuildRequested = false;
   private pendingRebuild: Promise<void> | null = null;
+  /** ファイル内容 → mermaid 適用済み HTML のキャッシュ。並べ替え・削除では再変換しない */
+  private readonly fragmentCache = new Map<string, string>();
 
   private readonly filesSignal = signal<readonly ManuscriptFile[]>([]);
   private readonly breaksSignal = signal<ReadonlySet<string>>(new Set());
@@ -184,13 +186,22 @@ export class EditorStore {
       return;
     }
     this.phaseSignal.set('rendering');
-    const rendered = files.map((file) => ({ file, ...renderMarkdown(file.content) }));
+    // 内容が変わっていないファイルは markdown 変換も mermaid SVG 化もやり直さない
+    const toRender = files.filter((file) => !this.fragmentCache.has(file.content));
+    const rendered = toRender.map((file) => ({ file, ...renderMarkdown(file.content) }));
     const mermaidBlocks = rendered.flatMap((r) => r.mermaidBlocks);
     const results = await this.mermaidRenderer.render(mermaidBlocks);
-    const fragments = rendered.map((r, fileIndex) => ({
+    rendered.forEach((r) => {
+      this.fragmentCache.set(r.file.content, applyMermaidResults(r.html, results));
+    });
+    const keep = new Set(files.map((file) => file.content));
+    for (const key of this.fragmentCache.keys()) {
+      if (!keep.has(key)) this.fragmentCache.delete(key);
+    }
+    const fragments = files.map((file, fileIndex) => ({
       fileIndex,
-      fileName: r.file.name,
-      html: applyMermaidResults(r.html, results),
+      fileName: file.name,
+      html: this.fragmentCache.get(file.content)!,
     }));
     this.masterSignal.set(buildMaster(fragments));
     this.phaseSignal.set('idle');
