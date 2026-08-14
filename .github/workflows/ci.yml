@@ -1,14 +1,15 @@
-# main への push で Cloudflare Workers Static Assets へ自動デプロイする
-name: deploy
+# PR とブランチ push の検証: ユニットテスト + e2e (プレビュー = 印刷の一致検証)
+name: ci
 
 on:
+  pull_request:
   push:
-    branches: [main]
+    branches-ignore: [main]
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,6 +21,3 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run e2e
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
