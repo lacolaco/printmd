@@ -1,10 +1,4 @@
-import {
-  Component,
-  afterRenderEffect,
-  inject,
-  viewChild,
-  type ElementRef,
-} from '@angular/core';
+import { Component, effect, inject, viewChild, type ElementRef } from '@angular/core';
 import type { MasterDocument } from '../markdown/block-extractor';
 import { buildColumnClone } from '../page-count';
 import { EditorStore } from '../state/editor-store';
@@ -40,12 +34,9 @@ export class Preview {
   private readonly sheetsHost = viewChild.required<ElementRef<HTMLElement>>('sheetsHost');
 
   constructor() {
-    // 再構築は「計測 (読み) の結果がシート数 (書き) を決める」本質的に読み書き
-    // 交互の処理のため、afterRenderEffect の mixedReadWrite フェーズで行う
-    afterRenderEffect({
-      mixedReadWrite: () => {
-        this.rebuild(this.store.master(), this.store.breaks());
-      },
+    // 計測は pageCount (computed) に移っており、ここは DOM 書き込みのみ
+    effect(() => {
+      this.rebuild(this.store.master(), this.store.breaks());
     });
   }
 
