@@ -64,8 +64,8 @@ test('GitHub 体裁の要素が描画される', async ({ page }) => {
     'style.md',
     '# 体裁\n\n`inline` と **強調**。\n\n```ts\nconst x = 1;\n```\n\n- [x] タスク\n\n```mermaid\ngraph LR; A-->B;\n```\n',
   );
-  const master = page.locator('.print-root > *');
-  await expect(master.locator('code .hljs-keyword').first()).toBeAttached();
-  await expect(master.locator('li.task-list-item input[type="checkbox"]')).toBeChecked();
-  await expect(master.locator('figure.mermaid svg')).toBeAttached();
+  const doc = page.locator('.print-root > *');
+  await expect(doc.locator('code .hljs-keyword').first()).toBeAttached();
+  await expect(doc.locator('li.task-list-item input[type="checkbox"]')).toBeChecked();
+  await expect(doc.locator('figure.mermaid svg')).toBeAttached();
 });

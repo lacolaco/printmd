@@ -3,9 +3,9 @@
 アプリ全体のリアクティブ構造。**構造 (signal / computed / effect / コンポーネント構成) を変えるコミットでは、この図も同じコミットで更新すること。**
 
 - 逆流 (effect からの signal 書き込み)・循環: なし
-- `pageCount` は (master, breaks) からの計測つき computed (プローブは観測可能な状態を残さない)
+- `pageCount` は (doc, breaks) からの計測つき computed (プローブは観測可能な状態を残さない)
 - `breaksSignal` は linkedSignal: filesSignal に連動し、末尾への追記では維持・構造変更ではリセット
-- `filesSignal → runPipeline → masterSignal` は async パイプライン (点線 = 非リアクティブ)。単飛行 + 後追いで再入制御
+- `filesSignal → runPipeline → renderedDocumentSignal` は async パイプライン (点線 = 非リアクティブ)。単飛行 + 後追いで再入制御
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / announcement) は省略
 
 ```mermaid
@@ -20,7 +20,7 @@ flowchart LR
     S1((filesSignal))
     S2((breaksSignal<br/>linkedSignal))
     S3((renderingSignal))
-    S4((masterSignal<br/>= master))
+    S4((renderedDocumentSignal<br/>= doc))
     S5((importWarningsSignal))
     C1[/hasFiles/]
     C2[/blocks/]
@@ -44,7 +44,7 @@ flowchart LR
   end
 
   subgraph PrintC["PrintRoot"]
-    AE1[effect<br/>印刷マスター掲示]
+    AE1[effect<br/>印刷対象の掲示]
   end
 
   subgraph PreviewC["Preview"]
@@ -61,7 +61,7 @@ flowchart LR
   end
 
   subgraph DOM["DOM シンク"]
-    D1[(print-root<br/>唯一のマスター実体)]
+    D1[(print-root<br/>唯一の文書実体)]
     D2[(sheets<br/>クローン群)]
   end
 

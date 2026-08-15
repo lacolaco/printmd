@@ -78,10 +78,10 @@ describe('EditorStore', () => {
     expect(store.breaks().has('f0b0')).toBe(true);
   });
 
-  it('master の読み取りは DOM を変異させない (クラス付与は消費者の描画時に行う)', async () => {
+  it('doc の読み取りは DOM を変異させない (クラス付与は消費者の描画時に行う)', async () => {
     await store.addFiles([file('a.md', '# A\n\n本文')]);
     store.toggleBreak(store.blocks()[1].id);
-    const container = store.master()!.container;
+    const container = store.renderedDocument()!.container;
     expect(
       [...container.children].some((el) => el.classList.contains('forced-break')),
     ).toBe(false);

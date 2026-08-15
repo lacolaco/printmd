@@ -26,11 +26,11 @@ export async function readPageCount(page: Page): Promise<number> {
  */
 export async function previewHeadingPages(page: Page): Promise<Record<string, number>> {
   return page.evaluate(({ columnStepPx }) => {
-    const master = document.querySelector('.print-root > *');
-    if (!master) throw new Error('印刷マスターが存在しない');
+    const doc = document.querySelector('.print-root > *');
+    if (!doc) throw new Error('印刷対象が存在しない');
     const probe = document.createElement('div');
     probe.className = 'preview-probe';
-    const mc = master.cloneNode(true) as HTMLElement;
+    const mc = doc.cloneNode(true) as HTMLElement;
     mc.className = 'mc markdown-body';
     probe.append(mc);
     document.body.append(probe);

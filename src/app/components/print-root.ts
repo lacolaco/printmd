@@ -3,7 +3,7 @@ import { applyForcedBreaks } from '../markdown/block-extractor';
 import { EditorStore } from '../state/editor-store';
 
 /**
- * 印刷対象。印刷エンジンに渡される唯一のマスター文書の実体をそのまま掲示する
+ * 印刷対象。印刷エンジンに渡される唯一の変換済み文書の実体をそのまま掲示する
  * (クローンしない)。
  * 画面では非表示で、@media print でのみ可視化される (styles.css の .print-root)。
  * 強制改ページのクラスは掲示時にここで反映する。掲示先は不可視で
@@ -20,13 +20,13 @@ export class PrintRoot {
 
   constructor() {
     effect(() => {
-      const master = this.store.master();
+      const doc = this.store.renderedDocument();
       const breaks = this.store.breaks();
       const host = this.host.nativeElement;
       host.replaceChildren();
-      if (master !== null) {
-        applyForcedBreaks(master.container, master.blocks, breaks);
-        host.append(master.container);
+      if (doc !== null) {
+        applyForcedBreaks(doc.container, doc.blocks, breaks);
+        host.append(doc.container);
       }
     });
   }

@@ -1,5 +1,5 @@
 import { Component, effect, inject, viewChild, type ElementRef } from '@angular/core';
-import type { MasterDocument } from '../markdown/block-extractor';
+import type { RenderedDocument } from '../markdown/block-extractor';
 import { buildColumnClone } from '../page-count';
 import { EditorStore } from '../state/editor-store';
 import { ViewerState } from '../state/viewer-state';
@@ -7,7 +7,7 @@ import { COLUMN_STEP_MM } from '../page-geometry';
 
 
 /**
- * プレビュー: CSS 多段組を流用したページ分割。マスター要素を段幅 178mm の
+ * プレビュー: CSS 多段組を流用したページ分割。変換済み文書の要素を段幅 178mm の
  * 多段組コンテナへ複製し、段 i だけを見せる窓 (178mm × 265mm, overflow
  * hidden) を A4 シートとして縦に積む。
  * 改ページの指定は右カラムの調整パネルが担い、紙面は表示専用
@@ -36,19 +36,19 @@ export class Preview {
   constructor() {
     // 計測は pageCount (computed) に移っており、ここは DOM 書き込みのみ
     effect(() => {
-      this.rebuild(this.store.master(), this.store.breaks());
+      this.rebuild(this.store.renderedDocument(), this.store.breaks());
     });
   }
 
   /** 可視シートの遅延実体化に使う。rebuild ごとに張り直す */
   private observer: IntersectionObserver | null = null;
 
-  private rebuild(master: MasterDocument | null, breaks: ReadonlySet<string>): void {
+  private rebuild(doc: RenderedDocument | null, breaks: ReadonlySet<string>): void {
     const host = this.sheetsHost().nativeElement;
     this.observer?.disconnect();
     this.observer = null;
     host.replaceChildren();
-    if (master === null) return;
+    if (doc === null) return;
     const count = this.viewer.pageCount();
     // 大部数対策: シートは空の枠だけ並べ、可視域に入ったものだけ中身を実体化する
     const lazy = typeof IntersectionObserver !== 'undefined';
@@ -57,7 +57,7 @@ export class Preview {
         (entries) => {
           for (const entry of entries) {
             if (!entry.isIntersecting) continue;
-            this.fillSheet(entry.target as HTMLElement, master, breaks);
+            this.fillSheet(entry.target as HTMLElement, doc, breaks);
             this.observer?.unobserve(entry.target);
           }
         },
@@ -70,19 +70,19 @@ export class Preview {
       sheet.dataset['page'] = String(index + 1);
       host.append(sheet);
       if (lazy) this.observer?.observe(sheet);
-      else this.fillSheet(sheet, master, breaks);
+      else this.fillSheet(sheet, doc, breaks);
     }
   }
 
   /** シートへ段組クローンの窓を実体化する。実体化済みなら何もしない */
-  private fillSheet(sheet: HTMLElement, master: MasterDocument, breaks: ReadonlySet<string>): void {
+  private fillSheet(sheet: HTMLElement, doc: RenderedDocument, breaks: ReadonlySet<string>): void {
     if (sheet.childElementCount > 0) return;
     const index = Number(sheet.dataset['page']) - 1;
     const clip = document.createElement('div');
     clip.className = 'clip';
-    const mc = buildColumnClone(master, breaks);
+    const mc = buildColumnClone(doc, breaks);
     mc.style.marginLeft = `${-(index * COLUMN_STEP_MM)}mm`;
-    // 紙面の複製は読み上げ・フォーカスの対象から外す (本文は原稿と印刷マスターが担う)
+    // 紙面の複製は読み上げ・フォーカスの対象から外す (本文は原稿と印刷対象が担う)
     mc.setAttribute('inert', '');
     clip.append(mc);
     sheet.append(clip);

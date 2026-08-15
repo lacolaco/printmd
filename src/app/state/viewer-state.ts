@@ -17,13 +17,13 @@ export class ViewerState {
   readonly zoomLabel = computed(() => `${Math.round(this.zoom() * 100)}%`);
 
   /**
-   * ページ数。(master, breaks) を現在の CSS で組んだときのレイアウト結果の
+   * ページ数。(doc, breaks) を現在の CSS で組んだときのレイアウト結果の
    * メモ化された導出値 (実測はプローブで行うが観測可能な状態を残さない)
    */
   readonly pageCount = computed(() => {
-    const master = this.store.master();
-    if (master === null) return 0;
-    return measurePageCount(master, this.store.breaks());
+    const doc = this.store.renderedDocument();
+    if (doc === null) return 0;
+    return measurePageCount(doc, this.store.breaks());
   });
 
   setZoom(delta: -1 | 1): void {

@@ -1,6 +1,6 @@
 import { Service, computed, inject, linkedSignal, signal } from '@angular/core';
-import type { Block, MasterDocument } from '../markdown/block-extractor';
-import { buildMaster } from '../markdown/block-extractor';
+import type { Block, RenderedDocument } from '../markdown/block-extractor';
+import { buildRenderedDocument } from '../markdown/block-extractor';
 import { applyMermaidResults } from '../mermaid/apply-mermaid-results';
 import { MermaidRenderer } from '../mermaid/mermaid-renderer';
 import { renderMarkdown } from '../markdown/render-markdown';
@@ -51,7 +51,7 @@ export class EditorStore {
   });
   /** async パイプライン実行中か (進行表示用)。命令的な島からの入力 */
   private readonly renderingSignal = signal(false);
-  private readonly masterSignal = signal<MasterDocument | null>(null);
+  private readonly renderedDocumentSignal = signal<RenderedDocument | null>(null);
   private readonly importWarningsSignal = signal<readonly string[]>([]);
 
   readonly files = this.filesSignal.asReadonly();
@@ -59,14 +59,14 @@ export class EditorStore {
   readonly rendering = this.renderingSignal.asReadonly();
   readonly warnings = this.importWarningsSignal.asReadonly();
   readonly hasFiles = computed(() => this.files().length > 0);
-  readonly blocks = computed<readonly Block[]>(() => this.masterSignal()?.blocks ?? []);
+  readonly blocks = computed<readonly Block[]>(() => this.renderedDocumentSignal()?.blocks ?? []);
 
   /**
-   * 変換済みマスター文書。container は唯一の DOM 実体で、印刷対象 (PrintRoot) が
+   * 変換済み変換済み文書。container は唯一の DOM 実体で、印刷対象 (PrintRoot) が
    * そのまま掲示し、プレビューは複製して使う。強制改ページのクラス付与は
    * ここでは行わない — 消費者が描画時に applyForcedBreaks を適用する
    */
-  readonly master = this.masterSignal.asReadonly();
+  readonly renderedDocument = this.renderedDocumentSignal.asReadonly();
 
   async addFiles(files: readonly { name: string; text(): Promise<string> }[]): Promise<void> {
     const settled = await Promise.allSettled(
@@ -177,7 +177,7 @@ export class EditorStore {
   private async runPipeline(): Promise<void> {
     const files = this.filesSignal();
     if (files.length === 0) {
-      this.masterSignal.set(null);
+      this.renderedDocumentSignal.set(null);
       this.renderingSignal.set(false);
       return;
     }
@@ -199,7 +199,7 @@ export class EditorStore {
       fileName: file.name,
       html: this.fragmentCache.get(file.content)!,
     }));
-    this.masterSignal.set(buildMaster(fragments));
+    this.renderedDocumentSignal.set(buildRenderedDocument(fragments));
     this.renderingSignal.set(false);
   }
 }

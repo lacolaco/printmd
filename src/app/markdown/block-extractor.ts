@@ -47,7 +47,7 @@ export interface FileFragment {
   readonly html: string;
 }
 
-export interface MasterDocument {
+export interface RenderedDocument {
   readonly container: HTMLElement;
   readonly blocks: readonly Block[];
 }
@@ -76,10 +76,10 @@ function toLabel(el: Element): string {
 }
 
 /**
- * 複数ファイルの HTML 断片を 1 つのマスター要素へ結合し、トップレベル要素に
+ * 複数ファイルの HTML 断片を 1 つの変換済み文書の要素へ結合し、トップレベル要素に
  * id="f{fileIndex}b{blockIndex}" を付与する。ID の連番はファイルごとに振り直す。
  */
-export function buildMaster(fragments: readonly FileFragment[]): MasterDocument {
+export function buildRenderedDocument(fragments: readonly FileFragment[]): RenderedDocument {
   const container = document.createElement('div');
   container.className = 'markdown-body';
   const blocks: Block[] = [];
