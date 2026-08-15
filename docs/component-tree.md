@@ -12,11 +12,12 @@ flowchart TB
   PANEL["ControlPanel<br/><small>調整パネル: 右カラムの所有者</small>"]
   FILEP["FilePanel<br/><small>原稿の取り込み・並べ替え・削除</small>"]
   BREAKP["BreakPanel<br/><small>全ブロックの改ページ指定一覧</small>"]
-  FOOTER["Footer<br/><small>著作権表記とライセンス導線</small>"]
+  FOOTER["Footer<br/><small>下端の帯: 著作権表記とライセンス導線<br/>(ヘッダと対)</small>"]
   DROP["ImportDropzone<br/><small>取り込み面</small>"]
   PRINT["PrintRoot<br/><small>印刷対象 (変換済み文書の掲示)</small>"]
 
   APP --> HEADER
+  APP --> FOOTER
   APP -->|"原稿あり"| WS
   APP -->|"空状態"| IMPORT
   APP --> PRINT
@@ -24,9 +25,7 @@ flowchart TB
   WS --> PANEL
   PANEL --> FILEP
   PANEL --> BREAKP
-  PANEL --> FOOTER
   IMPORT --> DROP
-  IMPORT --> FOOTER
 
   classDef shell fill:#fcd34d,stroke:#b45309
   classDef layout fill:#fde68a,stroke:#b45309

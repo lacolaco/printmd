@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { Footer } from './components/footer';
 import { Header } from './components/header';
 import { ImportScreen } from './components/import-screen';
 import { PrintRoot } from './components/print-root';
@@ -8,7 +9,7 @@ import { EditorStore } from './state/editor-store';
 /** 画面骨格。ヘッダ / 画面の切替 / 印刷対象の配置と、ウィンドウ全体のドロップ受け */
 @Component({
   selector: 'app-root',
-  imports: [Header, ImportScreen, PrintRoot, Workspace],
+  imports: [Footer, Header, ImportScreen, PrintRoot, Workspace],
   templateUrl: './app.html',
 })
 export class App {
