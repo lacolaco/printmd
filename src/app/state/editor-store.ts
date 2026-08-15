@@ -46,21 +46,11 @@ export class EditorStore {
   readonly blocks = computed<readonly Block[]>(() => this.masterSignal()?.blocks ?? []);
 
   /**
-   * 強制改ページ (breaks Set またはファイル境界) のクラスを反映したマスター要素。
-   * 印刷用の直接表示とプレビューのクローン元を兼ねる、唯一の DOM 実体。
-   * container は同一参照のまま変異するため、素の要素を返すと computed の等価判定
-   * (Object.is) で変更が下流へ伝播しない。毎回新しいラッパを返して伝播を保証する
+   * 変換済みマスター文書。container は唯一の DOM 実体で、印刷表示 (App) が
+   * そのまま掲示し、プレビューは複製して使う。強制改ページのクラス付与は
+   * ここでは行わない — 消費者が描画時に applyForcedBreaks を適用する
    */
-  readonly printableMaster = computed<{ readonly container: HTMLElement } | null>(() => {
-    const master = this.masterSignal();
-    if (master === null) return null;
-    const breaks = this.breaksSignal();
-    [...master.container.children].forEach((el, i) => {
-      const block = master.blocks[i];
-      el.classList.toggle('forced-break', block.isFileBoundary || breaks.has(block.id));
-    });
-    return { container: master.container };
-  });
+  readonly master = computed<MasterDocument | null>(() => this.masterSignal());
 
   async addFiles(files: readonly { name: string; text(): Promise<string> }[]): Promise<void> {
     const settled = await Promise.allSettled(

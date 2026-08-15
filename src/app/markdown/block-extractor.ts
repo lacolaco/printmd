@@ -106,3 +106,21 @@ export function buildMaster(fragments: readonly FileFragment[]): MasterDocument 
 
   return { container, blocks };
 }
+
+/**
+ * 強制改ページ (指定 Set とファイル境界) を container のトップレベル要素へ
+ * クラスとして反映する。冪等 (toggle) なので何度適用してもよい。
+ * 呼び出しは各消費者の描画時に行う — 派生値 (computed) の読み取りに
+ * DOM 変異の副作用を持ち込まないための取り決め
+ */
+export function applyForcedBreaks(
+  container: HTMLElement,
+  blocks: readonly Block[],
+  breaks: ReadonlySet<string>,
+): void {
+  [...container.children].forEach((el, index) => {
+    const block = blocks[index];
+    if (block === undefined) return;
+    el.classList.toggle('forced-break', block.isFileBoundary || breaks.has(block.id));
+  });
+}

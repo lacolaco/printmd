@@ -2,6 +2,7 @@ import { Component, ElementRef, computed, effect, inject, viewChild } from '@ang
 import { BreakPanel } from './components/break-panel';
 import { FilePanel } from './components/file-panel';
 import { Preview } from './components/preview';
+import { applyForcedBreaks } from './markdown/block-extractor';
 import { EditorStore } from './state/editor-store';
 import { ViewerState, ZOOMS } from './state/viewer-state';
 
@@ -22,12 +23,17 @@ export class App {
   private readonly printRoot = viewChild.required<ElementRef<HTMLElement>>('printRoot');
 
   constructor() {
-    // 印刷対象は唯一のマスター要素そのもの (クローンしない)。@media print でのみ可視化する
+    // 印刷対象は唯一のマスター要素そのもの (クローンしない)。@media print でのみ可視化する。
+    // 強制改ページのクラスは描画時にここで反映する
     effect(() => {
-      const master = this.store.printableMaster();
+      const master = this.store.master();
+      const breaks = this.store.breaks();
       const host = this.printRoot().nativeElement;
       host.replaceChildren();
-      if (master !== null) host.append(master.container);
+      if (master !== null) {
+        applyForcedBreaks(master.container, master.blocks, breaks);
+        host.append(master.container);
+      }
     });
   }
 

@@ -78,33 +78,13 @@ describe('EditorStore', () => {
     expect(store.breaks().has('f0b0')).toBe(true);
   });
 
-  it('printableMaster は toggleBreak のたびに新しい値を発行する (依存する effect へ変更が伝播する)', async () => {
+  it('master の読み取りは DOM を変異させない (クラス付与は消費者の描画時に行う)', async () => {
     await store.addFiles([file('a.md', '# A\n\n本文')]);
-    const before = store.printableMaster();
     store.toggleBreak(store.blocks()[1].id);
-    const after = store.printableMaster();
-    expect(after).not.toBe(before);
-  });
-
-  it('printableMaster はファイル境界ブロックへ常に forced-break クラスを付与する', async () => {
-    await store.addFiles([file('a.md', '# A'), file('b.md', '# B')]);
-    const master = store.printableMaster();
-    const children = master ? [...master.container.children] : [];
-    expect(children[0].classList.contains('forced-break')).toBe(false);
-    expect(children[1].classList.contains('forced-break')).toBe(true);
-  });
-
-  it('printableMaster は toggleBreak したブロックへ forced-break クラスを付与する', async () => {
-    await store.addFiles([file('a.md', '# A\n\n本文')]);
-    const id = store.blocks()[1].id;
-    store.toggleBreak(id);
-    const master = store.printableMaster();
-    const target = master?.container.querySelector(`[data-block-id="${id}"]`);
-    expect(target?.classList.contains('forced-break')).toBe(true);
-    store.toggleBreak(id);
-    expect(store.printableMaster()?.container.querySelector(`[data-block-id="${id}"]`)?.classList.contains('forced-break')).toBe(
-      false,
-    );
+    const container = store.master()!.container;
+    expect(
+      [...container.children].some((el) => el.classList.contains('forced-break')),
+    ).toBe(false);
   });
 
   it('toggleBreak は同じ ID の追加/削除を繰り返せる', () => {
