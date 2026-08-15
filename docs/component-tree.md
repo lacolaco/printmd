@@ -6,10 +6,10 @@
 flowchart TB
   APP["App<br/><small>画面骨格: ヘッダ / 画面切替 / 印刷対象、<br/>ウィンドウ全体のドロップ受け</small>"]
   HEADER["Header<br/><small>ロゴ / 頁数・ズーム / 印刷</small>"]
-  WS["Workspace<br/><small>作業画面: 2 カラムレイアウトの所有者</small>"]
+  WS["Workspace<br/><small>作業画面: md+ は 2 カラム、スマートフォン幅は<br/>シングルカラム + ボトムシート (開閉状態を所有)</small>"]
   IMPORT["ImportScreen<br/><small>空状態の画面 (初回のみ)</small>"]
   PREVIEW["Preview<br/><small>A4 シートの多段組プレビュー<br/>(遅延実体化)</small>"]
-  PANEL["ControlPanel<br/><small>調整パネル: 右カラムの所有者</small>"]
+  PANEL["ControlPanel<br/><small>調整パネル: md+ は右カラム /<br/>モバイルはボトムシートの中身</small>"]
   FILEP["FilePanel<br/><small>原稿の取り込み・並べ替え・削除</small>"]
   BREAKP["BreakPanel<br/><small>全ブロックの改ページ指定一覧</small>"]
   FOOTER["Footer<br/><small>下端の帯: 著作権表記とライセンス導線<br/>(ヘッダと対)</small>"]
