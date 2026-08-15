@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { COLUMN_STEP_MM, MM_TO_PX } from '../src/app/page-geometry';
 
 /** Markdown 文字列をファイル入力へ流し込み、プレビューの構築を待つ */
 export async function importMarkdown(page: Page, name: string, content: string): Promise<void> {
@@ -24,7 +25,7 @@ export async function readPageCount(page: Page): Promise<number> {
  * マスターの複製を計測用に組み、段のインデックスを x 位置から割り出す
  */
 export async function previewHeadingPages(page: Page): Promise<Record<string, number>> {
-  return page.evaluate(() => {
+  return page.evaluate(({ columnStepPx }) => {
     const master = document.querySelector('.print-root > *');
     if (!master) throw new Error('印刷マスターが存在しない');
     const probe = document.createElement('div');
@@ -33,16 +34,15 @@ export async function previewHeadingPages(page: Page): Promise<Record<string, nu
     mc.className = 'mc markdown-body';
     probe.append(mc);
     document.body.append(probe);
-    const MM = 96 / 25.4;
     const base = mc.getBoundingClientRect().left;
     const pages: Record<string, number> = {};
     mc.querySelectorAll('h2').forEach((h) => {
       const rect = h.getBoundingClientRect();
-      pages[h.textContent?.trim() ?? ''] = Math.round((rect.left - base) / (194 * MM)) + 1;
+      pages[h.textContent?.trim() ?? ''] = Math.round((rect.left - base) / columnStepPx) + 1;
     });
     probe.remove();
     return pages;
-  });
+  }, { columnStepPx: COLUMN_STEP_MM * MM_TO_PX });
 }
 
 /** 印刷実出力 (page.pdf) の各ページのテキストを返す */

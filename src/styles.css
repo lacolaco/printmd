@@ -25,8 +25,8 @@
 }
 
 .markdown-body .mermaid svg {
-  max-width: 178mm;
-  max-height: 265mm;
+  max-width: var(--content-width);
+  max-height: var(--content-height);
   width: auto;
   height: auto;
 }
@@ -45,10 +45,10 @@
 
 /* プレビュー: 多段組を A4 版面 (178mm × 265mm) に固定し、段 = ページとして扱う */
 .mc {
-  width: 178mm;
-  height: 265mm;
-  column-width: 178mm;
-  column-gap: 16mm;
+  width: var(--content-width);
+  height: var(--content-height);
+  column-width: var(--content-width);
+  column-gap: var(--column-gap);
   column-fill: auto;
 }
 
@@ -60,17 +60,17 @@
 }
 
 .sheet {
-  width: 210mm;
-  height: 297mm;
-  padding: 16mm;
+  width: var(--page-width);
+  height: var(--page-height);
+  padding: var(--page-margin);
   background: white;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
   margin: 0 auto 16px;
 }
 
 .clip {
-  width: 178mm;
-  height: 265mm;
+  width: var(--content-width);
+  height: var(--content-height);
   overflow: hidden;
 }
 
@@ -87,6 +87,7 @@
     display: block;
   }
   @page {
+    /* 正典は page-geometry.ts (@page 内の var() は互換性が不確かなためリテラル) */
     size: A4;
     margin: 16mm;
   }

@@ -9,11 +9,8 @@ import {
 } from '@angular/core';
 import { EditorStore } from '../state/editor-store';
 import { ViewerState } from '../state/viewer-state';
+import { COLUMN_GAP_MM, COLUMN_STEP_MM, MM_TO_PX } from '../page-geometry';
 
-/** 1mm を CSS px に換算する係数 (96dpi 基準) */
-const MM = 96 / 25.4;
-/** A4 版面幅 (178mm) + 段間 (16mm) */
-const COLUMN_STEP_MM = 194;
 
 /**
  * プレビュー: CSS 多段組を流用したページ分割。マスター要素を段幅 178mm の
@@ -117,7 +114,7 @@ export class Preview {
     const probeMc = this.buildColumnClone(master);
     probe.append(probeMc);
     document.body.append(probe);
-    const count = Math.max(1, Math.round((probeMc.scrollWidth + 16 * MM) / (COLUMN_STEP_MM * MM)));
+    const count = Math.max(1, Math.round((probeMc.scrollWidth + COLUMN_GAP_MM * MM_TO_PX) / (COLUMN_STEP_MM * MM_TO_PX)));
     probe.remove();
     return count;
   }
