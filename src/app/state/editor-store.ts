@@ -1,4 +1,4 @@
-import { Service, computed, inject, signal } from '@angular/core';
+import { Service, computed, inject, linkedSignal, signal } from '@angular/core';
 import type { Block, MasterDocument } from '../markdown/block-extractor';
 import { buildMaster } from '../markdown/block-extractor';
 import { applyMermaidResults } from '../mermaid/apply-mermaid-results';
@@ -15,6 +15,12 @@ export interface ManuscriptFile {
 export type EditorPhase = 'idle' | 'rendering';
 
 const MARKDOWN_NAME_PATTERN = /\.(md|markdown|txt)$/i;
+
+/** prev が next の先頭部分か (要素は同一参照)。真なら「末尾への追記だけ」の変化 */
+function isPrefixOf(prev: readonly ManuscriptFile[], next: readonly ManuscriptFile[]): boolean {
+  if (prev.length > next.length) return false;
+  return prev.every((file, index) => next[index] === file);
+}
 
 /**
  * アプリの状態。signals の一方向伝播:
@@ -33,7 +39,18 @@ export class EditorStore {
   private readonly fragmentCache = new Map<string, string>();
 
   private readonly filesSignal = signal<readonly ManuscriptFile[]>([]);
-  private readonly breaksSignal = signal<ReadonlySet<string>>(new Set());
+  /**
+   * 改ページ指定。ID は位置由来 (f{n}b{m}) のため、ファイルの削除・並べ替えでは
+   * 同じ ID が別ブロックを指し直す — そのため構造変更でリセットする。末尾への
+   * 追記だけは既存 ID が安定なので維持する。この連動を linkedSignal で宣言する
+   */
+  private readonly breaksSignal = linkedSignal<readonly ManuscriptFile[], ReadonlySet<string>>({
+    source: this.filesSignal,
+    computation: (files, previous) => {
+      if (previous !== undefined && isPrefixOf(previous.source, files)) return previous.value;
+      return new Set();
+    },
+  });
   private readonly phaseSignal = signal<EditorPhase>('idle');
   private readonly masterSignal = signal<MasterDocument | null>(null);
   private readonly importWarningsSignal = signal<readonly string[]>([]);
@@ -111,7 +128,8 @@ export class EditorStore {
 
   /**
    * ファイル並びの構造変更 (削除・並べ替え) を 1 か所で扱う。updater が同一参照を
-   * 返したら無変更とみなし、改ページ指定のリセットも再構築の要求も行わない
+   * 返したら無変更 (改ページ指定のリセットは breaksSignal の linkedSignal が
+   * source の変化から自動で行う)
    */
   private applyStructuralChange(
     updater: (current: readonly ManuscriptFile[]) => readonly ManuscriptFile[],
@@ -119,7 +137,6 @@ export class EditorStore {
     const before = this.filesSignal();
     this.filesSignal.update(updater);
     const changed = this.filesSignal() !== before;
-    if (changed) this.resetBreaks();
     void this.rebuild();
     return changed;
   }
@@ -131,10 +148,6 @@ export class EditorStore {
       else next.add(blockId);
       return next;
     });
-  }
-
-  private resetBreaks(): void {
-    if (this.breaksSignal().size > 0) this.breaksSignal.set(new Set());
   }
 
   /**
