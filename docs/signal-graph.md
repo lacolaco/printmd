@@ -41,8 +41,11 @@ flowchart LR
   end
 
   subgraph AppC["App"]
-    AE1[effect<br/>印刷マスター掲示]
     T2{{空状態 ↔ 作業画面の切替}}
+  end
+
+  subgraph PrintC["PrintRoot"]
+    AE1[effect<br/>印刷マスター掲示]
   end
 
   subgraph PreviewC["Preview"]
