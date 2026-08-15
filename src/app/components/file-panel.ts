@@ -73,7 +73,7 @@ import { EditorStore } from '../state/editor-store';
         </label>
 
       @if (store.warnings().length > 0) {
-        <ul class="mt-2 space-y-1" role="list">
+        <ul class="mt-2 space-y-1" role="status">
           @for (warning of store.warnings(); track warning) {
             <li class="rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-700">{{ warning }}</li>
           }

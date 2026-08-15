@@ -23,7 +23,7 @@ import { EditorStore } from '../state/editor-store';
       <span class="max-w-sm text-center">
         Markdownファイルをここへドロップ、またはクリックして選択すると、A4の紙面プレビューが表示されます
       </span>
-      <span class="max-w-sm text-center text-xs opacity-60">
+      <span class="max-w-sm text-center text-xs text-stone-600">
         チェックしたブロックの直前で改ページが入ります。原稿は書き換わりません
       </span>
     </label>
