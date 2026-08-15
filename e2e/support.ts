@@ -14,7 +14,7 @@ export async function importMarkdown(page: Page, name: string, content: string):
 /** ツールバーのページ数表示を数値で返す */
 export async function readPageCount(page: Page): Promise<number> {
   const text = await page.locator('[role="toolbar"] [role="status"]').textContent();
-  const match = /(\d+) ページ/.exec(text ?? '');
+  const match = /(\d+)ページ/.exec(text ?? '');
   if (!match) throw new Error(`ページ数表示が読めない: ${text}`);
   return Number(match[1]);
 }
