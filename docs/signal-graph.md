@@ -3,9 +3,9 @@
 アプリ全体のリアクティブ構造。**構造 (signal / computed / effect / コンポーネント構成) を変えるコミットでは、この図も同じコミットで更新すること。**
 
 - 逆流 (effect からの signal 書き込み)・循環: なし
+- `renderedDocument` は resource: filesSignal を params とする async 導出 (markdown 変換 + mermaid SVG 化 + fragmentCache)。`rendering` はその isLoading
 - `pageCount` は (doc, breaks) からの計測つき computed (プローブは観測可能な状態を残さない)
 - `breaksSignal` は linkedSignal: filesSignal に連動し、末尾への追記では維持・構造変更ではリセット
-- `filesSignal → runPipeline → renderedDocumentSignal` は async パイプライン (点線 = 非リアクティブ)。単飛行 + 後追いで再入制御
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / announcement) は省略
 
 ```mermaid
@@ -19,12 +19,11 @@ flowchart LR
   subgraph Store["EditorStore"]
     S1((filesSignal))
     S2((breaksSignal<br/>linkedSignal))
-    S3((renderingSignal))
-    S4((renderedDocumentSignal<br/>= doc))
+    S4[["renderedDocument<br/>resource (async 導出)"]]
+    S3[/rendering<br/>= isLoading/]
     S5((importWarningsSignal))
     C1[/hasFiles/]
     C2[/blocks/]
-    P[["runPipeline<br/>(async・単飛行・fragmentCache)"]]
   end
 
   subgraph Viewer["ViewerState"]
@@ -70,10 +69,9 @@ flowchart LR
   A2 -- toggleBreak --> S2
   A3 -- setZoom --> V1
 
-  S1 -.-> P
-  P -.-> S3
-  P -.-> S4
-  P -.-> S5
+  S1 -- "params → loader<br/>(markdown 変換 + mermaid SVG 化<br/>+ fragmentCache)" --> S4
+  S4 --> S3
+  A1 -. "addFiles が警告を設定" .-> S5
 
   S1 --> C1
   S4 --> C2
@@ -115,15 +113,16 @@ flowchart LR
   classDef eff fill:#0f172a,stroke:#0f172a,color:#fff
   classDef tmpl fill:#d1fae5,stroke:#059669,color:#064e3b
   classDef dom fill:#e7e5e4,stroke:#57534e
-  classDef pipe fill:#fff,stroke:#57534e,stroke-dasharray:4 4
+  classDef res fill:#99f6e4,stroke:#0f766e,color:#134e4a
   classDef linked fill:#f5d0fe,stroke:#a21caf,color:#4a044e
-  class S1,S3,S4,S5,V1 sig
+  class S1,S5,V1 sig
+  class S4 res
+
   class S2 linked
-  class C1,C2,VC1,VC2,HC1,BC1,BC2,BC3,V2 comp
+  class C1,C2,S3,VC1,VC2,HC1,BC1,BC2,BC3,V2 comp
   class AE1,PE1 eff
   class T1,T2,T3,T4,T5 tmpl
   class D1,D2 dom
-  class P pipe
 ```
 
-凡例: 丸 = writable signal ・ 紫丸 = linkedSignal ・ 平行四辺形 = computed ・ 黒 = effect (DOM 書き込みのみ) ・ 六角 = テンプレートバインディング ・ 点線 = 命令的 (非リアクティブ)
+凡例: 丸 = writable signal ・ 紫丸 = linkedSignal ・ 青緑 = resource (async 導出) ・ 平行四辺形 = computed ・ 黒 = effect (DOM 書き込みのみ) ・ 六角 = テンプレートバインディング ・ 点線 = 命令的な書き込み

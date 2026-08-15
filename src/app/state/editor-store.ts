@@ -1,4 +1,4 @@
-import { Service, computed, inject, linkedSignal, signal } from '@angular/core';
+import { Service, computed, inject, linkedSignal, resource, signal } from '@angular/core';
 import type { Block, RenderedDocument } from '../markdown/block-extractor';
 import { buildRenderedDocument } from '../markdown/block-extractor';
 import { applyMermaidResults } from '../mermaid/apply-mermaid-results';
@@ -30,9 +30,6 @@ export class EditorStore {
   private readonly mermaidRenderer = inject(MermaidRenderer);
 
   private nextFileId = 1;
-  private rebuilding = false;
-  private rebuildRequested = false;
-  private pendingRebuild: Promise<void> | null = null;
   /** ファイル内容 → mermaid 適用済み HTML のキャッシュ。並べ替え・削除では再変換しない */
   private readonly fragmentCache = new Map<string, string>();
 
@@ -49,24 +46,52 @@ export class EditorStore {
       return new Set();
     },
   });
-  /** async パイプライン実行中か (進行表示用)。命令的な島からの入力 */
-  private readonly renderingSignal = signal(false);
-  private readonly renderedDocumentSignal = signal<RenderedDocument | null>(null);
+  /**
+   * 変換パイプライン。filesSignal からの async 導出そのものなので resource で
+   * 宣言する (再実行・進行状態・最新入力への追随は resource が担う)。
+   * mermaid の SVG 化は中断できないため abortSignal は使わず、破棄された実行の
+   * 結果は resource 側が捨てる
+   */
+  private readonly renderedResource = resource({
+    params: () => this.filesSignal(),
+    loader: async ({ params: files }) => {
+      if (files.length === 0) return null;
+      const toRender = files.filter((file) => !this.fragmentCache.has(file.content));
+      const rendered = toRender.map((file) => ({ file, ...renderMarkdown(file.content) }));
+      const results = await this.mermaidRenderer.render(rendered.flatMap((r) => r.mermaidBlocks));
+      rendered.forEach((r) => {
+        this.fragmentCache.set(r.file.content, applyMermaidResults(r.html, results));
+      });
+      const keep = new Set(files.map((file) => file.content));
+      for (const key of this.fragmentCache.keys()) {
+        if (!keep.has(key)) this.fragmentCache.delete(key);
+      }
+      return buildRenderedDocument(
+        files.map((file, fileIndex) => ({
+          fileIndex,
+          fileName: file.name,
+          html: this.fragmentCache.get(file.content)!,
+        })),
+      );
+    },
+  });
   private readonly importWarningsSignal = signal<readonly string[]>([]);
 
   readonly files = this.filesSignal.asReadonly();
   readonly breaks = this.breaksSignal.asReadonly();
-  readonly rendering = this.renderingSignal.asReadonly();
+  readonly rendering = this.renderedResource.isLoading;
   readonly warnings = this.importWarningsSignal.asReadonly();
   readonly hasFiles = computed(() => this.files().length > 0);
-  readonly blocks = computed<readonly Block[]>(() => this.renderedDocumentSignal()?.blocks ?? []);
+  readonly blocks = computed<readonly Block[]>(() => this.renderedDocument()?.blocks ?? []);
 
   /**
    * 変換済み変換済み文書。container は唯一の DOM 実体で、印刷対象 (PrintRoot) が
    * そのまま掲示し、プレビューは複製して使う。強制改ページのクラス付与は
    * ここでは行わない — 消費者が描画時に applyForcedBreaks を適用する
    */
-  readonly renderedDocument = this.renderedDocumentSignal.asReadonly();
+  readonly renderedDocument = computed<RenderedDocument | null>(() =>
+    this.renderedResource.hasValue() ? (this.renderedResource.value() ?? null) : null,
+  );
 
   async addFiles(files: readonly { name: string; text(): Promise<string> }[]): Promise<void> {
     const settled = await Promise.allSettled(
@@ -92,7 +117,6 @@ export class EditorStore {
     if (markdownOnly.length > 0) {
       this.filesSignal.update((current) => [...current, ...markdownOnly]);
     }
-    await this.rebuild();
   }
 
   removeFile(id: number): void {
@@ -135,9 +159,7 @@ export class EditorStore {
   ): boolean {
     const before = this.filesSignal();
     this.filesSignal.update(updater);
-    const changed = this.filesSignal() !== before;
-    void this.rebuild();
-    return changed;
+    return this.filesSignal() !== before;
   }
 
   toggleBreak(blockId: string): void {
@@ -149,57 +171,5 @@ export class EditorStore {
     });
   }
 
-  /**
-   * 単飛行 + 後追い: 実行中に入力が変わったら、いま投げた構築を積み増さず、
-   * 完了後に最新入力でもう 1 回だけ実行する。合流した呼び出しにも後追い実行の
-   * 完了まで解決しない Promise を返す (await 直後に古い状態を見せない)
-   */
-  private rebuild(): Promise<void> {
-    if (this.rebuilding) {
-      this.rebuildRequested = true;
-      return this.pendingRebuild ?? Promise.resolve();
-    }
-    this.rebuilding = true;
-    this.pendingRebuild = (async () => {
-      try {
-        do {
-          this.rebuildRequested = false;
-          await this.runPipeline();
-        } while (this.rebuildRequested);
-      } finally {
-        this.rebuilding = false;
-        this.pendingRebuild = null;
-      }
-    })();
-    return this.pendingRebuild;
-  }
 
-  private async runPipeline(): Promise<void> {
-    const files = this.filesSignal();
-    if (files.length === 0) {
-      this.renderedDocumentSignal.set(null);
-      this.renderingSignal.set(false);
-      return;
-    }
-    this.renderingSignal.set(true);
-    // 内容が変わっていないファイルは markdown 変換も mermaid SVG 化もやり直さない
-    const toRender = files.filter((file) => !this.fragmentCache.has(file.content));
-    const rendered = toRender.map((file) => ({ file, ...renderMarkdown(file.content) }));
-    const mermaidBlocks = rendered.flatMap((r) => r.mermaidBlocks);
-    const results = await this.mermaidRenderer.render(mermaidBlocks);
-    rendered.forEach((r) => {
-      this.fragmentCache.set(r.file.content, applyMermaidResults(r.html, results));
-    });
-    const keep = new Set(files.map((file) => file.content));
-    for (const key of this.fragmentCache.keys()) {
-      if (!keep.has(key)) this.fragmentCache.delete(key);
-    }
-    const fragments = files.map((file, fileIndex) => ({
-      fileIndex,
-      fileName: file.name,
-      html: this.fragmentCache.get(file.content)!,
-    }));
-    this.renderedDocumentSignal.set(buildRenderedDocument(fragments));
-    this.renderingSignal.set(false);
-  }
 }
