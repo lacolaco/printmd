@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, effect, inject, viewChild } from '@angular/core';
+import { Component, ElementRef, afterRenderEffect, computed, inject, viewChild } from '@angular/core';
 import { BreakPanel } from './components/break-panel';
 import { FilePanel } from './components/file-panel';
 import { Preview } from './components/preview';
@@ -24,16 +24,19 @@ export class App {
 
   constructor() {
     // 印刷対象は唯一のマスター要素そのもの (クローンしない)。@media print でのみ可視化する。
-    // 強制改ページのクラスは描画時にここで反映する
-    effect(() => {
-      const master = this.store.master();
-      const breaks = this.store.breaks();
-      const host = this.printRoot().nativeElement;
-      host.replaceChildren();
-      if (master !== null) {
-        applyForcedBreaks(master.container, master.blocks, breaks);
-        host.append(master.container);
-      }
+    // 強制改ページのクラスは描画時にここで反映する。DOM 書き込みのため
+    // afterRenderEffect の write フェーズで行う
+    afterRenderEffect({
+      write: () => {
+        const master = this.store.master();
+        const breaks = this.store.breaks();
+        const host = this.printRoot().nativeElement;
+        host.replaceChildren();
+        if (master !== null) {
+          applyForcedBreaks(master.container, master.blocks, breaks);
+          host.append(master.container);
+        }
+      },
     });
   }
 

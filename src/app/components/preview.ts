@@ -1,9 +1,7 @@
 import {
   Component,
-  computed,
-  effect,
+  afterRenderEffect,
   inject,
-  signal,
   viewChild,
   type ElementRef,
 } from '@angular/core';
@@ -42,8 +40,12 @@ export class Preview {
   private readonly sheetsHost = viewChild.required<ElementRef<HTMLElement>>('sheetsHost');
 
   constructor() {
-    effect(() => {
-      this.rebuild(this.store.master(), this.store.breaks());
+    // 再構築は「計測 (読み) の結果がシート数 (書き) を決める」本質的に読み書き
+    // 交互の処理のため、afterRenderEffect の mixedReadWrite フェーズで行う
+    afterRenderEffect({
+      mixedReadWrite: () => {
+        this.rebuild(this.store.master(), this.store.breaks());
+      },
     });
   }
 
