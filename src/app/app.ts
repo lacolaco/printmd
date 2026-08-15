@@ -1,25 +1,18 @@
-import { Component, ElementRef, computed, effect, inject, viewChild } from '@angular/core';
+import { Component, ElementRef, effect, inject, viewChild } from '@angular/core';
 import { BreakPanel } from './components/break-panel';
+import { Header } from './components/header';
 import { FilePanel } from './components/file-panel';
 import { Preview } from './components/preview';
 import { applyForcedBreaks } from './markdown/block-extractor';
 import { EditorStore } from './state/editor-store';
-import { ViewerState, ZOOMS } from './state/viewer-state';
 
 @Component({
   selector: 'app-root',
-  imports: [BreakPanel, FilePanel, Preview],
+  imports: [BreakPanel, FilePanel, Header, Preview],
   templateUrl: './app.html',
 })
 export class App {
   protected readonly store = inject(EditorStore);
-  protected readonly viewer = inject(ViewerState);
-  protected readonly maxZoomIndex = ZOOMS.length - 1;
-  protected readonly statusLabel = computed(() => {
-    if (this.store.phase() === 'rendering') return '変換中…';
-    const count = this.viewer.pageCount();
-    return count === 0 ? '—' : `${count}ページ`;
-  });
   private readonly printRoot = viewChild.required<ElementRef<HTMLElement>>('printRoot');
 
   constructor() {
@@ -36,10 +29,6 @@ export class App {
         host.append(master.container);
       }
     });
-  }
-
-  protected print(): void {
-    window.print();
   }
 
   protected onFileInput(event: Event): void {
