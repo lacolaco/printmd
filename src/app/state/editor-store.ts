@@ -12,8 +12,6 @@ export interface ManuscriptFile {
   readonly content: string;
 }
 
-export type EditorPhase = 'idle' | 'rendering';
-
 const MARKDOWN_NAME_PATTERN = /\.(md|markdown|txt)$/i;
 
 /** prev が next の先頭部分か (要素は同一参照)。真なら「末尾への追記だけ」の変化 */
@@ -51,13 +49,14 @@ export class EditorStore {
       return new Set();
     },
   });
-  private readonly phaseSignal = signal<EditorPhase>('idle');
+  /** async パイプライン実行中か (進行表示用)。命令的な島からの入力 */
+  private readonly renderingSignal = signal(false);
   private readonly masterSignal = signal<MasterDocument | null>(null);
   private readonly importWarningsSignal = signal<readonly string[]>([]);
 
   readonly files = this.filesSignal.asReadonly();
   readonly breaks = this.breaksSignal.asReadonly();
-  readonly phase = this.phaseSignal.asReadonly();
+  readonly rendering = this.renderingSignal.asReadonly();
   readonly warnings = this.importWarningsSignal.asReadonly();
   readonly hasFiles = computed(() => this.files().length > 0);
   readonly blocks = computed<readonly Block[]>(() => this.masterSignal()?.blocks ?? []);
@@ -179,10 +178,10 @@ export class EditorStore {
     const files = this.filesSignal();
     if (files.length === 0) {
       this.masterSignal.set(null);
-      this.phaseSignal.set('idle');
+      this.renderingSignal.set(false);
       return;
     }
-    this.phaseSignal.set('rendering');
+    this.renderingSignal.set(true);
     // 内容が変わっていないファイルは markdown 変換も mermaid SVG 化もやり直さない
     const toRender = files.filter((file) => !this.fragmentCache.has(file.content));
     const rendered = toRender.map((file) => ({ file, ...renderMarkdown(file.content) }));
@@ -201,6 +200,6 @@ export class EditorStore {
       html: this.fragmentCache.get(file.content)!,
     }));
     this.masterSignal.set(buildMaster(fragments));
-    this.phaseSignal.set('idle');
+    this.renderingSignal.set(false);
   }
 }

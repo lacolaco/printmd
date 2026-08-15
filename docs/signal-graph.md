@@ -19,7 +19,7 @@ flowchart LR
   subgraph Store["EditorStore"]
     S1((filesSignal))
     S2((breaksSignal<br/>linkedSignal))
-    S3((phaseSignal))
+    S3((renderingSignal))
     S4((masterSignal))
     S5((importWarningsSignal))
     C1[/hasFiles/]
