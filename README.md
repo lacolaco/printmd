@@ -1,59 +1,30 @@
-# Printmd
+# printmd
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.3.
+Markdown 原稿を GitHub のレンダリングそのままの見た目で A4 の紙面に割り付け、改ページを調整して印刷用 PDF にするウェブツール。
 
-## Development server
+**https://printmd.lacolaco.app**
 
-To start a local development server, run:
+- 計算はすべてブラウザ内で完結する。原稿がサーバーへ送られることはない
+- 複数の Markdown ファイルを取り込み、順序を並べ替えられる (ファイル境界は常に改ページ)
+- 任意のブロックの直前に改ページを指定できる。原稿は書き換わらない
+- 出力はブラウザの印刷ダイアログから PDF に保存する
 
-```bash
-ng serve
-```
+## 仕組み
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+画面プレビューは CSS 多段組を流用する。段の幅と高さを A4 の版面 (178mm × 265mm) に固定すると、ブラウザのフラグメンテーションエンジンが本文を段単位に分割する。これは印刷時のページ分割と同じエンジンなので、段の区切りがそのままページの区切りになり、プレビューと印刷結果が一致する。強制改ページは画面では `break-before: column`、印刷では `break-before: page` として同じクラスに割り当てる。
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 開発
 
 ```bash
-ng generate --help
+npm ci
+npm start          # 開発サーバー
+npm test           # ユニットテスト (vitest / jsdom)
+npm run e2e        # e2e (Playwright。プレビューと印刷 PDF の一致を実出力で検証)
+npm run build      # 本番ビルド
 ```
 
-## Building
+デプロイは Cloudflare Workers Static Assets (`wrangler.jsonc`)。main への push で GitHub Actions が自動デプロイする。
 
-To build the project run:
+## ライセンス
 
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+[MIT](LICENSE)

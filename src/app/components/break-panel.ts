@@ -3,10 +3,9 @@ import type { Block, BlockKind } from '../markdown/block-extractor';
 import { EditorStore } from '../state/editor-store';
 
 /**
- * 改ページ調整パネル。全トップレベルブロックがチェック可能 (チェック = 直前で
- * 改ページ)。ノイズ対策: 既定では主要ブロックだけを表示し、「すべてのブロック
- * を表示」で段落・リスト等も出す。ファイル境界ブロックは常に改ページになるため
- * チェック操作の対象外として案内のみ表示する。
+ * 改ページ調整パネル。原稿の全トップレベルブロックを document 順に列挙し、
+ * チェック = そのブロックの直前で改ページ。ファイル境界ブロックは常に改ページに
+ * なるためチェック操作の対象外として案内のみ表示する。
  */
 
 const KIND_LABELS: Readonly<Record<BlockKind, string>> = {

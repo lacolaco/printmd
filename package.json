@@ -1,6 +1,12 @@
 {
   "name": "printmd",
   "version": "0.0.0",
+  "description": "Markdown 原稿を GitHub スタイルのまま A4 に割り付け、改ページを調整して印刷用 PDF にするウェブツール",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lacolaco/printmd.git"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
