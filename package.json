@@ -13,7 +13,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "lint": "ng lint"
   },
   "private": true,
   "packageManager": "npm@10.9.8",
@@ -37,18 +38,22 @@
     "@angular/build": "^22.1.3",
     "@angular/cli": "^22.1.3",
     "@angular/compiler-cli": "^22.1.0",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.1.12",
     "@testing-library/angular": "^19.4.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/user-event": "^14.6.4",
     "@types/markdown-it": "^14.1.2",
+    "angular-eslint": "22.1.0",
+    "eslint": "^10.6.0",
     "jsdom": "^28.0.0",
     "pdfjs-dist": "^6.2.108",
     "postcss": "^8.5.3",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.1.12",
     "typescript": "~6.0.2",
+    "typescript-eslint": "8.62.1",
     "vitest": "^4.0.8",
     "wrangler": "^4.123.0"
   }
