@@ -11,29 +11,7 @@ import { EditorStore } from '../state/editor-store';
   template: `
     <section aria-label="原稿ファイル">
 
-      @if (store.files().length === 0) {
-      <label
-        class="block cursor-pointer rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-6 text-center text-sm text-stone-600 transition-colors hover:border-stone-400 hover:bg-stone-100 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200"
-        [class.border-blue-500]="dragOver()"
-        [class.bg-blue-50]="dragOver()"
-        (dragover)="onDragOver($event)"
-        (dragleave)="dragOver.set(false)"
-        (drop)="onDrop($event)"
-      >
-        <input
-          type="file"
-          class="sr-only"
-          multiple
-          accept=".md,.markdown,.txt"
-          (change)="onFileInput($event)"
-        />
-        Markdownファイルをドロップ、またはクリックして選択
-      </label>
-      }
-
-
-      @if (store.files().length > 0) {
-        <ul class="mt-3 space-y-1" role="list">
+      <ul class="space-y-1" role="list">
           @for (file of store.files(); track file.id; let i = $index; let last = $last) {
             <li
               class="flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2 py-1.5 text-sm"
@@ -50,6 +28,8 @@ import { EditorStore } from '../state/editor-store';
                 type="button"
                 class="rounded p-1 text-stone-500 hover:bg-stone-100 disabled:opacity-30"
                 [attr.aria-label]="file.name + 'を上へ移動'"
+                [attr.data-move-file]="file.id"
+                data-move-dir="-1"
                 [disabled]="i === 0"
                 (click)="move(file.id, file.name, -1)"
               >
@@ -59,6 +39,8 @@ import { EditorStore } from '../state/editor-store';
                 type="button"
                 class="rounded p-1 text-stone-500 hover:bg-stone-100 disabled:opacity-30"
                 [attr.aria-label]="file.name + 'を下へ移動'"
+                [attr.data-move-file]="file.id"
+                data-move-dir="1"
                 [disabled]="last"
                 (click)="move(file.id, file.name, 1)"
               >
@@ -78,7 +60,6 @@ import { EditorStore } from '../state/editor-store';
         <label
           class="mt-2 inline-flex cursor-pointer items-center gap-1 rounded-md border border-dashed border-stone-300 px-2 py-1 text-xs text-stone-600 hover:border-stone-500 hover:text-stone-800 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200"
           (dragover)="onDragOver($event)"
-          (dragleave)="dragOver.set(false)"
           (drop)="onDrop($event)"
         >
           <input
@@ -90,7 +71,6 @@ import { EditorStore } from '../state/editor-store';
           />
           + ファイルを追加
         </label>
-      }
 
       @if (store.warnings().length > 0) {
         <ul class="mt-2 space-y-1" role="list">
@@ -105,7 +85,6 @@ import { EditorStore } from '../state/editor-store';
 })
 export class FilePanel {
   protected readonly store = inject(EditorStore);
-  protected readonly dragOver = signal(false);
   protected readonly draggingIndex = signal<number | null>(null);
   protected readonly announcement = signal('');
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
@@ -113,12 +92,10 @@ export class FilePanel {
 
   protected onDragOver(event: DragEvent): void {
     event.preventDefault();
-    this.dragOver.set(true);
   }
 
   protected onDrop(event: DragEvent): void {
     event.preventDefault();
-    this.dragOver.set(false);
     const files = [...(event.dataTransfer?.files ?? [])];
     if (files.length > 0) void this.store.addFiles(files);
   }
@@ -152,10 +129,10 @@ export class FilePanel {
       () => {
         const host = this.elementRef.nativeElement;
         const preferred = host.querySelector<HTMLButtonElement>(
-          `button[aria-label="${CSS.escape(name)} を${delta === -1 ? '上' : '下'}へ移動"]`,
+          `button[data-move-file="${id}"][data-move-dir="${delta}"]`,
         );
         const fallback = host.querySelector<HTMLButtonElement>(
-          `button[aria-label="${CSS.escape(name)} を${delta === -1 ? '下' : '上'}へ移動"]`,
+          `button[data-move-file="${id}"][data-move-dir="${-delta}"]`,
         );
         (preferred?.disabled === false ? preferred : fallback)?.focus();
       },
