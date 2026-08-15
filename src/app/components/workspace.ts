@@ -8,7 +8,7 @@ import { Preview } from './preview';
   imports: [ControlPanel, Preview],
   host: { class: 'flex min-h-0 flex-col md:flex-row' },
   template: `
-    <main class="min-h-0 flex-1" aria-label="紙面プレビュー">
+    <main class="min-h-0 min-w-0 flex-1" aria-label="紙面プレビュー">
       <app-preview class="block h-full" />
     </main>
     <app-control-panel />
