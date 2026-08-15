@@ -1,17 +1,14 @@
 import { Component, inject } from '@angular/core';
-import { BreakPanel } from './components/break-panel';
-import { FilePanel } from './components/file-panel';
-import { Footer } from './components/footer';
-import { ImportDropzone } from './components/import-dropzone';
 import { Header } from './components/header';
-import { Preview } from './components/preview';
+import { ImportScreen } from './components/import-screen';
 import { PrintRoot } from './components/print-root';
+import { Workspace } from './components/workspace';
 import { EditorStore } from './state/editor-store';
 
-/** 画面骨格。取り込みドロップの受け口とレイアウト切替だけを持つ */
+/** 画面骨格。ヘッダ / 画面の切替 / 印刷対象の配置と、ウィンドウ全体のドロップ受け */
 @Component({
   selector: 'app-root',
-  imports: [BreakPanel, FilePanel, Footer, Header, ImportDropzone, Preview, PrintRoot],
+  imports: [Header, ImportScreen, PrintRoot, Workspace],
   templateUrl: './app.html',
 })
 export class App {

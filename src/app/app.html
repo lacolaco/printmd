@@ -4,26 +4,10 @@
   (drop)="onWindowDrop($event)"
 >
   <app-header />
-
   @if (store.hasFiles()) {
-    <div class="flex min-h-0 flex-1 flex-col md:flex-row">
-      <main class="min-h-0 flex-1" aria-label="紙面プレビュー">
-        <app-preview class="block h-full" />
-      </main>
-      <aside
-        class="app-panel w-full shrink-0 overflow-y-auto border-t p-4 md:w-90 md:border-l md:border-t-0"
-        aria-label="調整パネル"
-      >
-        <app-file-panel />
-        <app-break-panel />
-        <app-footer class="mt-6 block border-t border-stone-200 pt-3" />
-      </aside>
-    </div>
+    <app-workspace class="min-h-0 flex-1" />
   } @else {
-    <main class="relative min-h-0 flex-1" aria-label="原稿の取り込み">
-      <app-import-dropzone />
-      <app-footer class="absolute bottom-3 left-0 right-0 text-center" />
-    </main>
+    <app-import-screen class="min-h-0 flex-1" />
   }
 </div>
 
