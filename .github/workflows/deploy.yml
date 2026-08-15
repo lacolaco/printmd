@@ -1,4 +1,5 @@
-# main への push で Cloudflare Workers Static Assets へ自動デプロイする
+# CD: main への push で Cloudflare Workers Static Assets へデプロイする。
+# 検証 (テスト + e2e) はマージ前の CI (ci.yml) が担う
 name: deploy
 
 on:
@@ -16,10 +17,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm test
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
-      - run: npm run e2e
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
