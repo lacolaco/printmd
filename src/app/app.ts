@@ -1,8 +1,9 @@
-import { Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, viewChild } from '@angular/core';
 import { BreakPanel } from './components/break-panel';
 import { FilePanel } from './components/file-panel';
 import { Preview } from './components/preview';
 import { EditorStore } from './state/editor-store';
+import { ViewerState, ZOOMS } from './state/viewer-state';
 
 @Component({
   selector: 'app-root',
@@ -11,20 +12,16 @@ import { EditorStore } from './state/editor-store';
 })
 export class App {
   protected readonly store = inject(EditorStore);
+  protected readonly viewer = inject(ViewerState);
+  protected readonly maxZoomIndex = ZOOMS.length - 1;
+  protected readonly statusLabel = computed(() => {
+    if (this.store.phase() === 'rendering') return '変換中…';
+    const count = this.viewer.pageCount();
+    return count === 0 ? '—' : `${count}ページ`;
+  });
   private readonly printRoot = viewChild.required<ElementRef<HTMLElement>>('printRoot');
 
-  /** デザイン案の切り替え (チケット 22 の意思決定用。決定後に除去する) */
-  protected readonly designOptions = [
-    { id: 'a', label: '案A 朱' },
-    { id: 'b', label: '案B 青焼' },
-    { id: 'c', label: '案C 原版' },
-  ] as const;
-  protected readonly design = signal(
-    new URLSearchParams(window.location.search).get('design') ?? 'a',
-  );
-
   constructor() {
-    document.documentElement.dataset['design'] = this.design();
     // 印刷対象は唯一のマスター要素そのもの (クローンしない)。@media print でのみ可視化する
     effect(() => {
       const master = this.store.printableMaster();
@@ -36,5 +33,22 @@ export class App {
 
   protected print(): void {
     window.print();
+  }
+
+  protected onFileInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files !== null) void this.store.addFiles([...input.files]);
+    input.value = '';
+  }
+
+  /** ウィンドウ全体をドロップ先にする (誤ドロップでのページ遷移も防ぐ) */
+  protected onWindowDragOver(event: DragEvent): void {
+    event.preventDefault();
+  }
+
+  protected onWindowDrop(event: DragEvent): void {
+    event.preventDefault();
+    const files = event.dataTransfer?.files;
+    if (files !== undefined && files.length > 0) void this.store.addFiles([...files]);
   }
 }

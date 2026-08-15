@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../mermaid/mermaid-renderer';
 import { EditorStore } from '../state/editor-store';
+import { ViewerState } from '../state/viewer-state';
 import { Preview } from './preview';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -20,13 +21,13 @@ describe('Preview', () => {
     });
   });
 
-  it('原稿がなければシートを作らず「- ページ」と表示する', async () => {
+  it('原稿がなければシートを作らずページ数は 0', async () => {
     const fixture = TestBed.createComponent(Preview);
     fixture.detectChanges();
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelectorAll('.sheet')).toHaveLength(0);
-    expect(el.textContent).toContain('- ページ');
+    expect(TestBed.inject(ViewerState).pageCount()).toBe(0);
   });
 
   it('原稿があればマスターを複製したシートを作る (jsdom はレイアウトを持たないため 1 枚)', async () => {
@@ -42,7 +43,7 @@ describe('Preview', () => {
     expect(sheets).toHaveLength(1);
     expect(sheets[0].querySelector('.clip > .mc.markdown-body')).not.toBeNull();
     expect(sheets[0].querySelector('h1')?.textContent).toBe('見出し');
-    expect(el.textContent).toContain('1 ページ');
+    expect(TestBed.inject(ViewerState).pageCount()).toBe(1);
   });
 
   it('IntersectionObserver がある環境では、シートは可視になるまで実体化しない', async () => {
@@ -80,30 +81,15 @@ describe('Preview', () => {
     }
   });
 
-  it('ズームボタンで表示倍率ラベルが変わり、境界で disabled になる', async () => {
+  it('ズーム状態 (ViewerState) が紙面の表示倍率に反映される', async () => {
     const fixture = TestBed.createComponent(Preview);
     fixture.detectChanges();
     await fixture.whenStable();
-    const el = fixture.nativeElement as HTMLElement;
-    const zoomOut = el.querySelector<HTMLButtonElement>('[aria-label="縮小"]')!;
-    const zoomIn = el.querySelector<HTMLButtonElement>('[aria-label="拡大"]')!;
-
-    expect(el.textContent).toContain('100%');
-    zoomOut.click();
+    const viewer = TestBed.inject(ViewerState);
+    viewer.setZoom(-1);
     fixture.detectChanges();
-    expect(el.textContent).toContain('75%');
-
-    for (let i = 0; i < 5; i++) {
-      zoomOut.click();
-      fixture.detectChanges();
-    }
-    expect(zoomOut.disabled).toBe(true);
-
-    for (let i = 0; i < 10; i++) {
-      zoomIn.click();
-      fixture.detectChanges();
-    }
-    expect(zoomIn.disabled).toBe(true);
-    expect(el.textContent).toContain('200%');
+    const host = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[style]');
+    expect(viewer.zoomLabel()).toBe('75%');
+    expect(host?.style.zoom).toBe('0.75');
   });
 });

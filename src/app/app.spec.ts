@@ -43,13 +43,13 @@ describe('App', () => {
     expect(printSpy).toHaveBeenCalled();
   });
 
-  it('原稿がなければ取り込みを促す案内を表示する', async () => {
+  it('原稿がなければ全面ドロップゾーンを表示する', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Markdown ファイルを取り込む');
-    expect(el.querySelector('app-preview')).toBeNull();
+    expect(el.querySelector('.app-empty-drop')).not.toBeNull();
+    expect(el.querySelector('app-file-panel')).toBeNull();
   });
 
   it('原稿を取り込むとプレビューと印刷用マスターを表示する', async () => {
@@ -62,15 +62,20 @@ describe('App', () => {
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('app-preview')).not.toBeNull();
+    expect(el.querySelector('app-break-panel')).not.toBeNull();
     expect(el.querySelector('.print-root h1')?.textContent).toBe('見出し');
   });
 
-  it('ファイル取り込みパネルと改ページ調整パネルを表示する', async () => {
+  it('原稿があればファイルチップ列とプレビューを表示する', async () => {
+    const store = TestBed.inject(EditorStore);
+    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('app-file-panel')).not.toBeNull();
+    expect(el.querySelector('app-preview')).not.toBeNull();
     expect(el.querySelector('app-break-panel')).not.toBeNull();
+    expect(el.querySelector('.app-empty-drop')).toBeNull();
   });
 });

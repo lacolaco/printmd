@@ -93,258 +93,58 @@
 }
 
 /* ===========================================================================
-   デザイン案 (チケット 22 の意思決定用。採用案に一本化したら他案を除去する)
-   ?design=a|b|c で切り替え。紙面 (markdown-body / A4 シート) は対象外
+   アプリの見た目「朱」: 校正刷りの机。涼しい明灰の作業面に墨、
+   アクセントは校正の朱 (改ページ指定 = 朱入れ、という操作概念と対になる)
    =========================================================================== */
 
-.design-switcher {
-  position: fixed;
-  bottom: 16px;
-  left: 50%;
-  translate: -50% 0;
-  z-index: 50;
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 999px;
-  background: rgba(28, 25, 23, 0.92);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-}
-.design-switcher a {
-  padding: 4px 14px;
-  border-radius: 999px;
-  font-size: 12px;
-  color: #d6d3d1;
-  text-decoration: none;
-}
-.design-switcher a.active {
-  background: white;
-  color: #1c1917;
-  font-weight: 600;
-}
-@media print {
-  .design-switcher {
-    display: none;
-  }
+:root {
+  --sumi: #211f1c;
+  --shu: #c8321e;
+  --desk: #e9ebed;
+  --paper-white: #fdfdfc;
+  --line: #d3d7db;
+  --muted: #6b6f74;
 }
 
-/* ---- 案 A「朱」: 校正刷りの机。涼しい明灰 + 墨 + 校正の朱 ---- */
-:root[data-design='a'] {
-  --a-sumi: #211f1c;
-  --a-shu: #c8321e;
-  --a-paper-gray: #e9ebed;
-  --a-line: #d3d7db;
+.app-ui {
+  background: var(--desk);
+  color: var(--sumi);
 }
-[data-design='a'] .app-ui {
-  background: var(--a-paper-gray);
-  color: var(--a-sumi);
+.app-header {
+  position: relative;
+  background: var(--paper-white);
+  border-color: var(--line);
 }
-[data-design='a'] .app-header {
-  background: #fdfdfc;
-  border-color: var(--a-line);
+.app-print-button {
+  background: var(--sumi);
+  color: white;
 }
-[data-design='a'] .app-logo {
-  font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  padding-bottom: 2px;
-  border-bottom: 3px solid var(--a-shu);
-}
-[data-design='a'] .app-print-button {
-  background: var(--a-sumi);
-  border-radius: 2px;
-}
-[data-design='a'] .app-print-button:hover {
+.app-print-button:hover {
   background: #3a3733;
 }
-[data-design='a'] .app-panel {
-  background: #fdfdfc;
-  border-color: var(--a-line);
+.app-print-button:focus-visible {
+  outline: 2px solid var(--shu);
+  outline-offset: 2px;
 }
-[data-design='a'] app-preview [role='toolbar'] {
-  background: #fdfdfc;
-  border-color: var(--a-line);
+.app-toolbar {
+  background: var(--paper-white);
+  border-color: var(--line);
+  color: var(--sumi);
 }
-[data-design='a'] app-preview [role='region'] {
-  background: var(--a-paper-gray);
+.app-toolbar button:hover {
+  background: #eceef0;
 }
-[data-design='a'] input[type='checkbox'] {
-  accent-color: var(--a-shu);
+.app-workspace {
+  background: var(--desk);
 }
-/* 改ページ指定行は朱筆の傍線 */
-[data-design='a'] app-break-panel label:has(input:checked) {
-  box-shadow: inset 3px 0 0 var(--a-shu);
-  color: var(--a-shu);
+.app-empty-drop {
+  color: var(--muted);
 }
-
-/* ---- 案 B「青焼」: 青写真の作業台。青地に白い校正紙が浮かぶ ---- */
-:root[data-design='b'] {
-  --b-blue: #1e4179;
-  --b-blue-deep: #143059;
-  --b-blue-pale: #eef3fa;
-  --b-cyan: #9cc3e8;
-}
-[data-design='b'] .app-ui {
-  background: var(--b-blue);
-  color: #12335f;
-}
-[data-design='b'] .app-header {
-  background: var(--b-blue-deep);
-  border-color: rgba(255, 255, 255, 0.25);
-  color: white;
-}
-[data-design='b'] .app-logo {
-  color: white;
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  letter-spacing: 0.06em;
-}
-[data-design='b'] .app-tagline {
-  color: var(--b-cyan);
-}
-[data-design='b'] .app-header [role='status'] {
-  color: var(--b-cyan);
-}
-[data-design='b'] .app-print-button {
-  background: white;
-  color: var(--b-blue-deep);
-  border-radius: 2px;
-}
-[data-design='b'] .app-print-button:hover {
-  background: var(--b-blue-pale);
-}
-[data-design='b'] .app-panel {
-  background: var(--b-blue-pale);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-[data-design='b'] .app-panel h2 {
-  color: var(--b-blue-deep);
-}
-/* 製図風: パネルの点線罫と等幅数字 */
-[data-design='b'] .app-panel .border-dashed {
-  border-color: var(--b-blue);
-  background: white;
-  color: var(--b-blue);
-}
-[data-design='b'] app-preview [role='toolbar'] {
-  background: var(--b-blue-deep);
-  border-color: rgba(255, 255, 255, 0.25);
-  color: white;
-  font-variant-numeric: tabular-nums;
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-}
-[data-design='b'] app-preview [role='toolbar'] button:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-[data-design='b'] app-preview [role='region'] {
-  background: var(--b-blue);
-}
-[data-design='b'] .sheet {
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.35),
-    0 6px 24px rgba(0, 0, 0, 0.45);
-}
-[data-design='b'] input[type='checkbox'] {
-  accent-color: var(--b-blue);
+input[type='checkbox'] {
+  accent-color: var(--shu);
 }
 
-/* ---- 案 C「原版」: 印刷機の圧盤。チャコールの盤面 + CMYK 見当バー ---- */
-:root[data-design='c'] {
-  --c-bed: #26282b;
-  --c-bed-deep: #1b1d1f;
-  --c-panel: #2e3134;
-  --c-text: #e8e6e3;
-  --c-muted: #9d9a95;
-}
-[data-design='c'] .app-ui {
-  background: var(--c-bed);
-  color: var(--c-text);
-}
-[data-design='c'] .app-header {
-  background: var(--c-bed-deep);
-  border-color: #000;
-  color: var(--c-text);
-  position: relative;
-}
-/* CMYK 見当カラーバー */
-[data-design='c'] .app-header::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -3px;
-  height: 3px;
-  background: linear-gradient(
-    to right,
-    #00a5e3 0 25%,
-    #e5007e 25% 50%,
-    #ffd900 50% 75%,
-    #f4f2ee 75% 100%
-  );
-}
-[data-design='c'] .app-logo {
-  color: var(--c-text);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-[data-design='c'] .app-tagline,
-[data-design='c'] .app-header [role='status'] {
-  color: var(--c-muted);
-}
-[data-design='c'] .app-print-button {
-  background: #f4f2ee;
-  color: #1b1d1f;
-  border-radius: 2px;
-}
-[data-design='c'] .app-print-button:hover {
-  background: #dcd9d4;
-}
-[data-design='c'] .app-panel {
-  background: var(--c-panel);
-  border-color: #000;
-  color: var(--c-text);
-}
-[data-design='c'] .app-panel h2,
-[data-design='c'] .app-panel .text-stone-700,
-[data-design='c'] .app-panel .text-stone-800,
-[data-design='c'] .app-panel .text-stone-600 {
-  color: var(--c-text);
-}
-[data-design='c'] .app-panel .text-stone-500,
-[data-design='c'] .app-panel .text-stone-400 {
-  color: var(--c-muted);
-}
-[data-design='c'] .app-panel .bg-stone-100,
-[data-design='c'] .app-panel .bg-stone-50 {
-  background: #3a3d41;
-  border-color: #4a4d52;
-  color: var(--c-text);
-}
-[data-design='c'] .app-panel label:hover {
-  background: #3a3d41;
-}
-[data-design='c'] .app-panel .bg-white {
-  background: #3a3d41;
-  border-color: #4a4d52;
-  color: var(--c-text);
-}
-[data-design='c'] .app-panel .hover\:bg-stone-100:hover {
-  background: #45484d;
-}
-[data-design='c'] app-preview [role='toolbar'] {
-  background: var(--c-bed-deep);
-  border-color: #000;
-  color: var(--c-text);
-  font-variant-numeric: tabular-nums;
-}
-[data-design='c'] app-preview [role='toolbar'] button:hover {
-  background: #3a3d41;
-}
-[data-design='c'] app-preview [role='region'] {
-  background: var(--c-bed);
-}
-[data-design='c'] .sheet {
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6);
-}
-[data-design='c'] input[type='checkbox'] {
-  accent-color: #00a5e3;
+.app-panel {
+  background: var(--paper-white);
+  border-color: var(--line);
 }

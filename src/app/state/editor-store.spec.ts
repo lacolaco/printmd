@@ -122,14 +122,4 @@ describe('EditorStore', () => {
     expect(store.files()).toHaveLength(1);
   });
 
-  it('構造変更 (削除・並べ替え) で structureVersion が進み、追加では進まない', async () => {
-    await store.addFiles([file('a.md', '# A'), file('b.md', '# B')]);
-    const v0 = store.structureVersion();
-    await store.addFiles([file('c.md', '# C')]);
-    expect(store.structureVersion()).toBe(v0);
-    store.reorderFile(0, 1);
-    expect(store.structureVersion()).toBe(v0 + 1);
-    store.removeFile(store.files()[0].id);
-    expect(store.structureVersion()).toBe(v0 + 2);
-  });
 });

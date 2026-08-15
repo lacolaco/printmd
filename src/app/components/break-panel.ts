@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import type { Block, BlockKind } from '../markdown/block-extractor';
 import { EditorStore } from '../state/editor-store';
 
@@ -8,15 +8,6 @@ import { EditorStore } from '../state/editor-store';
  * を表示」で段落・リスト等も出す。ファイル境界ブロックは常に改ページになるため
  * チェック操作の対象外として案内のみ表示する。
  */
-
-const MAIN_KINDS: ReadonlySet<BlockKind> = new Set([
-  'heading',
-  'table',
-  'code',
-  'mermaid',
-  'blockquote',
-  'hr',
-]);
 
 const KIND_LABELS: Readonly<Record<BlockKind, string>> = {
   heading: '見出し',
@@ -51,14 +42,7 @@ interface FileGroup {
       <section class="mt-4" aria-labelledby="break-heading">
         <div class="mb-2 flex items-center justify-between gap-2">
           <h2 id="break-heading" class="text-sm font-bold text-stone-700">改ページ調整</h2>
-          <label class="flex cursor-pointer items-center gap-1 text-xs text-stone-600">
-            <input type="checkbox" [checked]="showAll()" (change)="toggleShowAll()" />
-            すべてのブロックを表示
-          </label>
         </div>
-        <p class="mb-2 text-xs text-stone-500">
-          チェックしたブロックの直前で改ページします。原稿は書き換わりません
-        </p>
         @if (totalRows() === 0) {
           <p class="text-xs text-stone-500">改ページを調整できるブロックがありません</p>
         }
@@ -110,38 +94,18 @@ interface FileGroup {
             </ul>
           </div>
         }
-        @if (hiddenCount() > 0) {
-          <p class="mt-2 text-xs text-stone-500">
-            ほか {{ hiddenCount() }} ブロックは「すべてのブロックを表示」で選べます
-          </p>
-        }
       </section>
     }
   `,
 })
 export class BreakPanel {
   protected readonly store = inject(EditorStore);
-  protected readonly showAll = signal(false);
-  /** フィルタ対象でも表示を維持する ID (操作した行が消えないように)。フィルタ切り替えでリセット */
-  private readonly stickyIds = signal<ReadonlySet<string>>(new Set());
-
-  constructor() {
-    // ID は位置由来 (f{n}b{m}) のため、ファイルの削除・並べ替えで同じ ID が別の
-    // ブロックを指し直す。構造変更の世代に合わせて維持リストを破棄する
-    effect(() => {
-      this.store.structureVersion();
-      this.stickyIds.set(new Set());
-    });
-  }
 
   protected readonly multiFile = computed(
     () => new Set(this.store.blocks().map((b) => b.fileIndex)).size > 1,
   );
 
   protected readonly groups = computed<readonly FileGroup[]>(() => {
-    const breaks = this.store.breaks();
-    const showAll = this.showAll();
-    const sticky = this.stickyIds();
     const groups: FileGroup[] = [];
     let current: { fileIndex: number; fileName: string; rows: BreakRow[] } | null = null;
     let currentHeadingLevel = 0;
@@ -153,13 +117,6 @@ export class BreakPanel {
         groups.push(current);
       }
       if (block.kind === 'heading') currentHeadingLevel = block.level ?? 1;
-      const visible =
-        block.isFileBoundary ||
-        showAll ||
-        MAIN_KINDS.has(block.kind) ||
-        breaks.has(block.id) ||
-        sticky.has(block.id);
-      if (!visible) continue;
       const level = block.kind === 'heading' ? (block.level ?? 1) : currentHeadingLevel + 1;
       current.rows.push({
         block,
@@ -176,17 +133,8 @@ export class BreakPanel {
     this.groups().reduce((sum, group) => sum + group.rows.length, 0),
   );
 
-  protected readonly hiddenCount = computed(() => this.store.blocks().length - this.totalRows());
-
-  protected toggleShowAll(): void {
-    this.showAll.set(!this.showAll());
-    this.stickyIds.set(new Set());
-  }
 
   protected toggleBreak(block: Block): void {
-    if (!MAIN_KINDS.has(block.kind)) {
-      this.stickyIds.update((current) => new Set(current).add(block.id));
-    }
     this.store.toggleBreak(block.id);
   }
 }

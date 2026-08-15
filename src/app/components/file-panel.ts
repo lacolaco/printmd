@@ -9,9 +9,9 @@ import { EditorStore } from '../state/editor-store';
 @Component({
   selector: 'app-file-panel',
   template: `
-    <section aria-labelledby="file-panel-heading">
-      <h2 id="file-panel-heading" class="mb-2 text-sm font-bold text-stone-700">原稿ファイル</h2>
+    <section aria-label="原稿ファイル">
 
+      @if (store.files().length === 0) {
       <label
         class="block cursor-pointer rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-6 text-center text-sm text-stone-600 transition-colors hover:border-stone-400 hover:bg-stone-100 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200"
         [class.border-blue-500]="dragOver()"
@@ -27,10 +27,10 @@ import { EditorStore } from '../state/editor-store';
           accept=".md,.markdown,.txt"
           (change)="onFileInput($event)"
         />
-        Markdown ファイルをドロップ、またはクリックして選択
+        Markdownファイルをドロップ、またはクリックして選択
       </label>
+      }
 
-      <p class="sr-only" role="status" aria-live="polite">{{ announcement() }}</p>
 
       @if (store.files().length > 0) {
         <ul class="mt-3 space-y-1" role="list">
@@ -49,7 +49,7 @@ import { EditorStore } from '../state/editor-store';
               <button
                 type="button"
                 class="rounded p-1 text-stone-500 hover:bg-stone-100 disabled:opacity-30"
-                [attr.aria-label]="file.name + ' を上へ移動'"
+                [attr.aria-label]="file.name + 'を上へ移動'"
                 [disabled]="i === 0"
                 (click)="move(file.id, file.name, -1)"
               >
@@ -58,7 +58,7 @@ import { EditorStore } from '../state/editor-store';
               <button
                 type="button"
                 class="rounded p-1 text-stone-500 hover:bg-stone-100 disabled:opacity-30"
-                [attr.aria-label]="file.name + ' を下へ移動'"
+                [attr.aria-label]="file.name + 'を下へ移動'"
                 [disabled]="last"
                 (click)="move(file.id, file.name, 1)"
               >
@@ -67,7 +67,7 @@ import { EditorStore } from '../state/editor-store';
               <button
                 type="button"
                 class="rounded p-1 text-stone-500 hover:bg-red-50 hover:text-red-600"
-                [attr.aria-label]="file.name + ' を取り除く'"
+                [attr.aria-label]="file.name + 'を取り除く'"
                 (click)="store.removeFile(file.id)"
               >
                 ✕
@@ -75,9 +75,21 @@ import { EditorStore } from '../state/editor-store';
             </li>
           }
         </ul>
-        @if (store.files().length > 1) {
-          <p class="mt-1 text-xs text-stone-500">ファイル境界は常に改ページになります</p>
-        }
+        <label
+          class="mt-2 inline-flex cursor-pointer items-center gap-1 rounded-md border border-dashed border-stone-300 px-2 py-1 text-xs text-stone-600 hover:border-stone-500 hover:text-stone-800 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200"
+          (dragover)="onDragOver($event)"
+          (dragleave)="dragOver.set(false)"
+          (drop)="onDrop($event)"
+        >
+          <input
+            type="file"
+            class="sr-only"
+            multiple
+            accept=".md,.markdown,.txt"
+            (change)="onFileInput($event)"
+          />
+          + ファイルを追加
+        </label>
       }
 
       @if (store.warnings().length > 0) {
@@ -87,6 +99,7 @@ import { EditorStore } from '../state/editor-store';
           }
         </ul>
       }
+      <p class="sr-only" role="status" aria-live="polite">{{ announcement() }}</p>
     </section>
   `,
 })
@@ -152,7 +165,7 @@ export class FilePanel {
 
   private announceOrder(name: string, index: number): void {
     this.announcement.set(
-      `${name} を ${index + 1} 番目に移動しました。改ページ指定はリセットされます`,
+      `${name}を${index + 1}番目に移動しました。改ページ指定はリセットされます`,
     );
   }
 }

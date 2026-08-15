@@ -37,14 +37,11 @@ export class EditorStore {
   private readonly phaseSignal = signal<EditorPhase>('idle');
   private readonly masterSignal = signal<MasterDocument | null>(null);
   private readonly importWarningsSignal = signal<readonly string[]>([]);
-  /** ファイル並びの構造変更 (削除・並べ替え) の世代。パネル側の表示状態リセットに使う */
-  private readonly structureVersionSignal = signal(0);
 
   readonly files = this.filesSignal.asReadonly();
   readonly breaks = this.breaksSignal.asReadonly();
   readonly phase = this.phaseSignal.asReadonly();
   readonly warnings = this.importWarningsSignal.asReadonly();
-  readonly structureVersion = this.structureVersionSignal.asReadonly();
   readonly hasFiles = computed(() => this.files().length > 0);
   readonly blocks = computed<readonly Block[]>(() => this.masterSignal()?.blocks ?? []);
 
@@ -132,10 +129,7 @@ export class EditorStore {
     const before = this.filesSignal();
     this.filesSignal.update(updater);
     const changed = this.filesSignal() !== before;
-    if (changed) {
-      this.resetBreaks();
-      this.structureVersionSignal.update((v) => v + 1);
-    }
+    if (changed) this.resetBreaks();
     void this.rebuild();
     return changed;
   }
