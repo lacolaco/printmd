@@ -62,11 +62,11 @@ export class EditorStore {
   readonly blocks = computed<readonly Block[]>(() => this.masterSignal()?.blocks ?? []);
 
   /**
-   * 変換済みマスター文書。container は唯一の DOM 実体で、印刷表示 (App) が
+   * 変換済みマスター文書。container は唯一の DOM 実体で、印刷対象 (PrintRoot) が
    * そのまま掲示し、プレビューは複製して使う。強制改ページのクラス付与は
    * ここでは行わない — 消費者が描画時に applyForcedBreaks を適用する
    */
-  readonly master = computed<MasterDocument | null>(() => this.masterSignal());
+  readonly master = this.masterSignal.asReadonly();
 
   async addFiles(files: readonly { name: string; text(): Promise<string> }[]): Promise<void> {
     const settled = await Promise.allSettled(

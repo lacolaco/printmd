@@ -20,11 +20,10 @@ flowchart LR
     S1((filesSignal))
     S2((breaksSignal<br/>linkedSignal))
     S3((renderingSignal))
-    S4((masterSignal))
+    S4((masterSignal<br/>= master))
     S5((importWarningsSignal))
     C1[/hasFiles/]
     C2[/blocks/]
-    C3[/master/]
     P[["runPipeline<br/>(async・単飛行・fragmentCache)"]]
   end
 
@@ -78,7 +77,6 @@ flowchart LR
 
   S1 --> C1
   S4 --> C2
-  S4 --> C3
 
   C1 --> T2
   C2 --> BC1
@@ -92,14 +90,14 @@ flowchart LR
   S1 --> T5
   S5 --> T5
 
-  C3 --> AE1
+  S4 --> AE1
   S2 --> AE1
   AE1 --> D1
 
-  C3 --> PE1
+  S4 --> PE1
   S2 --> PE1
   PE1 --> D2
-  C3 --> V2
+  S4 --> V2
   S2 --> V2
   V2 --> PE1
 
@@ -121,7 +119,7 @@ flowchart LR
   classDef linked fill:#f5d0fe,stroke:#a21caf,color:#4a044e
   class S1,S3,S4,S5,V1 sig
   class S2 linked
-  class C1,C2,C3,VC1,VC2,HC1,BC1,BC2,BC3,V2 comp
+  class C1,C2,VC1,VC2,HC1,BC1,BC2,BC3,V2 comp
   class AE1,PE1 eff
   class T1,T2,T3,T4,T5 tmpl
   class D1,D2 dom
