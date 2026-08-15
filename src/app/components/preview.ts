@@ -6,10 +6,10 @@ import {
   type ElementRef,
 } from '@angular/core';
 import type { MasterDocument } from '../markdown/block-extractor';
-import { applyForcedBreaks } from '../markdown/block-extractor';
+import { buildColumnClone } from '../page-count';
 import { EditorStore } from '../state/editor-store';
 import { ViewerState } from '../state/viewer-state';
-import { COLUMN_GAP_MM, COLUMN_STEP_MM, MM_TO_PX } from '../page-geometry';
+import { COLUMN_STEP_MM } from '../page-geometry';
 
 
 /**
@@ -57,12 +57,8 @@ export class Preview {
     this.observer?.disconnect();
     this.observer = null;
     host.replaceChildren();
-    if (master === null) {
-      this.viewer.pageCount.set(0);
-      return;
-    }
-    const count = this.measurePageCount(master, breaks);
-    this.viewer.pageCount.set(count);
+    if (master === null) return;
+    const count = this.viewer.pageCount();
     // 大部数対策: シートは空の枠だけ並べ、可視域に入ったものだけ中身を実体化する
     const lazy = typeof IntersectionObserver !== 'undefined';
     if (lazy) {
@@ -93,7 +89,7 @@ export class Preview {
     const index = Number(sheet.dataset['page']) - 1;
     const clip = document.createElement('div');
     clip.className = 'clip';
-    const mc = this.buildColumnClone(master, breaks);
+    const mc = buildColumnClone(master, breaks);
     mc.style.marginLeft = `${-(index * COLUMN_STEP_MM)}mm`;
     // 紙面の複製は読み上げ・フォーカスの対象から外す (本文は原稿と印刷マスターが担う)
     mc.setAttribute('inert', '');
@@ -101,27 +97,5 @@ export class Preview {
     sheet.append(clip);
   }
 
-  /**
-   * 段組クローンを 1 つ作る。段数の計測とページ切り出しの両方で使う。
-   * innerHTML の直列化 + 再パースはシートごとに全文を再解析して高くつくため、
-   * cloneNode で複製する (マスターはリスナーを持たない静的マークアップ)
-   */
-  private buildColumnClone(master: MasterDocument, breaks: ReadonlySet<string>): HTMLElement {
-    const mc = master.container.cloneNode(true) as HTMLElement;
-    mc.className = 'mc markdown-body';
-    // クローンは元の状態を引き継がない前提で、改ページクラスを描画時に適用する
-    applyForcedBreaks(mc, master.blocks, breaks);
-    return mc;
-  }
 
-  private measurePageCount(master: MasterDocument, breaks: ReadonlySet<string>): number {
-    const probe = document.createElement('div');
-    probe.className = 'preview-probe';
-    const probeMc = this.buildColumnClone(master, breaks);
-    probe.append(probeMc);
-    document.body.append(probe);
-    const count = Math.max(1, Math.round((probeMc.scrollWidth + COLUMN_GAP_MM * MM_TO_PX) / (COLUMN_STEP_MM * MM_TO_PX)));
-    probe.remove();
-    return count;
-  }
 }
