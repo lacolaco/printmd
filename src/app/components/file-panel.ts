@@ -1,3 +1,4 @@
+import { CdkDrag, CdkDragHandle, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, Injector, afterNextRender, inject, signal } from '@angular/core';
 import { EditorStore } from '../state/editor-store';
 
@@ -8,21 +9,17 @@ import { EditorStore } from '../state/editor-store';
  */
 @Component({
   selector: 'app-file-panel',
+  imports: [CdkDrag, CdkDragHandle, CdkDropList],
   template: `
     <section aria-label="原稿ファイル">
 
-      <ul class="space-y-1" role="list">
+      <ul class="space-y-1" role="list" cdkDropList (cdkDropListDropped)="onListDrop($event)">
           @for (file of store.files(); track file.id; let i = $index; let last = $last) {
             <li
               class="flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2 py-1.5 text-sm"
-              [class.opacity-50]="draggingIndex() === i"
-              draggable="true"
-              (dragstart)="draggingIndex.set(i)"
-              (dragend)="draggingIndex.set(null)"
-              (dragover)="$event.preventDefault()"
-              (drop)="onListDrop($event, i)"
+              cdkDrag
             >
-              <span class="cursor-grab text-stone-500" aria-hidden="true">⠿</span>
+              <span class="cursor-grab text-stone-500" aria-hidden="true" cdkDragHandle>⠿</span>
               <span class="min-w-0 flex-1 truncate" [title]="file.name">{{ file.name }}</span>
               <button
                 type="button"
@@ -85,7 +82,6 @@ import { EditorStore } from '../state/editor-store';
 })
 export class FilePanel {
   protected readonly store = inject(EditorStore);
-  protected readonly draggingIndex = signal<number | null>(null);
   protected readonly announcement = signal('');
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly injector = inject(Injector);
@@ -107,15 +103,9 @@ export class FilePanel {
     input.value = '';
   }
 
-  protected onListDrop(event: DragEvent, targetIndex: number): void {
-    // preventDefault しないと OS からのファイル投下でページごと遷移してしまう
-    event.preventDefault();
-    const from = this.draggingIndex();
-    this.draggingIndex.set(null);
-    if (from !== null && from !== targetIndex) {
-      if (this.store.reorderFile(from, targetIndex)) {
-        this.announceOrder(this.store.files()[targetIndex].name, targetIndex);
-      }
+  protected onListDrop(event: CdkDragDrop<unknown>): void {
+    if (this.store.reorderFile(event.previousIndex, event.currentIndex)) {
+      this.announceOrder(this.store.files()[event.currentIndex].name, event.currentIndex);
     }
   }
 
