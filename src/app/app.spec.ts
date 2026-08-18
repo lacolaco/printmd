@@ -24,22 +24,24 @@ describe('App', () => {
     vi.restoreAllMocks();
   });
 
-  it('ヘッダにロゴと印刷ボタンを表示する', async () => {
+  it('空状態のヘッダはロゴのみで、印刷ボタンは出さない (刷るものがない)', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('printmd');
-    expect(el.querySelector('button')?.textContent).toContain('印刷');
+    expect(el.querySelector('.app-print-button')).toBeNull();
   });
 
-  it('印刷ボタンは window.print を呼ぶ', async () => {
+  it('原稿があれば印刷ボタンが window.print を呼ぶ', async () => {
     const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {});
+    const store = TestBed.inject(EditorStore);
+    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    el.querySelector<HTMLButtonElement>('button')?.click();
+    el.querySelector<HTMLButtonElement>('.app-print-button')?.click();
     expect(printSpy).toHaveBeenCalled();
   });
 

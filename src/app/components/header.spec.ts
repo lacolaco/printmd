@@ -21,13 +21,13 @@ describe('Header', () => {
     });
   });
 
-  it('原稿がないときは表示操作を出さず、印刷ボタンは常に出す', async () => {
+  it('原稿がないときは表示操作も印刷ボタンも出さない (刷るものがない)', async () => {
     const fixture = TestBed.createComponent(Header);
     fixture.detectChanges();
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('[role="toolbar"]')).toBeNull();
-    expect(el.querySelector('.app-print-button')).not.toBeNull();
+    expect(el.querySelector('.app-print-button')).toBeNull();
   });
 
   it('原稿があれば頁数とズームを表示し、ズーム操作が ViewerState に反映される', async () => {

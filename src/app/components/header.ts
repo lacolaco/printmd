@@ -43,13 +43,15 @@ import { ViewerState, ZOOMS } from '../state/viewer-state';
           </button>
         </div>
       }
-      <button
-        type="button"
-        class="app-print-button ml-auto rounded-sm px-3 py-1 text-xs font-medium"
-        (click)="print()"
-      >
-        印刷 (PDFに保存)
-      </button>
+      @if (store.hasFiles()) {
+        <button
+          type="button"
+          class="app-print-button ml-auto rounded-sm px-3 py-1 text-xs font-medium"
+          (click)="print()"
+        >
+          印刷 (PDFに保存)
+        </button>
+      }
     </header>
   `,
 })
