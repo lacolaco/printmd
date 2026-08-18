@@ -53,11 +53,14 @@ input[type='checkbox']:not(:disabled) {
 /* 強制改ページ: 改ページ調整パネルでチェックしたブロックとファイル境界に付与される */
 @media screen {
   .forced-break {
+    /* Safari (WebKit) は break-before: column を解さないため旧プロパティを併記する */
+    -webkit-column-break-before: always;
     break-before: column;
   }
 }
 @media print {
   .forced-break {
+    page-break-before: always;
     break-before: page;
   }
 }
