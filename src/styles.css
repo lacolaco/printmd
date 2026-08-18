@@ -8,6 +8,18 @@
   box-sizing: border-box;
 }
 
+/* Tailwind preflight は ul の list-style を消すが、github-markdown-css は
+   ul のマーカーを UA 既定 (disc/circle/square) に依存しているため復元する */
+.markdown-body ul {
+  list-style-type: disc;
+}
+.markdown-body ul ul {
+  list-style-type: circle;
+}
+.markdown-body ul ul ul {
+  list-style-type: square;
+}
+
 /* 分割ポリシー (画面・印刷共通)。収まる表・図もページをまたがせず丸ごと送る */
 .markdown-body pre,
 .markdown-body table,

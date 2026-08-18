@@ -62,10 +62,16 @@ test('GitHub 体裁の要素が描画される', async ({ page }) => {
   await importMarkdown(
     page,
     'style.md',
-    '# 体裁\n\n`inline` と **強調**。\n\n```ts\nconst x = 1;\n```\n\n- [x] タスク\n\n```mermaid\ngraph LR; A-->B;\n```\n',
+    '# 体裁\n\n`inline` と **強調**。\n\n- 箇条書きの項目\n\n```ts\nconst x = 1;\n```\n\n- [x] タスク\n\n```mermaid\ngraph LR; A-->B;\n```\n',
   );
   const doc = page.locator('.print-root > *');
   await expect(doc.locator('code .hljs-keyword').first()).toBeAttached();
   await expect(doc.locator('li.task-list-item input[type="checkbox"]')).toBeChecked();
   await expect(doc.locator('figure.mermaid svg')).toBeAttached();
+  // Tailwind preflight に消されがちな箇条書きマーカーの回帰検査
+  const listStyle = await page.evaluate(() => {
+    const ul = document.querySelector('.print-root ul:not(:has(.task-list-item))');
+    return ul ? getComputedStyle(ul).listStyleType : null;
+  });
+  expect(listStyle).toBe('disc');
 });
