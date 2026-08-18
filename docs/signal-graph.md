@@ -49,6 +49,7 @@ flowchart LR
   subgraph PreviewC["Preview"]
     PE1[effect<br/>シート構築]
     T3{{style.zoom}}
+    T6{{変換中表示}}
   end
 
   subgraph Panels["BreakPanel / FilePanel"]
@@ -104,6 +105,7 @@ flowchart LR
   VC1 --> T3
   V2 --> HC1
   S3 --> HC1
+  S3 --> T6
   HC1 --> T1
   VC2 --> T1
   C1 --> T1
@@ -121,7 +123,7 @@ flowchart LR
   class S2 linked
   class C1,C2,S3,VC1,VC2,HC1,BC1,BC2,BC3,V2 comp
   class AE1,PE1 eff
-  class T1,T2,T3,T4,T5 tmpl
+  class T1,T2,T3,T4,T5,T6 tmpl
   class D1,D2 dom
 ```
 

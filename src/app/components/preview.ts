@@ -15,7 +15,7 @@ import { COLUMN_STEP_MM } from '../page-geometry';
 @Component({
   selector: 'app-preview',
   template: `
-    <div class="flex h-full min-h-0 flex-col">
+    <div class="relative flex h-full min-h-0 flex-col">
       <div
         class="app-workspace min-h-0 flex-1 overflow-auto py-6 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-red-700"
         tabindex="0"
@@ -24,11 +24,22 @@ import { COLUMN_STEP_MM } from '../page-geometry';
       >
         <div class="mx-auto w-fit" #sheetsHost [style.zoom]="viewer.zoom()"></div>
       </div>
+      <!-- 読み上げはヘッダの status が担うため、こちらは視覚専用 -->
+      @if (store.rendering()) {
+        <div
+          class="app-rendering-indicator pointer-events-none absolute inset-x-0 top-4 flex justify-center"
+          aria-hidden="true"
+        >
+          <span class="animate-pulse rounded-full bg-stone-800/85 px-3 py-1 text-xs text-white">
+            変換中…
+          </span>
+        </div>
+      }
     </div>
   `,
 })
 export class Preview {
-  private readonly store = inject(EditorStore);
+  protected readonly store = inject(EditorStore);
   protected readonly viewer = inject(ViewerState);
 
   private readonly sheetsHost = viewChild.required<ElementRef<HTMLElement>>('sheetsHost');

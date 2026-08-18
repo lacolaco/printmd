@@ -81,6 +81,23 @@ describe('Preview', () => {
     }
   });
 
+  it('変換中はプレビュー面に進行表示を出し、完了したら消す', async () => {
+    const store = TestBed.inject(EditorStore);
+    const fixture = TestBed.createComponent(Preview);
+    fixture.detectChanges();
+    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文') }]);
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(store.rendering()).toBe(true);
+    expect(el.querySelector('.app-rendering-indicator')).not.toBeNull();
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(store.rendering()).toBe(false);
+    expect(el.querySelector('.app-rendering-indicator')).toBeNull();
+  });
+
   it('ズーム状態 (ViewerState) が紙面の表示倍率に反映される', async () => {
     const fixture = TestBed.createComponent(Preview);
     fixture.detectChanges();
