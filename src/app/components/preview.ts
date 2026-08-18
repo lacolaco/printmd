@@ -1,4 +1,4 @@
-import { Component, effect, inject, viewChild, type ElementRef } from '@angular/core';
+import { Component, DestroyRef, effect, inject, viewChild, type ElementRef } from '@angular/core';
 import type { RenderedDocument } from '../markdown/block-extractor';
 import { buildColumnClone } from '../page-count';
 import { EditorStore } from '../state/editor-store';
@@ -38,6 +38,8 @@ export class Preview {
     effect(() => {
       this.rebuild(this.store.renderedDocument(), this.store.breaks());
     });
+    // rebuild 間の張り替えでは最後の observer が残るため、破棄時に切断する
+    inject(DestroyRef).onDestroy(() => this.observer?.disconnect());
   }
 
   /** 可視シートの遅延実体化に使う。rebuild ごとに張り直す */

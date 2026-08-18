@@ -92,4 +92,28 @@ describe('Preview', () => {
     expect(viewer.zoomLabel()).toBe('75%');
     expect(host?.style.zoom).toBe('0.75');
   });
+
+  it('コンポーネント破棄時に IntersectionObserver を切断する', async () => {
+    const disconnects: number[] = [];
+    class StubIntersectionObserver {
+      observe() {}
+      unobserve() {}
+      disconnect() {
+        disconnects.push(1);
+      }
+    }
+    vi.stubGlobal('IntersectionObserver', StubIntersectionObserver);
+    try {
+      const store = TestBed.inject(EditorStore);
+      await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し') }]);
+      const fixture = TestBed.createComponent(Preview);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const before = disconnects.length;
+      fixture.destroy();
+      expect(disconnects.length).toBeGreaterThan(before);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });
