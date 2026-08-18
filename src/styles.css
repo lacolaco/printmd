@@ -8,6 +8,13 @@
   box-sizing: border-box;
 }
 
+/* Tailwind v4 preflight は button を cursor: default にするが、
+   本アプリのボタンはすべて即時動作なので pointer を既定にする */
+button:not(:disabled),
+input[type='checkbox']:not(:disabled) {
+  cursor: pointer;
+}
+
 /* Tailwind preflight は ul の list-style を消すが、github-markdown-css は
    ul のマーカーを UA 既定 (disc/circle/square) に依存しているため復元する */
 .markdown-body ul {
