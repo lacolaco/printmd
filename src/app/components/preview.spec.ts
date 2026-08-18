@@ -81,6 +81,28 @@ describe('Preview', () => {
     }
   });
 
+  it('ファイル境界でシートが分かれ、各シートは自セグメントのブロックだけを持つ', async () => {
+    const store = TestBed.inject(EditorStore);
+    await store.addFiles([
+      { name: 'a.md', text: () => Promise.resolve('# A\n\n本文a') },
+      { name: 'b.md', text: () => Promise.resolve('# B\n\n本文b') },
+    ]);
+
+    const fixture = TestBed.createComponent(Preview);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    const sheets = el.querySelectorAll('.sheet');
+    expect(sheets).toHaveLength(2);
+    const first = sheets[0].querySelector('.mc')!;
+    const second = sheets[1].querySelector('.mc')!;
+    expect(first.querySelector('[data-block-id="f0b0"]')).not.toBeNull();
+    expect(first.querySelector('[data-block-id^="f1"]')).toBeNull();
+    expect(second.querySelector('[data-block-id="f1b0"]')).not.toBeNull();
+    expect(second.querySelector('[data-block-id^="f0"]')).toBeNull();
+  });
+
   it('変換中はプレビュー面に進行表示を出し、完了したら消す', async () => {
     const store = TestBed.inject(EditorStore);
     const fixture = TestBed.createComponent(Preview);

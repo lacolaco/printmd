@@ -4,7 +4,7 @@
 
 - 逆流 (effect からの signal 書き込み)・循環: なし
 - `renderedDocument` は resource: filesSignal を params とする async 導出 (markdown 変換 + mermaid SVG 化 + fragmentCache)。`rendering` はその isLoading
-- `pageCount` は (doc, breaks) からの計測つき computed (プローブは観測可能な状態を残さない)
+- `pagination` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
 - `breaksSignal` は linkedSignal: filesSignal に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / announcement) は省略
 
@@ -28,7 +28,8 @@ flowchart LR
 
   subgraph Viewer["ViewerState"]
     V1((zoomIndex))
-    V2[/pageCount<br/>計測つき computed/]
+    V3[/pagination<br/>計測つき computed<br/>セグメント分割 + 実測/]
+    V2[/pageCount<br/>= pagination.total/]
     VC1[/zoom/]
     VC2[/zoomLabel/]
   end
@@ -94,11 +95,11 @@ flowchart LR
   AE1 --> D1
 
   S4 --> PE1
-  S2 --> PE1
   PE1 --> D2
-  S4 --> V2
-  S2 --> V2
-  V2 --> PE1
+  S4 --> V3
+  S2 --> V3
+  V3 --> V2
+  V3 --> PE1
 
   V1 --> VC1
   VC1 --> VC2
@@ -121,7 +122,7 @@ flowchart LR
   class S4 res
 
   class S2 linked
-  class C1,C2,S3,VC1,VC2,HC1,BC1,BC2,BC3,V2 comp
+  class C1,C2,S3,VC1,VC2,HC1,BC1,BC2,BC3,V2,V3 comp
   class AE1,PE1 eff
   class T1,T2,T3,T4,T5,T6 tmpl
   class D1,D2 dom

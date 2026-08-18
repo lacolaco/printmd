@@ -50,14 +50,12 @@ input[type='checkbox']:not(:disabled) {
   height: auto;
 }
 
-/* 強制改ページ: 改ページ調整パネルでチェックしたブロックとファイル境界に付与される */
-@media screen {
-  .forced-break {
-    /* Safari (WebKit) は break-before: column を解さないため旧プロパティを併記する */
-    -webkit-column-break-before: always;
-    break-before: column;
-  }
-}
+/*
+ * 強制改ページ: 改ページ調整パネルでチェックしたブロックとファイル境界に付与される。
+ * 画面側は CSS に頼らない (Firefox が段への強制改行を実装していないため、
+ * プレビューはセグメント分割 = 独立した段組ストリップで表現する)。
+ * 印刷側だけがこのクラスを使う。旧プロパティ併記は Safari 安定版向け
+ */
 @media print {
   .forced-break {
     page-break-before: always;

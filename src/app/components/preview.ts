@@ -1,6 +1,6 @@
 import { Component, DestroyRef, effect, inject, viewChild, type ElementRef } from '@angular/core';
 import type { RenderedDocument } from '../markdown/block-extractor';
-import { buildColumnClone } from '../page-count';
+import { buildSegmentClone, type Pagination } from '../page-count';
 import { EditorStore } from '../state/editor-store';
 import { ViewerState } from '../state/viewer-state';
 import { COLUMN_STEP_MM } from '../page-geometry';
@@ -45,9 +45,9 @@ export class Preview {
   private readonly sheetsHost = viewChild.required<ElementRef<HTMLElement>>('sheetsHost');
 
   constructor() {
-    // 計測は pageCount (computed) に移っており、ここは DOM 書き込みのみ
+    // 計測は pagination (computed) に移っており、ここは DOM 書き込みのみ
     effect(() => {
-      this.rebuild(this.store.renderedDocument(), this.store.breaks());
+      this.rebuild(this.store.renderedDocument(), this.viewer.pagination());
     });
     // rebuild 間の張り替えでは最後の observer が残るため、破棄時に切断する
     inject(DestroyRef).onDestroy(() => this.observer?.disconnect());
@@ -56,13 +56,12 @@ export class Preview {
   /** 可視シートの遅延実体化に使う。rebuild ごとに張り直す */
   private observer: IntersectionObserver | null = null;
 
-  private rebuild(doc: RenderedDocument | null, breaks: ReadonlySet<string>): void {
+  private rebuild(doc: RenderedDocument | null, pagination: Pagination | null): void {
     const host = this.sheetsHost().nativeElement;
     this.observer?.disconnect();
     this.observer = null;
     host.replaceChildren();
-    if (doc === null) return;
-    const count = this.viewer.pageCount();
+    if (doc === null || pagination === null) return;
     // 大部数対策: シートは空の枠だけ並べ、可視域に入ったものだけ中身を実体化する
     const lazy = typeof IntersectionObserver !== 'undefined';
     if (lazy) {
@@ -70,31 +69,39 @@ export class Preview {
         (entries) => {
           for (const entry of entries) {
             if (!entry.isIntersecting) continue;
-            this.fillSheet(entry.target as HTMLElement, doc, breaks);
+            this.fillSheet(entry.target as HTMLElement, doc, pagination);
             this.observer?.unobserve(entry.target);
           }
         },
         { rootMargin: '600px 0px' },
       );
     }
-    for (let index = 0; index < count; index++) {
+    for (let index = 0; index < pagination.total; index++) {
       const sheet = document.createElement('div');
       sheet.className = 'sheet';
       sheet.dataset['page'] = String(index + 1);
       host.append(sheet);
       if (lazy) this.observer?.observe(sheet);
-      else this.fillSheet(sheet, doc, breaks);
+      else this.fillSheet(sheet, doc, pagination);
     }
   }
 
-  /** シートへ段組クローンの窓を実体化する。実体化済みなら何もしない */
-  private fillSheet(sheet: HTMLElement, doc: RenderedDocument, breaks: ReadonlySet<string>): void {
+  /**
+   * シートへ段組クローンの窓を実体化する。実体化済みなら何もしない。
+   * クローンはシートが属するセグメントのブロックだけを持ち、セグメント内の
+   * 段位置ぶんだけ左へずらす
+   */
+  private fillSheet(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
     if (sheet.childElementCount > 0) return;
     const index = Number(sheet.dataset['page']) - 1;
+    const segment = pagination.segments.find(
+      (s) => index >= s.firstPage && index < s.firstPage + s.pages,
+    );
+    if (segment === undefined) return;
     const clip = document.createElement('div');
     clip.className = 'clip';
-    const mc = buildColumnClone(doc, breaks);
-    mc.style.marginLeft = `${-(index * COLUMN_STEP_MM)}mm`;
+    const mc = buildSegmentClone(doc, segment.start, segment.end);
+    mc.style.marginLeft = `${-((index - segment.firstPage) * COLUMN_STEP_MM)}mm`;
     // 紙面の複製は読み上げ・フォーカスの対象から外す (本文は原稿と印刷対象が担う)
     mc.setAttribute('inert', '');
     clip.append(mc);

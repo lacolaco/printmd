@@ -9,9 +9,10 @@ export default defineConfig({
   },
   projects: [
     // page.pdf は Chromium 専用のため、印刷一致の検証は Chromium で行う
-    { name: 'chromium', use: { browserName: 'chromium' }, testIgnore: '**/webkit-*.spec.ts' },
-    // WebKit は対応 CSS が異なる (break-before: column 非対応など)。画面側の分割だけ検証する
-    { name: 'webkit', use: { browserName: 'webkit' }, testMatch: '**/webkit-*.spec.ts' },
+    { name: 'chromium', use: { browserName: 'chromium' } },
+    // WebKit / Firefox は対応 CSS が異なるため、画面側の分割をエンジン横断で検証する
+    { name: 'webkit', use: { browserName: 'webkit' }, testMatch: '**/boundary-break.spec.ts' },
+    { name: 'firefox', use: { browserName: 'firefox' }, testMatch: '**/boundary-break.spec.ts' },
   ],
   webServer: {
     command: 'npm start -- --port 4299',
