@@ -180,7 +180,7 @@ describe('EditorStore 変換の競合', () => {
     await store.addFiles([file('c.md', `# C\n\n${mermaid}`)]);
     await settle();
     expect(pending.length).toBe(4);
-    // 古い loader1 がいま解決する — keep={A} の追い出しで B を消してはならない
+    // 古い loader1 がいま解決する。keep={A} の追い出しで B を消してはならない
     pending[0]({ svg: '<svg>A1</svg>' });
     await settle();
     // loader3 の C を解決して完走させる

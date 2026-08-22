@@ -22,7 +22,7 @@ export interface Pagination {
 /**
  * 強制改ページ (指定 Set とファイル境界) の位置で文書をセグメントへ分割する。
  * 画面の改ページは CSS の break-before に頼らず「セグメント = 独立した段組
- * ストリップ」で表現する — Firefox が段への強制改行を実装していないため、
+ * ストリップ」で表現する。Firefox が段への強制改行を実装していないため、
  * どのエンジンでも起きる自然な流し込みだけに依存させる (印刷側は全エンジンが
  * 解する break-before: page のままクラスで表現する)
  */
@@ -64,7 +64,7 @@ export function buildSegmentClone(doc: RenderedDocument, start: number, end: num
 /**
  * 文書が何ページ (= 段) に割り付くかをセグメントごとに実レイアウトで計測する。
  * 同一の (doc, breaks, CSS) に対して決定的で、プローブは即座に破棄する
- * ため観測可能な状態を残さない — computed の中から呼べる純粋関数として扱う
+ * ため観測可能な状態を残さない (computed の中から呼べる純粋関数として扱う)
  */
 export function measurePagination(doc: RenderedDocument, breaks: ReadonlySet<string>): Pagination {
   const ranges = splitAtForcedBreaks(doc.blocks, breaks);
