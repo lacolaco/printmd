@@ -1,5 +1,5 @@
 /**
- * ページ寸法の唯一の正典。プレビューの段組計算 (preview.ts)・画面 CSS
+ * ページ寸法の単一の情報源。プレビューの段組計算 (preview.ts)・画面 CSS
  * (カスタムプロパティ経由)・e2e の座標計算はすべてここを参照する。
  * 例外: styles.css の @page ルールだけは規則内 var() の互換性が不確かなため
  * リテラルで書かれている (値を変えるときはそちらも追随させること)
@@ -20,7 +20,7 @@ export const COLUMN_STEP_MM = CONTENT_WIDTH_MM + COLUMN_GAP_MM;
 /** 1mm を CSS px に換算する係数 (96dpi 基準) */
 export const MM_TO_PX = 96 / 25.4;
 
-/** 画面 CSS が参照するカスタムプロパティとして正典値を注入する */
+/** 画面 CSS が参照するカスタムプロパティとして定義値を注入する */
 export function applyPageGeometryCssVariables(root: HTMLElement): void {
   root.style.setProperty('--page-width', `${PAGE_WIDTH_MM}mm`);
   root.style.setProperty('--page-height', `${PAGE_HEIGHT_MM}mm`);

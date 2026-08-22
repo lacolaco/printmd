@@ -4,14 +4,14 @@ printmd のプロジェクト規範。
 
 ## 生きたドキュメント
 
-- `docs/signal-graph.md` はリアクティブ構造 (signal / computed / linkedSignal / resource / effect) の正典である。これらを追加・削除・移動するコミットは、同じコミットでこの図を更新しなければならない。
-- `docs/component-tree.md` はコンポーネント構造の正典である。コンポーネントの追加・削除・責務変更を行うコミットは、同じコミットでこの図を更新しなければならない。
+- `docs/signal-graph.md` はリアクティブ構造 (signal / computed / linkedSignal / resource / effect) の唯一の定義図である。これらを追加・削除・移動するコミットは、同じコミットでこの図を更新しなければならない。
+- `docs/component-tree.md` はコンポーネント構造の唯一の定義図である。コンポーネントの追加・削除・責務変更を行うコミットは、同じコミットでこの図を更新しなければならない。
 
 ## ページ組の不変条件
 
 - プレビューと印刷のページ割り一致は「予測ではなく共有」で達成する。改ページ位置を自前で計算するコードを持ち込んではならない (経緯は README の仕組み節を参照)。
 - 画面の強制改ページは CSS の強制改行 (`break-before: column`) に依存してはならない。Firefox が未実装のため、セグメント分割 (`src/app/page-count.ts`) で表現する。
-- 紙面の寸法は `src/app/page-geometry.ts` が単一の正典である。数値を別の場所に重複させてはならない。
+- 紙面の寸法は `src/app/page-geometry.ts` を単一の情報源とする。数値を別の場所に重複させてはならない。
 
 ## 検証
 
