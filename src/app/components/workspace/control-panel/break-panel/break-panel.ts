@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
-import type { Block, BlockKind } from '../markdown/block-extractor';
-import { EditorStore } from '../state/editor-store';
+import type { Block, BlockKind } from '../../../../markdown/block-extractor';
+import { EditorStore } from '../../../../state/editor-store';
 
 /**
  * 改ページ調整パネル。原稿の全トップレベルブロックを document 順に列挙し、

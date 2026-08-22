@@ -1,9 +1,9 @@
 import { Component, DestroyRef, effect, inject, viewChild, type ElementRef } from '@angular/core';
-import type { RenderedDocument } from '../markdown/block-extractor';
-import { buildSegmentClone, type Pagination } from '../page-count';
-import { EditorStore } from '../state/editor-store';
-import { ViewerState } from '../state/viewer-state';
-import { COLUMN_STEP_MM } from '../page-geometry';
+import type { RenderedDocument } from '../../../markdown/block-extractor';
+import { buildSegmentClone, type Pagination } from '../../../page-count';
+import { EditorStore } from '../../../state/editor-store';
+import { ViewerState } from '../../../state/viewer-state';
+import { COLUMN_STEP_MM } from '../../../page-geometry';
 
 
 /**

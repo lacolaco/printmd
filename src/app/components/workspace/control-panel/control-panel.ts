@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { BreakPanel } from './break-panel';
+import { BreakPanel } from './break-panel/break-panel';
 import { FilePanel } from './file-panel';
 
 /** 調整パネル。原稿の管理と改ページ指定を束ねる右カラムの所有者 */
