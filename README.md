@@ -25,7 +25,7 @@ Markdown 原稿を GitHub のレンダリングそのままの見た目で A4 �
 
 ![文書をセグメントに分割し、独立したストリップとして組み、ページ列へ連結する図](docs/images/segment-pagination.svg)
 
-印刷側は 1 本の文書のまま、境界ブロックの `break-before: page` (全エンジン対応) で割る。
+印刷側は 1 本の文書のまま、境界ブロックの `break-before: page` で割る (Safari 安定版はこれ単独では効かないため、旧プロパティ `page-break-before: always` を併記して全エンジンに対応させている)。
 
 ### シート表示: 窓化
 
