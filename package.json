@@ -48,6 +48,7 @@
     "@testing-library/user-event": "^14.6.4",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^26.2.0",
+    "@vitest/coverage-v8": "^4.1.11",
     "angular-eslint": "22.1.0",
     "eslint": "^10.6.0",
     "jiti": "^2.7.0",
