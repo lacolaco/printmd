@@ -81,3 +81,48 @@ describe('App', () => {
     expect(el.querySelector('.app-empty-drop')).toBeNull();
   });
 });
+
+describe('App ウィンドウ全体のドロップ受け', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [{ provide: MermaidRenderer, useClass: FakeMermaidRenderer }],
+    });
+  });
+
+  function dropEvent(files: File[]): Event {
+    const event = new Event('drop', { cancelable: true });
+    Object.defineProperty(event, 'dataTransfer', { value: { files } });
+    return event;
+  }
+
+  it('ウィンドウへのドロップで原稿を取り込み、既定動作を抑止する', async () => {
+    const store = TestBed.inject(EditorStore);
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const host = (fixture.nativeElement as HTMLElement).querySelector('.app-ui')!;
+    const event = dropEvent([new File(['# A'], 'a.md')]);
+    host.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    await fixture.whenStable();
+    expect(store.files().map((f) => f.name)).toEqual(['a.md']);
+  });
+
+  it('ファイルの無いドロップでは何も取り込まない', async () => {
+    const store = TestBed.inject(EditorStore);
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const host = (fixture.nativeElement as HTMLElement).querySelector('.app-ui')!;
+    host.dispatchEvent(dropEvent([]));
+    await fixture.whenStable();
+    expect(store.files()).toEqual([]);
+  });
+
+  it('dragover で既定動作 (ページ遷移) を抑止する', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const host = (fixture.nativeElement as HTMLElement).querySelector('.app-ui')!;
+    const event = new Event('dragover', { cancelable: true });
+    host.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+  });
+});
