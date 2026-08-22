@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 470" font-family="system-ui, sans-serif">
+  <rect x="0" y="0" width="740" height="470" fill="#ffffff"/>
+
+  <!-- 層 1: 文書 -->
+  <text x="20" y="24" font-size="13" fill="#1f2328">文書 (トップレベルブロックの列)</text>
+  <g font-size="12">
+    <rect x="20" y="36" width="60" height="34" fill="#ffffff" stroke="#d1d9e0"/><text x="50" y="57" text-anchor="middle" fill="#1f2328">A1</text>
+    <rect x="86" y="36" width="60" height="34" fill="#ffffff" stroke="#d1d9e0"/><text x="116" y="57" text-anchor="middle" fill="#1f2328">A2</text>
+    <rect x="152" y="36" width="60" height="34" fill="#ffffff" stroke="#d1d9e0"/><text x="182" y="57" text-anchor="middle" fill="#1f2328">A3</text>
+    <rect x="218" y="36" width="60" height="34" fill="#ffffff" stroke="#d1d9e0"/><text x="248" y="57" text-anchor="middle" fill="#1f2328">A4</text>
+    <line x1="292" y1="30" x2="292" y2="76" stroke="#c8321e" stroke-width="2" stroke-dasharray="4 3"/>
+    <text x="292" y="90" text-anchor="middle" font-size="11" fill="#c8321e">強制改ページ (ファイル境界)</text>
+    <rect x="306" y="36" width="60" height="34" fill="#ffffff" stroke="#d1d9e0"/><text x="336" y="57" text-anchor="middle" fill="#1f2328">B1</text>
+    <rect x="372" y="36" width="60" height="34" fill="#ffffff" stroke="#d1d9e0"/><text x="402" y="57" text-anchor="middle" fill="#1f2328">B2</text>
+    <rect x="438" y="36" width="60" height="34" fill="#ffffff" stroke="#d1d9e0"/><text x="468" y="57" text-anchor="middle" fill="#1f2328">B3</text>
+  </g>
+
+  <!-- 層 2: セグメント別ストリップ -->
+  <text x="20" y="130" font-size="13" fill="#1f2328">セグメントごとに独立した多段組ストリップとして組む (強制改行は使わない)</text>
+  <text x="20" y="152" font-size="12" fill="#59636e">セグメント 0 のストリップ</text>
+  <rect x="20" y="160" width="330" height="90" fill="#ffffff" stroke="#1f2328"/>
+  <rect x="28" y="168" width="150" height="74" fill="none" stroke="#d1d9e0"/>
+  <text x="103" y="209" text-anchor="middle" font-size="12" fill="#1f2328">段 0: A1 A2 A3…</text>
+  <rect x="192" y="168" width="150" height="74" fill="none" stroke="#d1d9e0"/>
+  <text x="267" y="209" text-anchor="middle" font-size="12" fill="#1f2328">段 1: …A3 A4</text>
+  <text x="390" y="152" font-size="12" fill="#59636e">セグメント 1 のストリップ</text>
+  <rect x="390" y="160" width="330" height="90" fill="#ffffff" stroke="#1f2328"/>
+  <rect x="398" y="168" width="150" height="74" fill="none" stroke="#d1d9e0"/>
+  <text x="473" y="209" text-anchor="middle" font-size="12" fill="#1f2328">段 0: B1 B2…</text>
+  <rect x="562" y="168" width="150" height="74" fill="none" stroke="#d1d9e0"/>
+  <text x="637" y="209" text-anchor="middle" font-size="12" fill="#1f2328">段 1: …B2 B3</text>
+  <text x="20" y="272" font-size="12" fill="#59636e">A3 は段 0/1 を自然に跨ぐ。B1 は自ストリップの段 0 先頭から始まる — これが「境界で必ず改ページ」の正体</text>
+
+  <!-- 層 3: ページ列 -->
+  <text x="20" y="316" font-size="13" fill="#1f2328">ページ列 = ストリップの段を順に連結して番号を振る</text>
+  <g font-size="12">
+    <rect x="20" y="328" width="120" height="90" fill="#ffffff" stroke="#1f2328"/>
+    <text x="80" y="368" text-anchor="middle" fill="#1f2328">ページ 1</text>
+    <text x="80" y="390" text-anchor="middle" font-size="11" fill="#59636e">セグ 0 の段 0</text>
+    <rect x="160" y="328" width="120" height="90" fill="#ffffff" stroke="#1f2328"/>
+    <text x="220" y="368" text-anchor="middle" fill="#1f2328">ページ 2</text>
+    <text x="220" y="390" text-anchor="middle" font-size="11" fill="#59636e">セグ 0 の段 1</text>
+    <rect x="300" y="328" width="120" height="90" fill="#ffffff" stroke="#c8321e" stroke-width="2"/>
+    <text x="360" y="368" text-anchor="middle" fill="#c8321e">ページ 3</text>
+    <text x="360" y="390" text-anchor="middle" font-size="11" fill="#c8321e">セグ 1 の段 0 = B1 の先頭</text>
+    <rect x="440" y="328" width="120" height="90" fill="#ffffff" stroke="#1f2328"/>
+    <text x="500" y="368" text-anchor="middle" fill="#1f2328">ページ 4</text>
+    <text x="500" y="390" text-anchor="middle" font-size="11" fill="#59636e">セグ 1 の段 1</text>
+  </g>
+  <text x="20" y="446" font-size="12" fill="#59636e">総ページ数 = 各ストリップの段数の和 (2 + 2 = 4)。実装は src/app/page-count.ts</text>
+</svg>
