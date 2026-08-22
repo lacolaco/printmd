@@ -1,12 +1,34 @@
+# CLAUDE.md
+
+printmd のプロジェクト規範。
+
+## 生きたドキュメント
+
+- `docs/signal-graph.md` はリアクティブ構造 (signal / computed / linkedSignal / resource / effect) の正典である。これらを追加・削除・移動するコミットは、同じコミットでこの図を更新しなければならない。
+- `docs/component-tree.md` はコンポーネント構造の正典である。コンポーネントの追加・削除・責務変更を行うコミットは、同じコミットでこの図を更新しなければならない。
+
+## ページ組の不変条件
+
+- プレビューと印刷のページ割り一致は「予測ではなく共有」で達成する。改ページ位置を自前で計算するコードを持ち込んではならない (経緯は README の仕組み節を参照)。
+- 画面の強制改ページは CSS の強制改行 (`break-before: column`) に依存してはならない。Firefox が未実装のため、セグメント分割 (`src/app/page-count.ts`) で表現する。
+- 紙面の寸法は `src/app/page-geometry.ts` が単一の正典である。数値を別の場所に重複させてはならない。
+
+## 検証
+
+- テストファースト。修正はまず失敗するテストで再現してから行う。
+- 印刷パリティ (Chromium) と境界改ページ (Chromium / WebKit / Firefox) の e2e は削除・弱体化してはならない。
+
+## Angular / TypeScript コーディング指針
+
 You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
 
-## TypeScript Best Practices
+### TypeScript Best Practices
 
 - Use strict type checking
 - Prefer type inference when the type is obvious
 - Avoid the `any` type; use `unknown` when type is uncertain
 
-## Angular Best Practices
+### Angular Best Practices
 
 - Always use standalone components over NgModules
 - Must NOT set `standalone: true` inside Angular decorators. It's the default in Angular v20+.
@@ -17,7 +39,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use `NgOptimizedImage` for all static images.
   - `NgOptimizedImage` does not work for inline base64 images.
 
-## Accessibility Requirements
+### Accessibility Requirements
 
 - It MUST pass all AXE checks.
 - It MUST follow all WCAG AA minimums, including focus management, color contrast, and ARIA attributes.
@@ -36,28 +58,23 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Do NOT use `ngStyle`, use `style` bindings instead
 - When using external templates/styles, use paths relative to the component TS file.
 
-## State Management
+### State Management
 
 - Use signals for local component state
 - Use `computed()` for derived state
 - Keep state transformations pure and predictable
 - Do NOT use `mutate` on signals, use `update` or `set` instead
 
-## Templates
+### Templates
 
 - Keep templates simple and avoid complex logic
 - Use native control flow (`@if`, `@for`, `@switch`) instead of `*ngIf`, `*ngFor`, `*ngSwitch`
 - Use the async pipe to handle observables
 - Do not assume globals like (`new Date()`) are available.
 
-## Services
+### Services
 
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Prefer the `@Service` decorator over `@Injectable({providedIn: 'root'})` for new singleton services (Angular v22+)
 - Use the `inject()` function instead of constructor injection
-
-## Living documentation
-
-- `docs/signal-graph.md` is the canonical reactive-structure diagram. Any commit that changes the signal graph (adds/removes/moves signals, computed, linkedSignal, resource, effects, or components that own them) MUST update this diagram in the same commit.
-- `docs/component-tree.md` is the canonical component-structure diagram. Any commit that adds/removes components or changes their responsibilities MUST update it in the same commit.
