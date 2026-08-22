@@ -23,7 +23,7 @@ npm run e2e        # e2e (Playwright。プレビューと印刷 PDF の一致を
 npm run build      # 本番ビルド
 ```
 
-デプロイは Cloudflare Workers Static Assets (`wrangler.jsonc`)。main への push で GitHub Actions が自動デプロイする。
+デプロイは Cloudflare Workers Static Assets (`wrangler.jsonc`)。main への push で Cloudflare Workers Builds (Git 連携) が自動ビルド・デプロイする。GitHub Actions は CI (lint / test / build / e2e) のみを担う。
 
 ## ライセンス
 
