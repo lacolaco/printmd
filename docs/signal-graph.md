@@ -24,6 +24,9 @@ flowchart LR
     S5((importWarningsSignal))
     C1[/hasFiles/]
     C2[/blocks/]
+    C3[/blockGroups/]
+    C4[/blockRowCount/]
+    C5[/multiFile/]
   end
 
   subgraph Viewer["ViewerState"]
@@ -54,9 +57,6 @@ flowchart LR
   end
 
   subgraph Panels["BreakPanel / FilePanel"]
-    BC1[/groups/]
-    BC2[/totalRows/]
-    BC3[/multiFile/]
     T4{{改ページ一覧}}
     T5{{ファイル行}}
   end
@@ -79,13 +79,12 @@ flowchart LR
   S4 --> C2
 
   C1 --> T2
-  C2 --> BC1
-  S2 --> BC1
-  BC1 --> BC2
-  C2 --> BC3
-  BC1 --> T4
-  BC2 --> T4
-  BC3 --> T4
+  C2 --> C3
+  C3 --> C4
+  C2 --> C5
+  C3 --> T4
+  C4 --> T4
+  C5 --> T4
   S2 --> T4
   S1 --> T5
   S5 --> T5
@@ -122,7 +121,7 @@ flowchart LR
   class S4 res
 
   class S2 linked
-  class C1,C2,S3,VC1,VC2,HC1,BC1,BC2,BC3,V2,V3 comp
+  class C1,C2,C3,C4,C5,S3,VC1,VC2,HC1,V2,V3 comp
   class AE1,PE1 eff
   class T1,T2,T3,T4,T5,T6 tmpl
   class D1,D2 dom
