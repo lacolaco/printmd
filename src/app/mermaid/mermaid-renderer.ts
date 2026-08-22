@@ -24,6 +24,8 @@ export class MermaidRenderer {
     return import('mermaid').then(({ default: mermaid }) => {
       mermaid.initialize({
         startOnLoad: false,
+        // 既定値だが、安全性が既定に依存していることを明示する
+        securityLevel: 'strict',
         htmlLabels: false,
         flowchart: { htmlLabels: false },
       });

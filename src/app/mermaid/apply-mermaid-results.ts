@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import type { MermaidOutcome } from './mermaid-renderer';
 
 const MERMAID_FAILED_MESSAGE = 'mermaid の描画に失敗したため、元のコードを表示しています';
@@ -23,7 +24,11 @@ export function applyMermaidResults(
     const figure = document.createElement('figure');
     if ('svg' in outcome) {
       figure.className = 'mermaid';
-      figure.innerHTML = outcome.svg;
+      // mermaid 自身のサニタイズ (securityLevel: strict) に単独で頼らず、
+      // アプリの唯一の無害化境界である DOMPurify をここでも通す
+      figure.innerHTML = DOMPurify.sanitize(outcome.svg, {
+        USE_PROFILES: { svg: true, svgFilters: true },
+      });
     } else {
       figure.className = 'mermaid mermaid-failed';
       const pre = document.createElement('pre');
