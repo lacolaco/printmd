@@ -42,7 +42,7 @@ export class EditorStore {
   private readonly filesSignal = signal<readonly ManuscriptFile[]>([]);
   /**
    * 改ページ指定。ID は位置由来 (f{n}b{m}) のため、ファイルの削除・並べ替えでは
-   * 同じ ID が別ブロックを指し直す — そのため構造変更でリセットする。末尾への
+   * 同じ ID が別ブロックを指し直す。そのため構造変更でリセットする。末尾への
    * 追記だけは既存 ID が安定なので維持する。この連動を linkedSignal で宣言する
    */
   private readonly breaksSignal = linkedSignal<readonly ManuscriptFile[], ReadonlySet<string>>({
@@ -97,7 +97,7 @@ export class EditorStore {
   /**
    * 変換済み変換済み文書。container は唯一の DOM 実体で、印刷対象 (PrintRoot) が
    * そのまま掲示し、プレビューは複製して使う。強制改ページのクラス付与は
-   * ここでは行わない — 消費者が描画時に applyForcedBreaks を適用する
+   * ここでは行わない (消費者が描画時に applyForcedBreaks を適用する)
    */
   readonly renderedDocument = computed<RenderedDocument | null>(() =>
     this.renderedResource.hasValue() ? (this.renderedResource.value() ?? null) : null,
