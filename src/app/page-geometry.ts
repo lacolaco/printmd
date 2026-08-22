@@ -20,12 +20,16 @@ export const COLUMN_STEP_MM = CONTENT_WIDTH_MM + COLUMN_GAP_MM;
 /** 1mm を CSS px に換算する係数 (96dpi 基準) */
 export const MM_TO_PX = 96 / 25.4;
 
+const CSS_VARIABLES: readonly (readonly [name: string, valueMm: number])[] = [
+  ['--page-width', PAGE_WIDTH_MM],
+  ['--page-height', PAGE_HEIGHT_MM],
+  ['--page-margin', PAGE_MARGIN_MM],
+  ['--content-width', CONTENT_WIDTH_MM],
+  ['--content-height', CONTENT_HEIGHT_MM],
+  ['--column-gap', COLUMN_GAP_MM],
+];
+
 /** 画面 CSS が参照するカスタムプロパティとして定義値を注入する */
 export function applyPageGeometryCssVariables(root: HTMLElement): void {
-  root.style.setProperty('--page-width', `${PAGE_WIDTH_MM}mm`);
-  root.style.setProperty('--page-height', `${PAGE_HEIGHT_MM}mm`);
-  root.style.setProperty('--page-margin', `${PAGE_MARGIN_MM}mm`);
-  root.style.setProperty('--content-width', `${CONTENT_WIDTH_MM}mm`);
-  root.style.setProperty('--content-height', `${CONTENT_HEIGHT_MM}mm`);
-  root.style.setProperty('--column-gap', `${COLUMN_GAP_MM}mm`);
+  CSS_VARIABLES.forEach(([name, valueMm]) => root.style.setProperty(name, `${valueMm}mm`));
 }

@@ -57,21 +57,19 @@ export class FilePanel {
     if (!this.store.moveFile(id, delta)) return;
     const index = this.store.files().findIndex((file) => file.id === id);
     this.announceOrder(name, index);
-    // 移動でボタンが disabled になるとフォーカスが body へ落ちる。同じファイルの
-    // 操作ボタンへ戻す (押した方向が無効なら反対方向のボタンへ)
-    afterNextRender(
-      () => {
-        const host = this.elementRef.nativeElement;
-        const preferred = host.querySelector<HTMLButtonElement>(
-          `button[data-move-file="${id}"][data-move-dir="${delta}"]`,
-        );
-        const fallback = host.querySelector<HTMLButtonElement>(
-          `button[data-move-file="${id}"][data-move-dir="${-delta}"]`,
-        );
-        (preferred?.disabled === false ? preferred : fallback)?.focus();
-      },
-      { injector: this.injector },
-    );
+    afterNextRender(() => this.focusMovedFileButton(id, delta), { injector: this.injector });
+  }
+
+  /**
+   * 移動でボタンが disabled になるとフォーカスが body へ落ちる。同じファイルの
+   * 操作ボタンへ戻す (押した方向が無効なら反対方向のボタンへ)
+   */
+  private focusMovedFileButton(id: number, delta: -1 | 1): void {
+    const host = this.elementRef.nativeElement;
+    const selector = (dir: number) => `button[data-move-file="${id}"][data-move-dir="${dir}"]`;
+    const preferred = host.querySelector<HTMLButtonElement>(selector(delta));
+    const fallback = host.querySelector<HTMLButtonElement>(selector(-delta));
+    (preferred?.disabled === false ? preferred : fallback)?.focus();
   }
 
   private announceOrder(name: string, index: number): void {

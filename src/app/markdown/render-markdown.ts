@@ -53,16 +53,29 @@ interface RenderEnv {
   mermaidBlocks: MermaidBlock[];
 }
 
+/** mermaid フェンスを SVG 化用のプレースホルダへ差し替え、コードを env に退避する */
+function pushMermaidPlaceholder(env: RenderEnv, code: string): string {
+  const id = `printmd-mermaid-${mermaidSeq++}`;
+  env.mermaidBlocks.push({ id, code });
+  return `<div class="mermaid-placeholder" id="${id}"></div>`;
+}
+
 const defaultFence = md.renderer.rules['fence']!.bind(md.renderer.rules);
 md.renderer.rules['fence'] = (tokens, idx, options, env, self) => {
   const token = tokens[idx];
   if (token.info.trim() !== 'mermaid') {
     return defaultFence(tokens, idx, options, env, self);
   }
-  const id = `printmd-mermaid-${mermaidSeq++}`;
-  (env as unknown as RenderEnv).mermaidBlocks.push({ id, code: token.content.trim() });
-  return `<div class="mermaid-placeholder" id="${id}"></div>`;
+  return pushMermaidPlaceholder(env as unknown as RenderEnv, token.content.trim());
 };
+
+/**
+ * GitHub と同様に生 HTML はサニタイズして通す。script 等は中身ごと除去され、
+ * 許可外のタグはタグだけ剥がれてテキストが残る
+ */
+function sanitizeRendered(rendered: string): string {
+  return DOMPurify.sanitize(rendered, SANITIZE_CONFIG);
+}
 
 /**
  * Markdown を GitHub 相当の HTML に変換する。mermaid フェンスは SVG 化を
@@ -72,8 +85,5 @@ md.renderer.rules['fence'] = (tokens, idx, options, env, self) => {
 export function renderMarkdown(content: string): RenderMarkdownResult {
   const env: RenderEnv = { mermaidBlocks: [] };
   const rendered = md.render(content, env as unknown as Record<string, unknown>);
-  // GitHub と同様に生 HTML はサニタイズして通す。script 等は中身ごと除去され、
-  // 許可外のタグはタグだけ剥がれてテキストが残る
-  const html = DOMPurify.sanitize(rendered, SANITIZE_CONFIG);
-  return { html, mermaidBlocks: env.mermaidBlocks };
+  return { html: sanitizeRendered(rendered), mermaidBlocks: env.mermaidBlocks };
 }

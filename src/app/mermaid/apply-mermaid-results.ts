@@ -14,33 +14,51 @@ export function applyMermaidResults(
   results: ReadonlyMap<string, MermaidOutcome>,
 ): string {
   if (!html.includes('mermaid-placeholder')) return html;
-
   const temp = document.createElement('div');
   temp.innerHTML = html;
-  temp.querySelectorAll('.mermaid-placeholder').forEach((placeholder) => {
-    const outcome = results.get(placeholder.id);
-    if (outcome === undefined) return;
-
-    const figure = document.createElement('figure');
-    if ('svg' in outcome) {
-      figure.className = 'mermaid';
-      // mermaid 自身のサニタイズ (securityLevel: strict) に単独で頼らず、
-      // アプリの唯一の無害化境界である DOMPurify をここでも通す
-      figure.innerHTML = DOMPurify.sanitize(outcome.svg, {
-        USE_PROFILES: { svg: true, svgFilters: true },
-      });
-    } else {
-      figure.className = 'mermaid mermaid-failed';
-      const pre = document.createElement('pre');
-      const code = document.createElement('code');
-      code.textContent = outcome.code;
-      pre.append(code);
-      const warning = document.createElement('p');
-      warning.className = 'mermaid-warning';
-      warning.textContent = MERMAID_FAILED_MESSAGE;
-      figure.append(pre, warning);
-    }
-    placeholder.replaceWith(figure);
-  });
+  temp.querySelectorAll('.mermaid-placeholder').forEach((el) => replacePlaceholder(el, results));
   return temp.innerHTML;
+}
+
+function replacePlaceholder(
+  placeholder: Element,
+  results: ReadonlyMap<string, MermaidOutcome>,
+): void {
+  const outcome = results.get(placeholder.id);
+  if (outcome === undefined) return;
+  placeholder.replaceWith(buildMermaidFigure(outcome));
+}
+
+function buildMermaidFigure(outcome: MermaidOutcome): HTMLElement {
+  return 'svg' in outcome ? buildSuccessFigure(outcome.svg) : buildFailedFigure(outcome.code);
+}
+
+function buildSuccessFigure(svg: string): HTMLElement {
+  const figure = document.createElement('figure');
+  figure.className = 'mermaid';
+  // mermaid 自身のサニタイズに単独で頼らず、DOMPurify を通す (アプリ唯一の無害化境界)
+  figure.innerHTML = DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true, svgFilters: true } });
+  return figure;
+}
+
+function buildFailedFigure(code: string): HTMLElement {
+  const figure = document.createElement('figure');
+  figure.className = 'mermaid mermaid-failed';
+  figure.append(buildFailedCodeBlock(code), buildFailedWarning());
+  return figure;
+}
+
+function buildFailedCodeBlock(code: string): HTMLElement {
+  const pre = document.createElement('pre');
+  const el = document.createElement('code');
+  el.textContent = code;
+  pre.append(el);
+  return pre;
+}
+
+function buildFailedWarning(): HTMLElement {
+  const warning = document.createElement('p');
+  warning.className = 'mermaid-warning';
+  warning.textContent = MERMAID_FAILED_MESSAGE;
+  return warning;
 }

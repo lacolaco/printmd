@@ -1,9 +1,9 @@
 import { Service, computed, inject, linkedSignal, resource, signal } from '@angular/core';
-import type { Block, RenderedDocument } from '../markdown/block-extractor';
+import type { Block, FileFragment, RenderedDocument } from '../markdown/block-extractor';
 import { buildRenderedDocument } from '../markdown/block-extractor';
 import { applyMermaidResults } from '../mermaid/apply-mermaid-results';
 import { groupBlocks } from './block-groups';
-import { MermaidRenderer } from '../mermaid/mermaid-renderer';
+import { MermaidRenderer, type MermaidOutcome } from '../mermaid/mermaid-renderer';
 import { renderMarkdown } from '../markdown/render-markdown';
 
 /** 取り込んだ原稿ファイル。content は不変 (原稿は書き換えない) */
@@ -64,28 +64,45 @@ export class EditorStore {
     loader: async ({ params: files }) => {
       if (files.length === 0) return null;
       const epoch = ++this.renderEpoch;
-      const toRender = files.filter((file) => !this.fragmentCache.has(file.content));
-      const rendered = toRender.map((file) => ({ file, ...renderMarkdown(file.content) }));
-      const results = await this.mermaidRenderer.render(rendered.flatMap((r) => r.mermaidBlocks));
-      rendered.forEach((r) => {
-        this.fragmentCache.set(r.file.content, applyMermaidResults(r.html, results));
-      });
-      if (epoch === this.renderEpoch) {
-        const keep = new Set(files.map((file) => file.content));
-        for (const key of this.fragmentCache.keys()) {
-          if (!keep.has(key)) this.fragmentCache.delete(key);
-        }
-      }
-      return buildRenderedDocument(
-        files.map((file, fileIndex) => ({
-          fileIndex,
-          fileName: file.name,
-          // 古い loader は最新世代の追い出しでエントリを失い得るが、その結果は resource が捨てる
-          html: this.fragmentCache.get(file.content) ?? '',
-        })),
-      );
+      await this.renderNewFragments(files);
+      this.evictStaleFragments(epoch, files);
+      return this.buildDocumentFromCache(files);
     },
   });
+
+  private async renderNewFragments(files: readonly ManuscriptFile[]): Promise<void> {
+    const toRender = files.filter((file) => !this.fragmentCache.has(file.content));
+    const rendered = toRender.map((file) => ({ file, ...renderMarkdown(file.content) }));
+    const results = await this.mermaidRenderer.render(rendered.flatMap((r) => r.mermaidBlocks));
+    this.storeFragments(rendered, results);
+  }
+
+  private storeFragments(
+    rendered: readonly { file: ManuscriptFile; html: string }[],
+    results: ReadonlyMap<string, MermaidOutcome>,
+  ): void {
+    for (const r of rendered) {
+      this.fragmentCache.set(r.file.content, applyMermaidResults(r.html, results));
+    }
+  }
+
+  private evictStaleFragments(epoch: number, files: readonly ManuscriptFile[]): void {
+    if (epoch !== this.renderEpoch) return;
+    const keep = new Set(files.map((file) => file.content));
+    for (const key of this.fragmentCache.keys()) {
+      if (!keep.has(key)) this.fragmentCache.delete(key);
+    }
+  }
+
+  private buildDocumentFromCache(files: readonly ManuscriptFile[]): RenderedDocument {
+    return buildRenderedDocument(files.map((file, index) => this.cachedFragment(file, index)));
+  }
+
+  /** 古い loader は最新世代の追い出しでエントリを失い得るが、その結果は resource が捨てる */
+  private cachedFragment(file: ManuscriptFile, fileIndex: number): FileFragment {
+    return { fileIndex, fileName: file.name, html: this.fragmentCache.get(file.content) ?? '' };
+  }
+
   private readonly importWarningsSignal = signal<readonly string[]>([]);
 
   readonly files = this.filesSignal.asReadonly();
@@ -110,30 +127,26 @@ export class EditorStore {
     this.renderedResource.hasValue() ? (this.renderedResource.value() ?? null) : null,
   );
 
-  async addFiles(files: readonly { name: string; text(): Promise<string> }[]): Promise<void> {
-    const settled = await Promise.allSettled(
-      files.map(async (file) => ({
-        id: this.nextFileId++,
-        name: file.name,
-        content: await file.text(),
-      })),
-    );
-    const loaded = settled.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
-    const failedNames = files
-      .filter((_, i) => settled[i].status === 'rejected')
-      .map((f) => f.name);
+  async addFiles(files: readonly ImportSource[]): Promise<void> {
+    const { loaded, failedNames } = await this.loadContents(files);
     const markdownOnly = loaded.filter((f) => MARKDOWN_NAME_PATTERN.test(f.name));
-    const warnings: string[] = [];
-    if (markdownOnly.length < loaded.length) {
-      warnings.push('Markdown (.md / .markdown / .txt) 以外のファイルは取り込めません');
-    }
-    if (failedNames.length > 0) {
-      warnings.push(`読み込めなかったファイル: ${failedNames.join(', ')}`);
-    }
-    this.importWarningsSignal.set(warnings);
+    this.importWarningsSignal.set(importWarnings(loaded.length - markdownOnly.length, failedNames));
     if (markdownOnly.length > 0) {
       this.filesSignal.update((current) => [...current, ...markdownOnly]);
     }
+  }
+
+  private async loadContents(
+    files: readonly ImportSource[],
+  ): Promise<{ loaded: ManuscriptFile[]; failedNames: string[] }> {
+    const settled = await Promise.allSettled(files.map((file) => this.loadContent(file)));
+    const loaded = settled.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
+    const failedNames = files.filter((_, i) => settled[i].status === 'rejected').map((f) => f.name);
+    return { loaded, failedNames };
+  }
+
+  private async loadContent(file: ImportSource): Promise<ManuscriptFile> {
+    return { id: this.nextFileId++, name: file.name, content: await file.text() };
   }
 
   removeFile(id: number): void {
@@ -149,21 +162,7 @@ export class EditorStore {
   }
 
   reorderFile(fromIndex: number, toIndex: number): boolean {
-    return this.applyStructuralChange((current) => {
-      if (
-        fromIndex === toIndex ||
-        fromIndex < 0 ||
-        toIndex < 0 ||
-        fromIndex >= current.length ||
-        toIndex >= current.length
-      ) {
-        return current;
-      }
-      const next = [...current];
-      const [moved] = next.splice(fromIndex, 1);
-      next.splice(toIndex, 0, moved);
-      return next;
-    });
+    return this.applyStructuralChange((current) => reordered(current, fromIndex, toIndex));
   }
 
   /**
@@ -180,13 +179,41 @@ export class EditorStore {
   }
 
   toggleBreak(blockId: string): void {
-    this.breaksSignal.update((current) => {
-      const next = new Set(current);
-      if (next.has(blockId)) next.delete(blockId);
-      else next.add(blockId);
-      return next;
-    });
+    this.breaksSignal.update((current) => toggled(current, blockId));
   }
+}
 
+interface ImportSource {
+  readonly name: string;
+  text(): Promise<string>;
+}
 
+const NON_MARKDOWN_WARNING = 'Markdown (.md / .markdown / .txt) 以外のファイルは取り込めません';
+
+function importWarnings(nonMarkdownCount: number, failedNames: readonly string[]): string[] {
+  const nonMarkdown = nonMarkdownCount > 0 ? NON_MARKDOWN_WARNING : null;
+  const failed =
+    failedNames.length > 0 ? `読み込めなかったファイル: ${failedNames.join(', ')}` : null;
+  return [nonMarkdown, failed].filter((warning): warning is string => warning !== null);
+}
+
+function reordered(
+  current: readonly ManuscriptFile[],
+  fromIndex: number,
+  toIndex: number,
+): readonly ManuscriptFile[] {
+  if (!isValidMove(current.length, fromIndex, toIndex)) return current;
+  const next = [...current];
+  next.splice(toIndex, 0, ...next.splice(fromIndex, 1));
+  return next;
+}
+
+function isValidMove(length: number, from: number, to: number): boolean {
+  return from !== to && from >= 0 && to >= 0 && from < length && to < length;
+}
+
+function toggled(current: ReadonlySet<string>, blockId: string): ReadonlySet<string> {
+  const next = new Set(current);
+  if (!next.delete(blockId)) next.add(blockId);
+  return next;
 }
