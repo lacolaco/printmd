@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { MermaidRenderer, type MermaidLike } from '../mermaid/mermaid-renderer';
-import { EditorStore } from '../state/editor-store';
-import { ViewerState } from '../state/viewer-state';
+import { MermaidRenderer, type MermaidLike } from '../../../mermaid/mermaid-renderer';
+import { EditorStore } from '../../../state/editor-store';
+import { ViewerState } from '../../../state/viewer-state';
 import { Preview } from './preview';
 
 class FakeMermaidRenderer extends MermaidRenderer {

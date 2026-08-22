@@ -1,6 +1,6 @@
 import { CdkDrag, CdkDragHandle, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, Injector, afterNextRender, inject, signal } from '@angular/core';
-import { EditorStore } from '../state/editor-store';
+import { EditorStore } from '../../../state/editor-store';
 
 /**
  * 原稿ファイルの取り込みと並べ替え。並べ替えはドラッグとキーボード

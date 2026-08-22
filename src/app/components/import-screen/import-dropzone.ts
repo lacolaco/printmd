@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { EditorStore } from '../state/editor-store';
+import { EditorStore } from '../../state/editor-store';
 
 /** デモ原稿 (public/demo/ に同梱)。ガイド + 著作権消滅作品の長文 */
 const DEMO_FILES = ['printmd-guide.md', 'hashire-merosu.md'];

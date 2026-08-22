@@ -1,9 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { Footer } from './components/footer';
 import { Header } from './components/header';
-import { ImportScreen } from './components/import-screen';
+import { ImportScreen } from './components/import-screen/import-screen';
 import { PrintRoot } from './components/print-root';
-import { Workspace } from './components/workspace';
+import { Workspace } from './components/workspace/workspace';
 import { EditorStore } from './state/editor-store';
 
 /** 画面骨格。ヘッダ / 画面の切替 / 印刷対象の配置と、ウィンドウ全体のドロップ受け */

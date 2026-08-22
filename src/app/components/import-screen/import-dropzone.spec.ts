@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { MermaidRenderer, type MermaidLike } from '../mermaid/mermaid-renderer';
-import { EditorStore } from '../state/editor-store';
+import { MermaidRenderer, type MermaidLike } from '../../mermaid/mermaid-renderer';
+import { EditorStore } from '../../state/editor-store';
 import { ImportDropzone } from './import-dropzone';
 
 class FakeMermaidRenderer extends MermaidRenderer {

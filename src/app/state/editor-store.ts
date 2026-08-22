@@ -2,6 +2,7 @@ import { Service, computed, inject, linkedSignal, resource, signal } from '@angu
 import type { Block, RenderedDocument } from '../markdown/block-extractor';
 import { buildRenderedDocument } from '../markdown/block-extractor';
 import { applyMermaidResults } from '../mermaid/apply-mermaid-results';
+import { groupBlocks } from './block-groups';
 import { MermaidRenderer } from '../mermaid/mermaid-renderer';
 import { renderMarkdown } from '../markdown/render-markdown';
 
@@ -93,6 +94,12 @@ export class EditorStore {
   readonly warnings = this.importWarningsSignal.asReadonly();
   readonly hasFiles = computed(() => this.files().length > 0);
   readonly blocks = computed<readonly Block[]>(() => this.renderedDocument()?.blocks ?? []);
+  /** ファイルごとのブロック行 (階層深さ付き) */
+  readonly blockGroups = computed(() => groupBlocks(this.blocks()));
+  readonly blockRowCount = computed(() =>
+    this.blockGroups().reduce((sum, group) => sum + group.rows.length, 0),
+  );
+  readonly multiFile = computed(() => new Set(this.blocks().map((b) => b.fileIndex)).size > 1);
 
   /**
    * 変換済み変換済み文書。container は唯一の DOM 実体で、印刷対象 (PrintRoot) が

@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
-import { ControlPanel } from './control-panel';
-import { Preview } from './preview';
+import { ControlPanel } from './control-panel/control-panel';
+import { Preview } from './preview/preview';
 
 /**
  * 作業画面。デスクトップ (md+) は紙面 + 右カラムの 2 カラム、
