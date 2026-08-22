@@ -10,7 +10,24 @@ import { EditorStore } from './state/editor-store';
 @Component({
   selector: 'app-root',
   imports: [Footer, Header, ImportScreen, PrintRoot, Workspace],
-  templateUrl: './app.html',
+  template: `
+    <div
+      class="app-ui flex h-dvh flex-col"
+      (dragover)="onWindowDragOver($event)"
+      (drop)="onWindowDrop($event)"
+    >
+      <app-header />
+      @if (store.hasFiles()) {
+        <app-workspace class="min-h-0 flex-1" />
+      } @else {
+        <app-import-screen class="min-h-0 flex-1" />
+      }
+      <app-footer />
+    </div>
+
+    <!-- 印刷対象。画面では非表示、@media print のみ可視化する (アプリ UI は同時に隠す) -->
+    <app-print-root />
+  `,
 })
 export class App {
   protected readonly store = inject(EditorStore);
