@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 430" font-family="system-ui, sans-serif">
+  <rect x="0" y="0" width="740" height="430" fill="#ffffff"/>
+
+  <!-- 窓位置の固定を示すガイド線 (両シートで同じ x) -->
+  <line x1="230" y1="48" x2="230" y2="386" stroke="#c8321e" stroke-width="1" stroke-dasharray="2 4" opacity="0.4"/>
+  <line x1="380" y1="48" x2="380" y2="386" stroke="#c8321e" stroke-width="1" stroke-dasharray="2 4" opacity="0.4"/>
+
+  <!-- シート 1 -->
+  <text x="20" y="26" font-size="13" fill="#1f2328">1 枚目のシート — コピーをずらさない (margin-left: 0)</text>
+  <rect x="210" y="38" width="190" height="140" fill="#ffffff" stroke="#1f2328" stroke-width="1.5"/>
+  <g opacity="0.45">
+    <rect x="396" y="58" width="150" height="100" fill="none" stroke="#59636e" stroke-dasharray="5 4"/>
+    <text x="471" y="113" text-anchor="middle" font-size="13" fill="#59636e">段 1</text>
+    <rect x="562" y="58" width="150" height="100" fill="none" stroke="#59636e" stroke-dasharray="5 4"/>
+    <text x="637" y="113" text-anchor="middle" font-size="13" fill="#59636e">段 2</text>
+  </g>
+  <rect x="230" y="58" width="150" height="100" fill="none" stroke="#c8321e" stroke-width="2"/>
+  <text x="305" y="113" text-anchor="middle" font-size="13" fill="#c8321e">段 0</text>
+  <text x="410" y="192" font-size="12" fill="#59636e">↑ 破線部は窓の外 — overflow: hidden で不可視</text>
+
+  <!-- シート 2 -->
+  <text x="20" y="226" font-size="13" fill="#1f2328">2 枚目のシート — 同じ内容のコピーを margin-left: -194mm でずらす</text>
+  <rect x="210" y="238" width="190" height="140" fill="#ffffff" stroke="#1f2328" stroke-width="1.5"/>
+  <g opacity="0.45">
+    <rect x="64" y="258" width="150" height="100" fill="none" stroke="#59636e" stroke-dasharray="5 4"/>
+    <text x="139" y="313" text-anchor="middle" font-size="13" fill="#59636e">段 0</text>
+    <rect x="396" y="258" width="150" height="100" fill="none" stroke="#59636e" stroke-dasharray="5 4"/>
+    <text x="471" y="313" text-anchor="middle" font-size="13" fill="#59636e">段 2</text>
+    <rect x="562" y="258" width="150" height="100" fill="none" stroke="#59636e" stroke-dasharray="5 4"/>
+    <text x="637" y="313" text-anchor="middle" font-size="13" fill="#59636e">段 3</text>
+  </g>
+  <rect x="230" y="258" width="150" height="100" fill="none" stroke="#c8321e" stroke-width="2"/>
+  <text x="305" y="313" text-anchor="middle" font-size="13" fill="#c8321e">段 1</text>
+
+  <text x="305" y="412" text-anchor="middle" font-size="13" fill="#1f2328">窓 (赤枠) の位置は両シートで同じ。中のストリップだけが左へずれ、窓に重なる段が変わる</text>
+</svg>
