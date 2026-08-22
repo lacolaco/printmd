@@ -10,7 +10,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build && cp dist/printmd/3rdpartylicenses.txt dist/printmd/browser/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test && vitest run --config vitest.tools.config.ts",
     "e2e": "playwright test",
