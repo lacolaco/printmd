@@ -32,6 +32,12 @@ export class EditorStore {
   private nextFileId = 1;
   /** ファイル内容 → mermaid 適用済み HTML のキャッシュ。並べ替え・削除では再変換しない */
   private readonly fragmentCache = new Map<string, string>();
+  /**
+   * loader の世代。mermaid 待ちの間に params が変わると複数の loader が重なり、
+   * 遅れて解決した古い loader が古い keep 集合でキャッシュを追い出す競合がある
+   * (現行文書のエントリを消して結果を壊す)。追い出しは最新世代だけが行う
+   */
+  private renderEpoch = 0;
 
   private readonly filesSignal = signal<readonly ManuscriptFile[]>([]);
   /**
@@ -56,21 +62,25 @@ export class EditorStore {
     params: () => this.filesSignal(),
     loader: async ({ params: files }) => {
       if (files.length === 0) return null;
+      const epoch = ++this.renderEpoch;
       const toRender = files.filter((file) => !this.fragmentCache.has(file.content));
       const rendered = toRender.map((file) => ({ file, ...renderMarkdown(file.content) }));
       const results = await this.mermaidRenderer.render(rendered.flatMap((r) => r.mermaidBlocks));
       rendered.forEach((r) => {
         this.fragmentCache.set(r.file.content, applyMermaidResults(r.html, results));
       });
-      const keep = new Set(files.map((file) => file.content));
-      for (const key of this.fragmentCache.keys()) {
-        if (!keep.has(key)) this.fragmentCache.delete(key);
+      if (epoch === this.renderEpoch) {
+        const keep = new Set(files.map((file) => file.content));
+        for (const key of this.fragmentCache.keys()) {
+          if (!keep.has(key)) this.fragmentCache.delete(key);
+        }
       }
       return buildRenderedDocument(
         files.map((file, fileIndex) => ({
           fileIndex,
           fileName: file.name,
-          html: this.fragmentCache.get(file.content)!,
+          // 古い loader は最新世代の追い出しでエントリを失い得るが、その結果は resource が捨てる
+          html: this.fragmentCache.get(file.content) ?? '',
         })),
       );
     },

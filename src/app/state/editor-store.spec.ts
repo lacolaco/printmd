@@ -132,3 +132,67 @@ describe('EditorStore', () => {
   });
 
 });
+
+describe('EditorStore 変換の競合', () => {
+  /** mermaid の解決を 1 件ずつ手動制御する fake */
+  const pending: ((svg: { svg: string }) => void)[] = [];
+  class DeferredMermaidRenderer extends MermaidRenderer {
+    protected override loadModule(): Promise<MermaidLike> {
+      return Promise.resolve({
+        initialize: () => {},
+        render: () => new Promise((resolve) => pending.push(resolve)),
+      });
+    }
+  }
+
+  beforeEach(() => {
+    pending.length = 0;
+    TestBed.configureTestingModule({
+      providers: [EditorStore, { provide: MermaidRenderer, useClass: DeferredMermaidRenderer }],
+    });
+  });
+
+  // whenStable は保留中の loader を待ち続けるため使えない。tick + タスク flush で進める
+  async function settle(): Promise<void> {
+    for (let i = 0; i < 10; i++) {
+      TestBed.tick();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+  }
+
+  it('遅延して解決した古い変換が、現行文書のキャッシュを追い出して壊さない', async () => {
+    const store = TestBed.inject(EditorStore);
+    const mermaid = '```mermaid\ngraph LR\nX-->Y\n```';
+
+    // loader1: [A] を開始、A の mermaid が保留のまま (pending[0])
+    await store.addFiles([file('a.md', `# A\n\n${mermaid}`)]);
+    await settle();
+    // loader2: [A, B] を開始。A 未キャッシュのため A から再変換 (pending[1])
+    await store.addFiles([file('b.md', `# B\n\n${mermaid}`)]);
+    await settle();
+    expect(pending.length).toBe(2);
+    // loader2 の A → B を順に解決し、loader2 を完走させる (A, B がキャッシュされる)
+    pending[1]({ svg: '<svg>A2</svg>' });
+    await settle();
+    pending[2]({ svg: '<svg>B2</svg>' });
+    await settle();
+    // loader3: [A, B, C] を開始。A, B はキャッシュ済みで C だけ保留 (pending[3])
+    await store.addFiles([file('c.md', `# C\n\n${mermaid}`)]);
+    await settle();
+    expect(pending.length).toBe(4);
+    // 古い loader1 がいま解決する — keep={A} の追い出しで B を消してはならない
+    pending[0]({ svg: '<svg>A1</svg>' });
+    await settle();
+    // loader3 の C を解決して完走させる
+    pending[3]({ svg: '<svg>C3</svg>' });
+    await settle();
+
+    const headings = store
+      .blocks()
+      .filter((b) => b.kind === 'heading')
+      .map((b) => b.label);
+    expect(headings).toEqual(['A', 'B', 'C']);
+    // B のフラグメントが追い出されていれば b.md のブロックが欠落する
+    expect(store.blocks().filter((b) => b.fileName === 'b.md').length).toBeGreaterThanOrEqual(2);
+  });
+});
