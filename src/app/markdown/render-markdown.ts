@@ -70,20 +70,14 @@ md.renderer.rules['fence'] = (tokens, idx, options, env, self) => {
 };
 
 /**
- * GitHub と同様に生 HTML はサニタイズして通す。script 等は中身ごと除去され、
- * 許可外のタグはタグだけ剥がれてテキストが残る
- */
-function sanitizeRendered(rendered: string): string {
-  return DOMPurify.sanitize(rendered, SANITIZE_CONFIG);
-}
-
-/**
- * Markdown を GitHub 相当の HTML に変換する。mermaid フェンスは SVG 化を
+ * Markdown を GitHub 相当の HTML に変換する。GitHub と同様に生 HTML は
+ * サニタイズして通す (script 等は中身ごと除去、許可外のタグはタグだけ剥がれて
+ * テキストが残る)。mermaid フェンスは SVG 化を
  * 別工程 (MermaidRenderer) に委ねるため、ここではプレースホルダ要素に
  * 差し替えて元コードを返すだけに留める。
  */
 export function renderMarkdown(content: string): RenderMarkdownResult {
   const env: RenderEnv = { mermaidBlocks: [] };
   const rendered = md.render(content, env as unknown as Record<string, unknown>);
-  return { html: sanitizeRendered(rendered), mermaidBlocks: env.mermaidBlocks };
+  return { html: DOMPurify.sanitize(rendered, SANITIZE_CONFIG), mermaidBlocks: env.mermaidBlocks };
 }

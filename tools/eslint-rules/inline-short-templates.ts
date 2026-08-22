@@ -39,14 +39,6 @@ function toInlineTemplateFix(fixer: Rule.RuleFixer, node: Rule.Node, content: st
   return fixer.replaceText(node, `template: \`${body}\``);
 }
 
-function buildReportDescriptor(
-  node: Rule.Node,
-  data: { lines: string; max: string },
-  fix: Rule.ReportFixer,
-): Rule.ReportDescriptor {
-  return { node, messageId: 'inline', data, fix };
-}
-
 function reportIfShortEnough(
   context: Rule.RuleContext,
   maxLines: number,
@@ -57,7 +49,7 @@ function reportIfShortEnough(
   if (lines > maxLines) return;
   const data = { lines: String(lines), max: String(maxLines) };
   const fix: Rule.ReportFixer = (fixer) => toInlineTemplateFix(fixer, node, content);
-  context.report(buildReportDescriptor(node, data, fix));
+  context.report({ node, messageId: 'inline', data, fix });
 }
 
 function checkTemplateUrl(context: Rule.RuleContext, maxLines: number, node: Rule.Node): void {

@@ -16,32 +16,28 @@ interface MutableFileGroup {
   fileIndex: number;
   fileName: string;
   rows: BlockRow[];
-}
-
-interface GroupAccumulator {
-  readonly groups: MutableFileGroup[];
-  current: MutableFileGroup | null;
+  /** グループ内で直近に現れた見出しのレベル。本文の深さの基準になる */
   headingLevel: number;
 }
 
-/** ファイル境界で階層をリセットする (前ファイルの見出しレベルを持ち越さない) */
-function startFileGroup(acc: GroupAccumulator, block: Block): void {
-  acc.headingLevel = 0;
-  const group: MutableFileGroup = { fileIndex: block.fileIndex, fileName: block.fileName, rows: [] };
-  acc.groups.push(group);
-  acc.current = group;
+/** ブロックの属するグループを返す。ファイル境界では新しいグループを開始する */
+function groupFor(groups: MutableFileGroup[], block: Block): MutableFileGroup {
+  const last = groups.at(-1);
+  if (last !== undefined && last.fileIndex === block.fileIndex) return last;
+  const next = { fileIndex: block.fileIndex, fileName: block.fileName, rows: [], headingLevel: 0 };
+  groups.push(next);
+  return next;
 }
 
-function accumulateBlock(acc: GroupAccumulator, block: Block): void {
-  if (acc.current === null || block.fileIndex !== acc.current.fileIndex) startFileGroup(acc, block);
-  if (block.kind === 'heading') acc.headingLevel = block.level ?? 1;
-  const depth = block.kind === 'heading' ? (block.level ?? 1) : acc.headingLevel + 1;
-  acc.current!.rows.push({ block, depth });
+function appendBlock(groups: MutableFileGroup[], block: Block): void {
+  const group = groupFor(groups, block);
+  if (block.kind === 'heading') group.headingLevel = block.level ?? 1;
+  const depth = block.kind === 'heading' ? (block.level ?? 1) : group.headingLevel + 1;
+  group.rows.push({ block, depth });
 }
 
-/** ブロック列をファイルごとのグループへ分け、各ブロックに階層深さを与える */
 export function groupBlocks(blocks: readonly Block[]): readonly FileGroup[] {
-  const acc: GroupAccumulator = { groups: [], current: null, headingLevel: 0 };
-  blocks.forEach((block) => accumulateBlock(acc, block));
-  return acc.groups.filter((group) => group.rows.length > 0);
+  const groups: MutableFileGroup[] = [];
+  blocks.forEach((block) => appendBlock(groups, block));
+  return groups.filter((group) => group.rows.length > 0);
 }

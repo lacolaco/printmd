@@ -183,7 +183,8 @@ export class EditorStore {
   }
 }
 
-interface ImportSource {
+/** 取り込み入力。File と同じ形の最小面 (名前と本文の遅延読み出し) */
+export interface ImportSource {
   readonly name: string;
   text(): Promise<string>;
 }

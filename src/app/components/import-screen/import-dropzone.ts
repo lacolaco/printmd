@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { EditorStore } from '../../state/editor-store';
+import { EditorStore, type ImportSource } from '../../state/editor-store';
 
 /** デモ原稿 (public/demo/ に同梱)。ガイド + 著作権消滅作品の長文 */
 const DEMO_FILES = ['printmd-guide.md', 'hashire-merosu.md'];
@@ -10,7 +10,7 @@ async function fetchDemoText(name: string): Promise<string> {
   return response.text();
 }
 
-function toDemoFileInput(name: string): { name: string; text: () => Promise<string> } {
+function toDemoFileInput(name: string): ImportSource {
   return { name, text: () => fetchDemoText(name) };
 }
 

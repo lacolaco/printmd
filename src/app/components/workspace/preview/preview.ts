@@ -83,7 +83,8 @@ export class Preview {
     doc: RenderedDocument,
     pagination: Pagination,
   ): void {
-    for (const entry of entries.filter((e) => e.isIntersecting)) {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
       this.fillSheet(entry.target as HTMLElement, doc, pagination);
       this.observer?.unobserve(entry.target);
     }
@@ -92,16 +93,10 @@ export class Preview {
   private appendSheets(doc: RenderedDocument, pagination: Pagination): void {
     const host = this.sheetsHost().nativeElement;
     for (let index = 0; index < pagination.total; index++) {
-      host.append(this.createSheet(index, doc, pagination));
+      const sheet = createSheet(index);
+      host.append(sheet);
+      this.scheduleFill(sheet, doc, pagination);
     }
-  }
-
-  private createSheet(index: number, doc: RenderedDocument, pagination: Pagination): HTMLElement {
-    const sheet = document.createElement('div');
-    sheet.className = 'sheet';
-    sheet.dataset['page'] = String(index + 1);
-    this.scheduleFill(sheet, doc, pagination);
-    return sheet;
   }
 
   private scheduleFill(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
@@ -118,6 +113,13 @@ export class Preview {
       sheet.append(buildSheetWindow(doc, segment, index - segment.firstPage));
     }
   }
+}
+
+function createSheet(index: number): HTMLElement {
+  const sheet = document.createElement('div');
+  sheet.className = 'sheet';
+  sheet.dataset['page'] = String(index + 1);
+  return sheet;
 }
 
 function segmentForPage(pagination: Pagination, index: number): PageSegment | undefined {
