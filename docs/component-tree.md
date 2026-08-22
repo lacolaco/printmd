@@ -13,6 +13,9 @@ flowchart TB
   PANEL["ControlPanel<br/><small>調整パネル: md+ は右カラム /<br/>モバイルはボトムシートの中身</small>"]
   FILEP["FilePanel<br/><small>原稿の取り込み・並べ替え・削除</small>"]
   BREAKP["BreakPanel<br/><small>全ブロックの改ページ指定一覧</small>"]
+  BREAKROW["BreakRowItem<br/><small>一覧の 1 行 (ラベル・インデント・強調)</small>"]
+  FILEROW["FileRowItem<br/><small>ファイル行の操作面 (移動・削除)</small>"]
+  FILEADD["FileAddInput<br/><small>追加取り込みの入力面</small>"]
   FOOTER["Footer<br/><small>下端の帯: 著作権表記とライセンス導線<br/>(ヘッダと対)</small>"]
   DROP["ImportDropzone<br/><small>取り込み面</small>"]
   PRINT["PrintRoot<br/><small>印刷対象 (変換済み文書の掲示)</small>"]
@@ -26,6 +29,9 @@ flowchart TB
   WS --> PANEL
   PANEL --> FILEP
   PANEL --> BREAKP
+  BREAKP --> BREAKROW
+  FILEP --> FILEROW
+  FILEP --> FILEADD
   IMPORT --> DROP
 
   classDef shell fill:#fcd34d,stroke:#b45309
