@@ -1,10 +1,19 @@
-// @ts-check
-const eslint = require('@eslint/js');
-const { defineConfig } = require('eslint/config');
-const tseslint = require('typescript-eslint');
-const angular = require('angular-eslint');
+import eslint from '@eslint/js';
+import { defineConfig } from 'eslint/config';
+import tseslint from 'typescript-eslint';
+import angular from 'angular-eslint';
+import { inlineShortTemplates } from './tools/eslint-rules/inline-short-templates';
 
-module.exports = defineConfig([
+export default defineConfig([
+  {
+    files: ['**/*.ts'],
+    plugins: {
+      printmd: { rules: { 'inline-short-templates': inlineShortTemplates } },
+    },
+    rules: {
+      'printmd/inline-short-templates': ['error', { maxLines: 20 }],
+    },
+  },
   {
     files: ['**/*.ts'],
     extends: [
