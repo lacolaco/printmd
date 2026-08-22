@@ -3,7 +3,7 @@ import { appConfig } from './app/app.config';
 import { App } from './app/app';
 import { applyPageGeometryCssVariables } from './app/page-geometry';
 
-// 画面 CSS のページ寸法は page-geometry.ts が正典 (単一情報源)
+// 画面 CSS のページ寸法は page-geometry.ts を単一の情報源とする
 applyPageGeometryCssVariables(document.documentElement);
 
 bootstrapApplication(App, appConfig)
