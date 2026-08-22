@@ -56,3 +56,8 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use the `providedIn: 'root'` option for singleton services
 - Prefer the `@Service` decorator over `@Injectable({providedIn: 'root'})` for new singleton services (Angular v22+)
 - Use the `inject()` function instead of constructor injection
+
+## Living documentation
+
+- `docs/signal-graph.md` is the canonical reactive-structure diagram. Any commit that changes the signal graph (adds/removes/moves signals, computed, linkedSignal, resource, effects, or components that own them) MUST update this diagram in the same commit.
+- `docs/component-tree.md` is the canonical component-structure diagram. Any commit that adds/removes components or changes their responsibilities MUST update it in the same commit.

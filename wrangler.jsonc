@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "printmd",
+  "compatibility_date": "2026-08-01",
+  // アプリはブラウザ完結。Workers は静的配信のみを担う (アセットのみの Worker)
+  "assets": {
+    "directory": "./dist/printmd/browser",
+    "not_found_handling": "single-page-application"
+  },
+  "routes": [
+    {
+      "pattern": "printmd.lacolaco.app",
+      "custom_domain": true
+    }
+  ]
+}

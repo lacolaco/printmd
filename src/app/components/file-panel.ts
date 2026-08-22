@@ -1,0 +1,138 @@
+import { CdkDrag, CdkDragHandle, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
+import { Component, ElementRef, Injector, afterNextRender, inject, signal } from '@angular/core';
+import { EditorStore } from '../state/editor-store';
+
+/**
+ * 原稿ファイルの取り込みと並べ替え。並べ替えはドラッグとキーボード
+ * (上へ/下へボタン) の両方に対応する。ファイル境界 = 強制改ページなので、
+ * 順序は紙面に直結する。
+ */
+@Component({
+  selector: 'app-file-panel',
+  imports: [CdkDrag, CdkDragHandle, CdkDropList],
+  template: `
+    <section aria-label="原稿ファイル">
+
+      <ul class="space-y-1" role="list" cdkDropList (cdkDropListDropped)="onListDrop($event)">
+          @for (file of store.files(); track file.id; let i = $index; let last = $last) {
+            <li
+              class="flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2 py-1.5 text-sm"
+              cdkDrag
+            >
+              <span class="cursor-grab text-stone-500" aria-hidden="true" cdkDragHandle>⠿</span>
+              <span class="min-w-0 flex-1 truncate" [title]="file.name">{{ file.name }}</span>
+              <button
+                type="button"
+                class="rounded p-1 text-stone-500 hover:bg-stone-100 disabled:opacity-30"
+                [attr.aria-label]="file.name + 'を上へ移動'"
+                [attr.data-move-file]="file.id"
+                data-move-dir="-1"
+                [disabled]="i === 0"
+                (click)="move(file.id, file.name, -1)"
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                class="rounded p-1 text-stone-500 hover:bg-stone-100 disabled:opacity-30"
+                [attr.aria-label]="file.name + 'を下へ移動'"
+                [attr.data-move-file]="file.id"
+                data-move-dir="1"
+                [disabled]="last"
+                (click)="move(file.id, file.name, 1)"
+              >
+                ↓
+              </button>
+              <button
+                type="button"
+                class="rounded p-1 text-stone-500 hover:bg-red-50 hover:text-red-600"
+                [attr.aria-label]="file.name + 'を取り除く'"
+                (click)="store.removeFile(file.id)"
+              >
+                ✕
+              </button>
+            </li>
+          }
+        </ul>
+        <label
+          class="mt-2 inline-flex cursor-pointer items-center gap-1 rounded-md border border-dashed border-stone-300 px-2 py-1 text-xs text-stone-600 hover:border-stone-500 hover:text-stone-800 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200"
+          (dragover)="onDragOver($event)"
+          (drop)="onDrop($event)"
+        >
+          <input
+            type="file"
+            class="sr-only"
+            multiple
+            accept=".md,.markdown,.txt"
+            (change)="onFileInput($event)"
+          />
+          + ファイルを追加
+        </label>
+
+      @if (store.warnings().length > 0) {
+        <ul class="mt-2 space-y-1" role="status">
+          @for (warning of store.warnings(); track warning) {
+            <li class="rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-700">{{ warning }}</li>
+          }
+        </ul>
+      }
+      <p class="sr-only" role="status" aria-live="polite">{{ announcement() }}</p>
+    </section>
+  `,
+})
+export class FilePanel {
+  protected readonly store = inject(EditorStore);
+  protected readonly announcement = signal('');
+  private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
+  private readonly injector = inject(Injector);
+
+  protected onDragOver(event: DragEvent): void {
+    event.preventDefault();
+  }
+
+  protected onDrop(event: DragEvent): void {
+    event.preventDefault();
+    const files = [...(event.dataTransfer?.files ?? [])];
+    if (files.length > 0) void this.store.addFiles(files);
+  }
+
+  protected onFileInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = [...(input.files ?? [])];
+    if (files.length > 0) void this.store.addFiles(files);
+    input.value = '';
+  }
+
+  protected onListDrop(event: CdkDragDrop<unknown>): void {
+    if (this.store.reorderFile(event.previousIndex, event.currentIndex)) {
+      this.announceOrder(this.store.files()[event.currentIndex].name, event.currentIndex);
+    }
+  }
+
+  protected move(id: number, name: string, delta: -1 | 1): void {
+    if (!this.store.moveFile(id, delta)) return;
+    const index = this.store.files().findIndex((file) => file.id === id);
+    this.announceOrder(name, index);
+    // 移動でボタンが disabled になるとフォーカスが body へ落ちる。同じファイルの
+    // 操作ボタンへ戻す (押した方向が無効なら反対方向のボタンへ)
+    afterNextRender(
+      () => {
+        const host = this.elementRef.nativeElement;
+        const preferred = host.querySelector<HTMLButtonElement>(
+          `button[data-move-file="${id}"][data-move-dir="${delta}"]`,
+        );
+        const fallback = host.querySelector<HTMLButtonElement>(
+          `button[data-move-file="${id}"][data-move-dir="${-delta}"]`,
+        );
+        (preferred?.disabled === false ? preferred : fallback)?.focus();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private announceOrder(name: string, index: number): void {
+    this.announcement.set(
+      `${name}を${index + 1}番目に移動しました。改ページ指定はリセットされます`,
+    );
+  }
+}

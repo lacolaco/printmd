@@ -1,3 +1,176 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+@import 'github-markdown-css/github-markdown-light.css';
+@import 'highlight.js/styles/github.css';
+
+* {
+  box-sizing: border-box;
+}
+
+/* Tailwind v4 preflight は button を cursor: default にするが、
+   本アプリのボタンはすべて即時動作なので pointer を既定にする */
+button:not(:disabled),
+input[type='checkbox']:not(:disabled) {
+  cursor: pointer;
+}
+
+/* Tailwind preflight は ul の list-style を消すが、github-markdown-css は
+   ul のマーカーを UA 既定 (disc/circle/square) に依存しているため復元する */
+.markdown-body ul {
+  list-style-type: disc;
+}
+.markdown-body ul ul {
+  list-style-type: circle;
+}
+.markdown-body ul ul ul {
+  list-style-type: square;
+}
+
+/* 分割ポリシー (画面・印刷共通)。収まる表・図もページをまたがせず丸ごと送る */
+.markdown-body pre,
+.markdown-body table,
+.markdown-body figure,
+.markdown-body blockquote {
+  orphans: 2;
+  widows: 2;
+  break-inside: avoid;
+}
+
+.markdown-body p,
+.markdown-body li {
+  orphans: 2;
+  widows: 2;
+}
+
+.markdown-body .mermaid svg {
+  max-width: var(--content-width);
+  max-height: var(--content-height);
+  width: auto;
+  height: auto;
+}
+
+/*
+ * 強制改ページ: 改ページ調整パネルでチェックしたブロックとファイル境界に付与される。
+ * 画面側は CSS に頼らない (Firefox が段への強制改行を実装していないため、
+ * プレビューはセグメント分割 = 独立した段組ストリップで表現する)。
+ * 印刷側だけがこのクラスを使う。旧プロパティ併記は Safari 安定版向け
+ */
+@media print {
+  .forced-break {
+    page-break-before: always;
+    break-before: page;
+  }
+}
+
+/* プレビュー: 多段組を A4 版面 (178mm × 265mm) に固定し、段 = ページとして扱う */
+.mc {
+  width: var(--content-width);
+  height: var(--content-height);
+  column-width: var(--content-width);
+  column-gap: var(--column-gap);
+  column-fill: auto;
+}
+
+.preview-probe {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  visibility: hidden;
+}
+
+.sheet {
+  width: var(--page-width);
+  height: var(--page-height);
+  padding: var(--page-margin);
+  background: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  margin: 0 auto 16px;
+}
+
+.clip {
+  width: var(--content-width);
+  height: var(--content-height);
+  overflow: hidden;
+}
+
+/* 印刷対象マスター。画面では常に非表示、@media print でのみ可視化する */
+.print-root {
+  display: none;
+}
+
+@media print {
+  .app-ui {
+    display: none;
+  }
+  .print-root {
+    display: block;
+  }
+  @page {
+    /* 正典は page-geometry.ts (@page 内の var() は互換性が不確かなためリテラル) */
+    size: A4;
+    margin: 16mm;
+  }
+}
+
+/* ===========================================================================
+   アプリの見た目「朱」: 校正刷りの机。涼しい明灰の作業面に墨、
+   アクセントは校正の朱 (改ページ指定 = 朱入れ、という操作概念と対になる)
+   =========================================================================== */
+
+:root {
+  --sumi: #211f1c;
+  --shu: #c8321e;
+  --desk: #e9ebed;
+  --paper-white: #fdfdfc;
+  --line: #d3d7db;
+  --muted: #6b6f74;
+}
+
+.app-ui {
+  background: var(--desk);
+  color: var(--sumi);
+}
+.app-header {
+  position: relative;
+  background: var(--paper-white);
+  border-color: var(--line);
+}
+.app-print-button {
+  background: var(--sumi);
+  color: white;
+}
+.app-print-button:hover {
+  background: #3a3733;
+}
+.app-print-button:focus-visible {
+  outline: 2px solid var(--shu);
+  outline-offset: 2px;
+}
+.app-toolbar {
+  background: var(--paper-white);
+  border-color: var(--line);
+  color: var(--sumi);
+}
+.app-toolbar button:hover {
+  background: #eceef0;
+}
+.app-workspace {
+  background: var(--desk);
+}
+input[type='checkbox'] {
+  accent-color: var(--shu);
+}
+
+.app-panel {
+  background: var(--paper-white);
+  border-color: var(--line);
+}
+.app-footer {
+  background: var(--paper-white);
+  border-color: var(--line);
+}
+.sheet-handle {
+  background: var(--paper-white);
+  border-color: var(--line);
+}

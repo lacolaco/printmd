@@ -1,22 +1,38 @@
 {
   "name": "printmd",
   "version": "0.0.0",
+  "description": "Markdown 原稿を GitHub スタイルのまま A4 に割り付け、改ページを調整して印刷用 PDF にするウェブツール",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lacolaco/printmd.git"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "e2e": "playwright test",
+    "lint": "ng lint"
   },
   "private": true,
   "packageManager": "npm@10.9.8",
   "dependencies": {
+    "@angular/aria": "^22.1.2",
+    "@angular/cdk": "^22.1.2",
     "@angular/common": "^22.1.0",
     "@angular/compiler": "^22.1.0",
     "@angular/core": "^22.1.0",
     "@angular/forms": "^22.1.0",
     "@angular/platform-browser": "^22.1.0",
     "@angular/router": "^22.1.0",
+    "dompurify": "^3.4.13",
+    "github-markdown-css": "^5.9.0",
+    "highlight.js": "^11.12.0",
+    "markdown-it": "^15.0.0",
+    "markdown-it-task-lists": "^2.1.1",
+    "mermaid": "^11.16.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -24,12 +40,23 @@
     "@angular/build": "^22.1.3",
     "@angular/cli": "^22.1.3",
     "@angular/compiler-cli": "^22.1.0",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.1.12",
+    "@testing-library/angular": "^19.4.2",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/user-event": "^14.6.4",
+    "@types/markdown-it": "^14.1.2",
+    "angular-eslint": "22.1.0",
+    "eslint": "^10.6.0",
     "jsdom": "^28.0.0",
+    "pdfjs-dist": "^6.2.108",
     "postcss": "^8.5.3",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.1.12",
     "typescript": "~6.0.2",
-    "vitest": "^4.0.8"
+    "typescript-eslint": "8.62.1",
+    "vitest": "^4.0.8",
+    "wrangler": "^4.123.0"
   }
 }
