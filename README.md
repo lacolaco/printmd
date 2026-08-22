@@ -40,11 +40,11 @@ Markdown 原稿を GitHub のレンダリングそのままの見た目で A4 �
 ## 開発
 
 ```bash
-npm ci
-npm start          # 開発サーバー
-npm test           # ユニットテスト (vitest / jsdom)
-npm run e2e        # e2e (Playwright。プレビューと印刷 PDF の一致を実出力で検証)
-npm run build      # 本番ビルド
+pnpm install
+pnpm start         # 開発サーバー
+pnpm test          # ユニットテスト (vitest / jsdom)
+pnpm e2e           # e2e (Playwright。プレビューと印刷 PDF の一致を実出力で検証)
+pnpm build         # 本番ビルド
 ```
 
 ## ライセンス

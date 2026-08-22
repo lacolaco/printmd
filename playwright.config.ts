@@ -15,7 +15,7 @@ export default defineConfig({
     { name: 'firefox', use: { browserName: 'firefox' }, testMatch: '**/boundary-break.spec.ts' },
   ],
   webServer: {
-    command: 'npm start -- --port 4299',
+    command: 'pnpm start --port 4299',
     url: 'http://localhost:4299',
     reuseExistingServer: !process.env['CI'],
     timeout: 120_000,
