@@ -11,9 +11,10 @@ const DEFAULT_MAX_LINES = 20;
 export const inlineShortTemplates: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
+    fixable: 'code',
     messages: {
       inline:
-        'テンプレートが {{lines}} 行 ({{max}} 行以下) のため、templateUrl ではなくインライン template にする',
+        'テンプレートが {{lines}} 行 ({{max}} 行以下) のため、templateUrl ではなくインライン template にする (--fix 後は不要になった HTML ファイルを削除する)',
     },
     schema: [
       {
@@ -29,7 +30,10 @@ export const inlineShortTemplates: Rule.RuleModule = {
     const options = (context.options[0] ?? {}) as { maxLines?: number };
     const maxLines = options.maxLines ?? DEFAULT_MAX_LINES;
     return {
-      'Property[key.name="templateUrl"]'(node: Rule.Node) {
+      // @Component デコレータの引数オブジェクト直下の templateUrl だけを対象にする
+      'Decorator > CallExpression[callee.name="Component"] > ObjectExpression > Property[key.name="templateUrl"]'(
+        node: Rule.Node,
+      ) {
         if (node.type !== 'Property') return;
         if (node.value.type !== 'Literal' || typeof node.value.value !== 'string') return;
         const file = path.resolve(path.dirname(context.filename), node.value.value);
@@ -39,12 +43,23 @@ export const inlineShortTemplates: Rule.RuleModule = {
         } catch {
           return;
         }
-        const lines = text.replace(/\n$/, '').split('\n').length;
+        const content = text.replace(/\n$/, '');
+        const lines = content.split('\n').length;
         if (lines <= maxLines) {
           context.report({
             node,
             messageId: 'inline',
             data: { lines: String(lines), max: String(maxLines) },
+            fix(fixer) {
+              // プロパティのインデント (既定 2) に合わせて本文を 1 段深く敷き直す
+              const indent = ' '.repeat((node.loc?.start.column ?? 2) + 2);
+              const escaped = content
+                .replaceAll('\\', '\\\\')
+                .replaceAll('`', '\\`')
+                .replaceAll('${', '\\${');
+              const body = content.trim() === '' ? '' : `\n${indent}${escaped.split('\n').join(`\n${indent}`)}\n${' '.repeat(node.loc?.start.column ?? 2)}`;
+              return fixer.replaceText(node, `template: \`${body}\``);
+            },
           });
         }
       },
