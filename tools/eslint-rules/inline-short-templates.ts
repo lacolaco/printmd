@@ -30,7 +30,10 @@ export const inlineShortTemplates: Rule.RuleModule = {
     const options = (context.options[0] ?? {}) as { maxLines?: number };
     const maxLines = options.maxLines ?? DEFAULT_MAX_LINES;
     return {
-      'Property[key.name="templateUrl"]'(node: Rule.Node) {
+      // @Component デコレータの引数オブジェクト直下の templateUrl だけを対象にする
+      'Decorator > CallExpression[callee.name="Component"] > ObjectExpression > Property[key.name="templateUrl"]'(
+        node: Rule.Node,
+      ) {
         if (node.type !== 'Property') return;
         if (node.value.type !== 'Literal' || typeof node.value.value !== 'string') return;
         const file = path.resolve(path.dirname(context.filename), node.value.value);
