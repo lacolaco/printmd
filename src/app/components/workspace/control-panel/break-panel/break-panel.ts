@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { Editor } from '../../../editor';
-import { BreakState } from '../../../../state/break-state';
-import { DocumentState } from '../../../../state/document-state';
-import { ManuscriptState } from '../../../../state/manuscript-state';
+import { BreakState } from '../../../../state/break.state';
+import { DocumentState } from '../../../../state/document.state';
+import { ManuscriptState } from '../../../../state/manuscript.state';
 import { BreakRowItem } from './break-row-item';
 
 /**

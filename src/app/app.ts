@@ -6,7 +6,7 @@ import { PrintRoot } from './components/print-root';
 import { Workspace } from './components/workspace/workspace';
 import { sourcesFrom } from './manuscript/manuscript';
 import { Editor } from './components/editor';
-import { ManuscriptState } from './state/manuscript-state';
+import { ManuscriptState } from './state/manuscript.state';
 
 /** 画面骨格。ヘッダ / 画面の切替 / 印刷対象の配置と、ウィンドウ全体のドロップ受け */
 @Component({

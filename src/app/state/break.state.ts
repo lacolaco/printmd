@@ -1,7 +1,7 @@
 import { Service, inject, linkedSignal } from '@angular/core';
 import { isPrefixOf } from '../collections';
 import type { ManuscriptFile } from '../manuscript/manuscript';
-import { ManuscriptState } from './manuscript-state';
+import { ManuscriptState } from './manuscript.state';
 
 /** 改ページ指定。タブ寿命のみで原稿を書き換えない */
 @Service()

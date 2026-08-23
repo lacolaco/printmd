@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './app';
 import { MermaidRenderer, type MermaidLike } from './mermaid/mermaid-renderer';
 import { Editor } from './components/editor';
-import { ManuscriptState } from './state/manuscript-state';
+import { ManuscriptState } from './state/manuscript.state';
 
 class FakeMermaidRenderer extends MermaidRenderer {
   protected override loadModule(): Promise<MermaidLike> {

@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../mermaid/mermaid-renderer';
 import { Editor } from './editor';
-import { ZoomState } from '../state/zoom-state';
+import { ZoomState } from '../state/zoom.state';
 import { Header } from './header';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -30,7 +30,7 @@ describe('Header', () => {
     expect(el.querySelector('.app-print-button')).toBeNull();
   });
 
-  it('原稿があれば頁数とズームを表示し、ズーム操作が ViewerState に反映される', async () => {
+  it('原稿があれば頁数とズームを表示し、ズーム操作が ZoomState に反映される', async () => {
     const editor = TestBed.inject(Editor);
     await editor.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A\n\n本文') }]);
 

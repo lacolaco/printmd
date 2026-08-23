@@ -4,9 +4,9 @@ import { FileOrder } from '../manuscript/file-order';
 import { Importer } from '../manuscript/importer';
 import { isAtLimit, stepped } from '../pagination/zoom';
 import type { ImportSource, ManuscriptFile } from '../manuscript/manuscript';
-import { BreakState } from '../state/break-state';
-import { ManuscriptState } from '../state/manuscript-state';
-import { ZoomState } from '../state/zoom-state';
+import { BreakState } from '../state/break.state';
+import { ManuscriptState } from '../state/manuscript.state';
+import { ZoomState } from '../state/zoom.state';
 
 function isMarked(breaks: ReadonlySet<string>, blockId: string): boolean {
   return breaks.has(blockId);

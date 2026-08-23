@@ -1,6 +1,6 @@
 # コンポーネントツリー
 
-各コンポーネントの配置と責務。`src/app/components/` のディレクトリ構造はこのツリーの親子関係をそのまま写す (親コンポーネントのディレクトリ配下に子コンポーネントを置く。App 直下の葉は components/ 直下)。コンポーネントの協力オブジェクト (SheetRenderer / Announcer / Demo など、コンポーネントではないクラス) は、それを使うコンポーネントと同じディレクトリに置く。複数のコンポーネントが共有する操作サービス (Editor) は components/ 直下に置く。
+各コンポーネントの配置と責務。`src/app/components/` のディレクトリ構造はこのツリーの親子関係をそのまま写す (親コンポーネントのディレクトリ配下に子コンポーネントを置く。App 直下の葉は components/ 直下)。コンポーネントの協力オブジェクト (SheetRenderer / Demo など、コンポーネントではないクラス) は、それを使うコンポーネントと同じディレクトリに置く。複数のコンポーネントが共有する操作サービス (Editor) は components/ 直下に置く。コンポーネント Xxx のローカルステートは同じディレクトリの `xxx.state.ts` に `XxxState` として置き、コンポーネントの providers で提供する (HeaderState / WorkspaceState / FilePanelState)。グローバルステートは `src/app/state/` の `@Service` に限る。
 **コンポーネントの追加・削除・責務変更のコミットでは、この図と docs/signal-graph.md を同じコミットで更新すること** (CLAUDE.md の生きたドキュメント規則)。
 
 ```mermaid
@@ -11,7 +11,7 @@ flowchart TB
   IMPORT["ImportScreen<br/><small>空状態の画面 (初回のみ)</small>"]
   PREVIEW["Preview<br/><small>A4 シート面の結線。描画は<br/>SheetRenderer に委譲 (遅延実体化)</small>"]
   PANEL["ControlPanel<br/><small>調整パネル: md+ は右カラム /<br/>モバイルはボトムシートの中身</small>"]
-  FILEP["FilePanel<br/><small>原稿の取り込み・並べ替え・削除<br/>(読み上げは Announcer)</small>"]
+  FILEP["FilePanel<br/><small>原稿の取り込み・並べ替え・削除<br/>(読み上げは FilePanelState)</small>"]
   BREAKP["BreakPanel<br/><small>全ブロックの改ページ指定一覧</small>"]
   BREAKROW["BreakRowItem<br/><small>一覧の 1 行 (ラベル・インデント・強調)</small>"]
   FILEROW["FileRowItem<br/><small>ファイル行の操作面 (移動・削除)</small>"]
@@ -43,5 +43,5 @@ flowchart TB
 ```
 
 - 画面領域の責務で階層化: App は骨格、Workspace / ImportScreen が画面、ControlPanel が右カラムを所有する
-- コンポーネント間の疎通は状態 (ManuscriptState / BreakState / DocumentState / ViewerState / ZoomState) の購読と、操作サービス Editor への命令で行う。input/output は FileAddInput の selected など最小限
+- コンポーネント間の疎通はグローバルステート (ManuscriptState / BreakState / DocumentState / PaginationState / ZoomState) の購読と、操作サービス Editor への命令で行う。input/output は FileAddInput の selected など最小限
 - リアクティブ構造は [signal-graph.md](./signal-graph.md) を参照

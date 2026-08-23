@@ -1,10 +1,10 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Toolbar, ToolbarWidget } from '@angular/aria/toolbar';
 import { Editor } from './editor';
-import { DocumentState } from '../state/document-state';
-import { ManuscriptState } from '../state/manuscript-state';
-import { ViewerState } from '../state/viewer-state';
-import { ZoomState } from '../state/zoom-state';
+import { HeaderState } from './header.state';
+import { ManuscriptState } from '../state/manuscript.state';
+
+import { ZoomState } from '../state/zoom.state';
 
 /**
  * アプリヘッダ。ロゴ / 表示状態 (頁数・ズーム) / 印刷の終端動作を持つ 1 本の帯
@@ -12,6 +12,7 @@ import { ZoomState } from '../state/zoom-state';
 @Component({
   selector: 'app-header',
   imports: [Toolbar, ToolbarWidget],
+  providers: [HeaderState],
   template: `
     <header class="app-header flex h-12 shrink-0 items-center gap-3 border-b px-4">
       <h1 class="app-logo text-base font-bold tracking-tight">printmd</h1>
@@ -21,7 +22,7 @@ import { ZoomState } from '../state/zoom-state';
           ngToolbar
           aria-label="表示操作"
         >
-          <span role="status" aria-live="polite">{{ statusLabel() }}</span>
+          <span role="status" aria-live="polite">{{ local.statusLabel() }}</span>
           <span aria-hidden="true" class="opacity-40">|</span>
           <button
             class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
@@ -60,15 +61,9 @@ import { ZoomState } from '../state/zoom-state';
 })
 export class Header {
   protected readonly manuscripts = inject(ManuscriptState);
-  protected readonly documents = inject(DocumentState);
-  protected readonly viewer = inject(ViewerState);
+  protected readonly local = inject(HeaderState);
   protected readonly zoom = inject(ZoomState);
   protected readonly editor = inject(Editor);
-
-  protected readonly statusLabel = computed(() => {
-    const count = this.viewer.pageCount();
-    return this.documents.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
-  });
 
   protected print(): void {
     window.print();

@@ -3,7 +3,7 @@ import { isNonEmpty } from '../collections';
 import { Converter } from '../manuscript/converter';
 import type { Block, RenderedDocument } from '../markdown/block-extractor';
 import { groupBlocks } from '../markdown/block-groups';
-import { ManuscriptState } from './manuscript-state';
+import { ManuscriptState } from './manuscript.state';
 
 /** 変換済み文書とその導出。原稿列から一方向に流れる */
 @Service()

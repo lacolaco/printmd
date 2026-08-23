@@ -1,7 +1,7 @@
 import { Component, ElementRef, effect, inject } from '@angular/core';
 import { applyForcedBreaks, type RenderedDocument } from '../markdown/block-extractor';
-import { BreakState } from '../state/break-state';
-import { DocumentState } from '../state/document-state';
+import { BreakState } from '../state/break.state';
+import { DocumentState } from '../state/document.state';
 
 /**
  * 印刷対象。印刷エンジンに渡される唯一の変換済み文書の実体をそのまま掲示する

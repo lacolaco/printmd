@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ControlPanel } from './control-panel/control-panel';
 import { Preview } from './preview/preview';
+import { WorkspaceState } from './workspace.state';
 
 /**
  * 作業画面。デスクトップ (md+) は紙面 + 右カラムの 2 カラム、
@@ -10,6 +11,7 @@ import { Preview } from './preview/preview';
 @Component({
   selector: 'app-workspace',
   imports: [ControlPanel, Preview],
+  providers: [WorkspaceState],
   host: { class: 'relative flex min-h-0 md:flex-row' },
   template: `
     <main class="min-h-0 min-w-0 flex-1" aria-label="紙面プレビュー">
@@ -19,21 +21,21 @@ import { Preview } from './preview/preview';
       <button
         type="button"
         class="sheet-handle flex w-full items-center justify-center gap-2 border-t py-2 text-sm font-medium md:hidden"
-        [attr.aria-expanded]="sheetOpen()"
+        [attr.aria-expanded]="local.sheetOpen()"
         aria-controls="control-panel-sheet"
-        (click)="sheetOpen.set(!sheetOpen())"
+        (click)="local.toggle()"
       >
         調整パネル
-        <span aria-hidden="true">{{ sheetOpen() ? '▾' : '▴' }}</span>
+        <span aria-hidden="true">{{ local.sheetOpen() ? '▾' : '▴' }}</span>
       </button>
       <app-control-panel
         id="control-panel-sheet"
         class="max-md:max-h-[60vh] max-md:shadow-2xl"
-        [class]="{ 'max-md:hidden': !sheetOpen() }"
+        [class]="{ 'max-md:hidden': !local.sheetOpen() }"
       />
     </div>
   `,
 })
 export class Workspace {
-  protected readonly sheetOpen = signal(false);
+  protected readonly local = inject(WorkspaceState);
 }

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../../../mermaid/mermaid-renderer';
-import { BreakState } from '../../../../state/break-state';
+import { BreakState } from '../../../../state/break.state';
 import { Editor } from '../../../editor';
 import { BreakPanel } from './break-panel';
 

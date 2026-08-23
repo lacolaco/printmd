@@ -3,9 +3,9 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../mermaid/mermaid-renderer';
 import { Editor } from '../components/editor';
-import { BreakState } from './break-state';
-import { DocumentState } from './document-state';
-import { ManuscriptState } from './manuscript-state';
+import { BreakState } from './break.state';
+import { DocumentState } from './document.state';
+import { ManuscriptState } from './manuscript.state';
 
 class FakeMermaidRenderer extends MermaidRenderer {
   protected override loadModule(): Promise<MermaidLike> {

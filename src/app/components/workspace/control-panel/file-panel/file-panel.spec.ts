@@ -2,9 +2,9 @@ import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../../../mermaid/mermaid-renderer';
-import { DocumentState } from '../../../../state/document-state';
+import { DocumentState } from '../../../../state/document.state';
 import { Editor } from '../../../editor';
-import { ManuscriptState } from '../../../../state/manuscript-state';
+import { ManuscriptState } from '../../../../state/manuscript.state';
 import { FilePanel } from './file-panel';
 
 class FakeMermaidRenderer extends MermaidRenderer {

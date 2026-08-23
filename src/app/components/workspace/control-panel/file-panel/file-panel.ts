@@ -1,8 +1,8 @@
 import { CdkDrag, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, Injector, inject } from '@angular/core';
 import { Editor } from '../../../editor';
-import { ManuscriptState } from '../../../../state/manuscript-state';
-import { Announcer } from './announcer';
+import { ManuscriptState } from '../../../../state/manuscript.state';
+import { FilePanelState } from './file-panel.state';
 import { FileAddInput } from './file-add-input';
 import { FileRowItem } from './file-row-item';
 import { focusLater } from './move-focus';
@@ -15,7 +15,7 @@ import { focusLater } from './move-focus';
 @Component({
   selector: 'app-file-panel',
   imports: [CdkDrag, CdkDropList, FileAddInput, FileRowItem],
-  providers: [Announcer],
+  providers: [FilePanelState],
   template: `
     <section aria-label="原稿ファイル">
       <ul class="space-y-1" role="list" cdkDropList (cdkDropListDropped)="onListDrop($event)">
@@ -41,21 +41,21 @@ import { focusLater } from './move-focus';
           }
         </ul>
       }
-      <p class="sr-only" role="status" aria-live="polite">{{ announcer.message() }}</p>
+      <p class="sr-only" role="status" aria-live="polite">{{ local.message() }}</p>
     </section>
   `,
 })
 export class FilePanel {
   protected readonly manuscripts = inject(ManuscriptState);
   protected readonly editor = inject(Editor);
-  protected readonly announcer = inject(Announcer);
+  protected readonly local = inject(FilePanelState);
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly injector = inject(Injector);
 
   protected onListDrop(event: CdkDragDrop<unknown>): void {
     if (this.editor.isReorderable(event.previousIndex, event.currentIndex)) {
       this.editor.reorder(event.previousIndex, event.currentIndex);
-      this.announcer.moved(this.manuscripts.files()[event.currentIndex].name, event.currentIndex);
+      this.local.moved(this.manuscripts.files()[event.currentIndex].name, event.currentIndex);
     }
   }
 
@@ -63,7 +63,7 @@ export class FilePanel {
     if (this.editor.isMovable(id, delta)) {
       this.editor.nudge(id, delta);
       const index = this.manuscripts.files().findIndex((file) => file.id === id);
-      this.announcer.moved(name, index);
+      this.local.moved(name, index);
       focusLater(this.injector, this.elementRef.nativeElement, id, delta);
     }
   }
