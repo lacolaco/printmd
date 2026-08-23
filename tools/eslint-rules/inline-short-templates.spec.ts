@@ -1,20 +1,16 @@
 import * as path from 'node:path';
-import { RuleTester } from 'eslint';
-import tseslint from 'typescript-eslint';
-import { describe, it } from 'vitest';
+import { RuleTester } from '@typescript-eslint/rule-tester';
+import { afterAll, describe, it } from 'vitest';
 import { inlineShortTemplates } from './inline-short-templates';
 
-// RuleTester は describe/it があればそれで区分して報告する
-(RuleTester as unknown as { describe: unknown; it: unknown }).describe = describe;
-(RuleTester as unknown as { describe: unknown; it: unknown }).it = it;
+RuleTester.afterAll = afterAll;
+RuleTester.describe = describe;
+RuleTester.it = it;
 
 const fixturesDir = path.join(__dirname, 'fixtures');
 const inFixtures = (name: string) => path.join(fixturesDir, name);
 
-const tester = new RuleTester({
-  // デコレータ構文のため TypeScript パーサを使う
-  languageOptions: { parser: tseslint.parser, sourceType: 'module' },
-});
+const tester = new RuleTester();
 
 const component = (props: string) => `
 const Component = (o) => (c) => c;

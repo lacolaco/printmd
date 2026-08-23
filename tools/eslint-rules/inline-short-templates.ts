@@ -1,7 +1,11 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { Rule } from 'eslint';
+import { ESLintUtils, type TSESLint, type TSESTree } from '@typescript-eslint/utils';
 import { maxLinesOption } from './options';
+
+type MessageIds = 'inline';
+type Options = [{ maxLines?: number }?];
+type Context = TSESLint.RuleContext<MessageIds, Options>;
 
 const DEFAULT_MAX_LINES = 20;
 
@@ -17,7 +21,7 @@ function tryReadFile(file: string): string | null {
   }
 }
 
-function readTemplateFile(context: Rule.RuleContext, templateUrl: string): string | null {
+function readTemplateFile(context: Context, templateUrl: string): string | null {
   const file = path.resolve(path.dirname(context.filename), templateUrl);
   return tryReadFile(file);
 }
@@ -33,11 +37,15 @@ function buildInlineTemplateBody(content: string, escaped: string, column: numbe
   return `\n${indent}${escaped.split('\n').join(`\n${indent}`)}\n${' '.repeat(column)}`;
 }
 
-function indentColumnOf(node: Rule.Node): number {
-  return node.loc?.start.column ?? 2;
+function indentColumnOf(node: TSESTree.Node): number {
+  return node.loc.start.column;
 }
 
-function toInlineTemplateFix(fixer: Rule.RuleFixer, node: Rule.Node, content: string): Rule.Fix {
+function toInlineTemplateFix(
+  fixer: TSESLint.RuleFixer,
+  node: TSESTree.Node,
+  content: string,
+): TSESLint.RuleFix {
   const column = indentColumnOf(node);
   const escaped = escapeForTemplateLiteral(content);
   const body = buildInlineTemplateBody(content, escaped, column);
@@ -49,25 +57,25 @@ function lineCountOf(content: string): number {
 }
 
 function reportIfShortEnough(
-  context: Rule.RuleContext,
+  context: Context,
   maxLines: number,
-  node: Rule.Node,
+  node: TSESTree.Node,
   content: string,
 ): void {
   const lines = lineCountOf(content);
   if (lines > maxLines) return;
   const data = { lines: String(lines), max: String(maxLines) };
-  const fix: Rule.ReportFixer = (fixer) => toInlineTemplateFix(fixer, node, content);
+  const fix: TSESLint.ReportFixFunction = (fixer) => toInlineTemplateFix(fixer, node, content);
   context.report({ node, messageId: 'inline', data, fix });
 }
 
-function templateUrlOf(node: Rule.Node): string | null {
+function templateUrlOf(node: TSESTree.Node): string | null {
   if (node.type !== 'Property') return null;
-  const value = node.value;
+  const { value } = node;
   return value.type === 'Literal' && typeof value.value === 'string' ? value.value : null;
 }
 
-function checkTemplateUrl(context: Rule.RuleContext, maxLines: number, node: Rule.Node): void {
+function checkTemplateUrl(context: Context, maxLines: number, node: TSESTree.Node): void {
   const templateUrl = templateUrlOf(node);
   if (templateUrl === null) return;
   const content = readTemplateFile(context, templateUrl);
@@ -79,7 +87,7 @@ function checkTemplateUrl(context: Rule.RuleContext, maxLines: number, node: Rul
  * templateUrl の参照先の行数を実測し、閾値以下ならインライン template を要求する。
  * 閾値はオプション { maxLines } で変えられる (既定 20)
  */
-export const inlineShortTemplates: Rule.RuleModule = {
+export const inlineShortTemplates = ESLintUtils.RuleCreator.withoutDocs<Options, MessageIds>({
   meta: {
     type: 'suggestion',
     fixable: 'code',
@@ -97,10 +105,11 @@ export const inlineShortTemplates: Rule.RuleModule = {
       },
     ],
   },
+  defaultOptions: [{}],
   create(context) {
     const maxLines = maxLinesOption(context, DEFAULT_MAX_LINES);
     return {
-      [TEMPLATE_URL_SELECTOR]: (node: Rule.Node) => checkTemplateUrl(context, maxLines, node),
+      [TEMPLATE_URL_SELECTOR]: (node: TSESTree.Node) => checkTemplateUrl(context, maxLines, node),
     };
   },
-};
+});
