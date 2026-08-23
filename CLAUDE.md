@@ -32,6 +32,8 @@ printmd のプロジェクト規範。
 
 - 実装が 1 つしかないインタフェースは作らない: interface 宣言を起点に、プログラム全体で implements する実装クラスを数え、ちょうど 1 つなら違反 (0 = 型としての利用は許可)。lint ルール `printmd/no-single-implementation-interface` (type-aware) が強制する。適用対象は 5 行ルールと同じ。
 
+- getter と setter は使わない (デメテルの法則): データを取り出して外で操作するのではなく、振る舞いをオブジェクト側へ移す。構文の get/set アクセサに加え、getXxx / setXxx 命名のメソッドによるカプセル化も禁止。ブール型のフィールド (getter の返り値・setter の第 1 引数がブール型) のみ例外。lint ルール `printmd/no-getter-setter` (type-aware) が強制する。適用対象は 5 行ルールと同じ。
+
 ## 検証
 
 - テストファースト。修正はまず失敗するテストで再現してから行う。

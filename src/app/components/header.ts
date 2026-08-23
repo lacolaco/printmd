@@ -26,7 +26,7 @@ import { ViewerState, ZOOMS } from '../state/viewer-state';
             value="zoom-out"
             [disabled]="viewer.zoomIndex() === 0"
             aria-label="縮小"
-            (click)="viewer.setZoom(-1)"
+            (click)="viewer.zoomBy(-1)"
           >
             −
           </button>
@@ -37,7 +37,7 @@ import { ViewerState, ZOOMS } from '../state/viewer-state';
             value="zoom-in"
             [disabled]="viewer.zoomIndex() === maxZoomIndex"
             aria-label="拡大"
-            (click)="viewer.setZoom(1)"
+            (click)="viewer.zoomBy(1)"
           >
             ＋
           </button>
