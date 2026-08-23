@@ -2,6 +2,7 @@ import eslint from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import angular from 'angular-eslint';
+import { callOrPass } from './tools/eslint-rules/call-or-pass';
 import { inlineShortTemplates } from './tools/eslint-rules/inline-short-templates';
 import { maxFunctionLines } from './tools/eslint-rules/max-function-lines';
 
@@ -11,6 +12,7 @@ export default defineConfig([
     plugins: {
       printmd: {
         rules: {
+          'call-or-pass': callOrPass,
           'inline-short-templates': inlineShortTemplates,
           'max-function-lines': maxFunctionLines,
         },
@@ -25,6 +27,7 @@ export default defineConfig([
     files: ['src/**/*.ts', 'tools/**/*.ts'],
     ignores: ['**/*.spec.ts'],
     rules: {
+      'printmd/call-or-pass': 'error',
       'printmd/max-function-lines': ['error', { maxLines: 5 }],
     },
   },

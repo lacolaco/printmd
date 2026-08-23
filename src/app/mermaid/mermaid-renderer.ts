@@ -1,4 +1,5 @@
 import { Service } from '@angular/core';
+import { hasItems } from '../collections';
 import type { MermaidBlock } from '../markdown/render-markdown';
 
 export type MermaidOutcome = { readonly svg: string } | { readonly failed: true; readonly code: string };
@@ -43,7 +44,7 @@ export class MermaidRenderer {
   }
 
   async render(blocks: readonly MermaidBlock[]): Promise<ReadonlyMap<string, MermaidOutcome>> {
-    if (blocks.length === 0) return new Map();
+    if (!hasItems(blocks)) return new Map();
     const mermaid = await this.load();
     const runId = this.renderSeq++;
     return this.renderAll(mermaid, runId, blocks);

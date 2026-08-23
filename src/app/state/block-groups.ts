@@ -31,13 +31,18 @@ function groupFor(groups: MutableFileGroup[], block: Block): MutableFileGroup {
 
 function appendBlock(groups: MutableFileGroup[], block: Block): void {
   const group = groupFor(groups, block);
-  if (block.kind === 'heading') group.headingLevel = block.level ?? 1;
-  const depth = block.kind === 'heading' ? (block.level ?? 1) : group.headingLevel + 1;
+  const { kind, level } = block;
+  if (kind === 'heading') group.headingLevel = level ?? 1;
+  const depth = kind === 'heading' ? (level ?? 1) : group.headingLevel + 1;
   group.rows.push({ block, depth });
+}
+
+function nonEmptyGroups(groups: readonly MutableFileGroup[]): readonly FileGroup[] {
+  return groups.filter((group) => group.rows.length > 0);
 }
 
 export function groupBlocks(blocks: readonly Block[]): readonly FileGroup[] {
   const groups: MutableFileGroup[] = [];
   blocks.forEach((block) => appendBlock(groups, block));
-  return groups.filter((group) => group.rows.length > 0);
+  return nonEmptyGroups(groups);
 }

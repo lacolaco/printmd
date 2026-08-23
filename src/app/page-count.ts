@@ -43,14 +43,18 @@ function collectBreak(
  * どのエンジンでも起きる自然な流し込みだけに依存させる (印刷側は全エンジンが
  * 解する break-before: page のままクラスで表現する)
  */
+function closeAccumulator(acc: BreakAccumulator, end: number): SegmentRange[] {
+  acc.ranges.push({ start: acc.start, end });
+  return acc.ranges;
+}
+
 export function splitAtForcedBreaks(
   blocks: readonly Block[],
   breaks: ReadonlySet<string>,
 ): SegmentRange[] {
   const acc: BreakAccumulator = { ranges: [], start: 0 };
   blocks.forEach((block, index) => collectBreak(acc, block, index, breaks));
-  acc.ranges.push({ start: acc.start, end: blocks.length });
-  return acc.ranges;
+  return closeAccumulator(acc, blocks.length);
 }
 
 function appendClonedChildren(
@@ -75,9 +79,14 @@ function attachClone(mc: HTMLElement, parent: HTMLElement): HTMLElement {
  * セグメントは先頭ブロックが .markdown-body > :first-child のマージン除去に
  * 当たらないようラッパで包む (先頭セグメントは文書先頭 = 除去が正)
  */
-export function buildSegmentClone(doc: RenderedDocument, start: number, end: number): HTMLElement {
-  const mc = doc.container.cloneNode(false) as HTMLElement;
+function createSegmentContainer(container: HTMLElement): HTMLElement {
+  const mc = container.cloneNode(false) as HTMLElement;
   mc.className = 'mc markdown-body';
+  return mc;
+}
+
+export function buildSegmentClone(doc: RenderedDocument, start: number, end: number): HTMLElement {
+  const mc = createSegmentContainer(doc.container);
   const parent = start === 0 ? mc : document.createElement('div');
   appendClonedChildren(parent, doc.container.children, start, end);
   return attachClone(mc, parent);
@@ -93,12 +102,17 @@ function appendSegmentClone(
   return mc;
 }
 
+function createProbeElement(): HTMLElement {
+  const probe = document.createElement('div');
+  probe.className = 'preview-probe';
+  return probe;
+}
+
 function createProbe(
   doc: RenderedDocument,
   ranges: readonly SegmentRange[],
 ): { probe: HTMLElement; clones: HTMLElement[] } {
-  const probe = document.createElement('div');
-  probe.className = 'preview-probe';
+  const probe = createProbeElement();
   const clones = ranges.map((range) => appendSegmentClone(probe, doc, range));
   document.body.append(probe);
   return { probe, clones };
@@ -115,9 +129,14 @@ interface SegmentAccumulator {
 }
 
 function accumulateSegment(acc: SegmentAccumulator, range: SegmentRange, clone: HTMLElement): void {
-  const segment: PageSegment = { ...range, pages: pagesForScrollWidth(clone.scrollWidth), firstPage: acc.firstPage };
+  const pages = pagesForScrollWidth(clone.scrollWidth);
+  const segment: PageSegment = { ...range, pages, firstPage: acc.firstPage };
   acc.segments.push(segment);
-  acc.firstPage += segment.pages;
+  acc.firstPage += pages;
+}
+
+function collectSegments(acc: SegmentAccumulator): { segments: PageSegment[]; total: number } {
+  return { segments: acc.segments, total: acc.firstPage };
 }
 
 function buildSegments(
@@ -126,7 +145,7 @@ function buildSegments(
 ): { segments: PageSegment[]; total: number } {
   const acc: SegmentAccumulator = { segments: [], firstPage: 0 };
   ranges.forEach((range, index) => accumulateSegment(acc, range, clones[index]));
-  return { segments: acc.segments, total: acc.firstPage };
+  return collectSegments(acc);
 }
 
 /**
@@ -135,8 +154,18 @@ function buildSegments(
  * ため観測可能な状態を残さない (computed の中から呼べる純粋関数として扱う)
  */
 export function measurePagination(doc: RenderedDocument, breaks: ReadonlySet<string>): Pagination {
-  const ranges = splitAtForcedBreaks(doc.blocks, breaks);
+  const { blocks } = doc;
+  const ranges = splitAtForcedBreaks(blocks, breaks);
   const { probe, clones } = createProbe(doc, ranges);
+  return finishMeasurement(probe, ranges, clones);
+}
+
+/** 計測してからプローブを破棄する (計測は必ず破棄より先) */
+function finishMeasurement(
+  probe: HTMLElement,
+  ranges: readonly SegmentRange[],
+  clones: readonly HTMLElement[],
+): Pagination {
   const result = buildSegments(ranges, clones);
   probe.remove();
   return result;
