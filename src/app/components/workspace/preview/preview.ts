@@ -92,7 +92,7 @@ export class Preview {
 
   private appendSheets(doc: RenderedDocument, pagination: Pagination): void {
     const host = this.sheetsHost().nativeElement;
-    const total = pageTotal(pagination);
+    const { total } = pagination;
     for (let index = 0; index < total; index++) this.appendSheet(host, index, doc, pagination);
   }
 
@@ -123,10 +123,6 @@ function createSheet(index: number): HTMLElement {
   sheet.className = 'sheet';
   sheet.dataset['page'] = String(index + 1);
   return sheet;
-}
-
-function pageTotal(pagination: Pagination): number {
-  return pagination.total;
 }
 
 function columnFor(segment: PageSegment, index: number): number {

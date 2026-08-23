@@ -83,5 +83,6 @@ md.renderer.rules['fence'] = (tokens, idx, options, env, self) => {
 export function renderMarkdown(content: string): RenderMarkdownResult {
   const env: RenderEnv = { mermaidBlocks: [] };
   const rendered = md.render(content, env as unknown as Record<string, unknown>);
-  return { html: DOMPurify.sanitize(rendered, SANITIZE_CONFIG), mermaidBlocks: env.mermaidBlocks };
+  const { mermaidBlocks } = env;
+  return { html: DOMPurify.sanitize(rendered, SANITIZE_CONFIG), mermaidBlocks };
 }

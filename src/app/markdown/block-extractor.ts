@@ -58,13 +58,10 @@ function isMermaidFigure(el: Element): boolean {
   return el.tagName === 'FIGURE' && el.classList.contains('mermaid');
 }
 
-function tagNameOf(el: Element): string {
-  return el.tagName;
-}
-
 function toKind(el: Element): BlockKind {
   if (isMermaidFigure(el)) return 'mermaid';
-  return KIND_BY_TAG[tagNameOf(el)] ?? 'other';
+  const { tagName } = el;
+  return KIND_BY_TAG[tagName] ?? 'other';
 }
 
 function toLevel(el: Element): number | null {
@@ -100,10 +97,6 @@ export function buildRenderedDocument(fragments: readonly FileFragment[]): Rende
   return { container, blocks };
 }
 
-function htmlOf(fragment: FileFragment): string {
-  return fragment.html;
-}
-
 /** 1 ファイル分の HTML 断片を container へ追記し、生成した Block を blocks へ積む */
 function appendFragmentBlocks(
   container: HTMLElement,
@@ -111,7 +104,8 @@ function appendFragmentBlocks(
   fragment: FileFragment,
 ): void {
   const temp = document.createElement('div');
-  temp.innerHTML = htmlOf(fragment);
+  const { html } = fragment;
+  temp.innerHTML = html;
   [...temp.children].forEach((el, blockIndex) => blocks.push(toBlock(fragment, el, blockIndex)));
   container.append(...temp.childNodes);
 }

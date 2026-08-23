@@ -153,12 +153,9 @@ function buildSegments(
  * 同一の (doc, breaks, CSS) に対して決定的で、プローブは即座に破棄する
  * ため観測可能な状態を残さない (computed の中から呼べる純粋関数として扱う)
  */
-function blocksOf(doc: RenderedDocument): readonly Block[] {
-  return doc.blocks;
-}
-
 export function measurePagination(doc: RenderedDocument, breaks: ReadonlySet<string>): Pagination {
-  const ranges = splitAtForcedBreaks(blocksOf(doc), breaks);
+  const { blocks } = doc;
+  const ranges = splitAtForcedBreaks(blocks, breaks);
   const { probe, clones } = createProbe(doc, ranges);
   const result = buildSegments(ranges, clones);
   probe.remove();

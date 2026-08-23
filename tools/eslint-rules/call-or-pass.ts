@@ -8,8 +8,20 @@ interface Usage {
   passed: boolean;
 }
 
-function parentOf(node: Node): WithParent | undefined {
-  return (node as WithParent).parent;
+/** TS のアサーションは使用を隠さない。実質の使用ノードとその親まで潜る */
+const ASSERTION_TYPES: ReadonlySet<string> = new Set([
+  'TSNonNullExpression',
+  'TSAsExpression',
+  'TSSatisfiesExpression',
+  'TSTypeAssertion',
+  'TSInstantiationExpression',
+]);
+
+function effectiveUse(node: WithParent): { use: Node; parent: WithParent | undefined } {
+  const { parent } = node;
+  if (parent === undefined) return { use: node, parent };
+  const { type } = parent;
+  return ASSERTION_TYPES.has(type) ? effectiveUse(parent) : { use: node, parent };
 }
 
 function isMemberReceiver(parent: WithParent, id: Node): boolean {
@@ -26,17 +38,18 @@ function isCallArgument(parent: WithParent, id: Node): boolean {
 }
 
 function classify(id: Node): keyof Usage | null {
-  const parent = parentOf(id);
+  const { use, parent } = effectiveUse(id as WithParent);
   if (parent === undefined) return null;
-  if (isMemberReceiver(parent, id)) return 'member';
-  return isCallArgument(parent, id) ? 'passed' : null;
+  if (isMemberReceiver(parent, use)) return 'member';
+  return isCallArgument(parent, use) ? 'passed' : null;
 }
 
-/** 対象は関数内で宣言された引数とローカル変数だけ (モジュールスコープは除く) */
+const TARGET_DEF_TYPES: ReadonlySet<string> = new Set(['Parameter', 'Variable', 'CatchClause']);
+
+/** 対象は関数内で宣言された引数・ローカル変数・catch 変数 (モジュールスコープは除く) */
 function isTargetVariable(variable: Scope.Variable): boolean {
   const def = variable.defs[0];
-  if (def === undefined) return false;
-  if (def.type !== 'Parameter' && def.type !== 'Variable') return false;
+  if (def === undefined || !TARGET_DEF_TYPES.has(def.type)) return false;
   return variable.scope.variableScope.type === 'function';
 }
 
