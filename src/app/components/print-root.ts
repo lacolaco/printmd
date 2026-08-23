@@ -1,5 +1,5 @@
 import { Component, ElementRef, effect, inject } from '@angular/core';
-import { applyForcedBreaks } from '../markdown/block-extractor';
+import { applyForcedBreaks, type RenderedDocument } from '../markdown/block-extractor';
 import { EditorStore } from '../state/editor-store';
 
 /**
@@ -19,15 +19,24 @@ export class PrintRoot {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor() {
-    effect(() => {
-      const doc = this.store.renderedDocument();
-      const breaks = this.store.breaks();
-      const host = this.host.nativeElement;
-      host.replaceChildren();
-      if (doc !== null) {
-        applyForcedBreaks(doc.container, doc.blocks, breaks);
-        host.append(doc.container);
-      }
-    });
+    effect(() => this.syncPrintDocument());
+  }
+
+  private syncPrintDocument(): void {
+    const doc = this.store.renderedDocument();
+    const breaks = this.store.breaks();
+    const host = this.host.nativeElement;
+    host.replaceChildren();
+    this.appendPrintDocument(host, doc, breaks);
+  }
+
+  private appendPrintDocument(
+    host: HTMLElement,
+    doc: RenderedDocument | null,
+    breaks: ReadonlySet<string>,
+  ): void {
+    if (doc === null) return;
+    applyForcedBreaks(doc.container, doc.blocks, breaks);
+    host.append(doc.container);
   }
 }

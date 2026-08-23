@@ -9,6 +9,19 @@ export interface MermaidLike {
   render(id: string, code: string): Promise<{ svg: string }>;
 }
 
+const MERMAID_INIT_CONFIG = {
+  startOnLoad: false,
+  // 既定値だが、安全性が既定に依存していることを明示する
+  securityLevel: 'strict',
+  htmlLabels: false,
+  flowchart: { htmlLabels: false },
+} as const;
+
+function initializeMermaid(mermaid: MermaidLike): MermaidLike {
+  mermaid.initialize(MERMAID_INIT_CONFIG);
+  return mermaid;
+}
+
 /**
  * mermaid コードをメインスレッドで SVG 化する。
  * - mermaid 本体はコードが存在するときだけ動的 import する (遅延読み込み)
@@ -21,16 +34,7 @@ export class MermaidRenderer {
   private renderSeq = 0;
 
   protected loadModule(): Promise<MermaidLike> {
-    return import('mermaid').then(({ default: mermaid }) => {
-      mermaid.initialize({
-        startOnLoad: false,
-        // 既定値だが、安全性が既定に依存していることを明示する
-        securityLevel: 'strict',
-        htmlLabels: false,
-        flowchart: { htmlLabels: false },
-      });
-      return mermaid;
-    });
+    return import('mermaid').then((mod) => initializeMermaid(mod.default));
   }
 
   private load(): Promise<MermaidLike> {
@@ -39,24 +43,47 @@ export class MermaidRenderer {
   }
 
   async render(blocks: readonly MermaidBlock[]): Promise<ReadonlyMap<string, MermaidOutcome>> {
-    const results = new Map<string, MermaidOutcome>();
-    if (blocks.length === 0) return results;
+    if (blocks.length === 0) return new Map();
     const mermaid = await this.load();
     const runId = this.renderSeq++;
+    return this.renderAll(mermaid, runId, blocks);
+  }
+
+  private async renderAll(
+    mermaid: MermaidLike,
+    runId: number,
+    blocks: readonly MermaidBlock[],
+  ): Promise<ReadonlyMap<string, MermaidOutcome>> {
+    const results = new Map<string, MermaidOutcome>();
     for (let i = 0; i < blocks.length; i++) {
-      const { id, code } = blocks[i];
-      const elementId = `printmd-mermaid-render-${runId}-${i}`;
-      try {
-        const { svg } = await mermaid.render(elementId, code);
-        results.set(id, { svg });
-      } catch {
-        results.set(id, { failed: true, code });
-      } finally {
-        // mermaid は render 失敗時に一時要素を body へ残す (エラー図が画面に出る)。必ず掃除する
-        document.getElementById(elementId)?.remove();
-        document.getElementById(`d${elementId}`)?.remove();
-      }
+      await this.renderOne(mermaid, runId, i, blocks[i], results);
     }
     return results;
+  }
+
+  /** mermaid は render 失敗時に一時要素を body へ残す (エラー図が画面に出る)。必ず掃除する */
+  private async renderOne(
+    mermaid: MermaidLike,
+    runId: number,
+    index: number,
+    block: MermaidBlock,
+    results: Map<string, MermaidOutcome>,
+  ): Promise<void> {
+    const elementId = `printmd-mermaid-render-${runId}-${index}`;
+    results.set(block.id, await this.renderMermaidBlock(mermaid, elementId, block.code));
+    document.getElementById(elementId)?.remove();
+    document.getElementById(`d${elementId}`)?.remove();
+  }
+
+  private async renderMermaidBlock(
+    mermaid: MermaidLike,
+    elementId: string,
+    code: string,
+  ): Promise<MermaidOutcome> {
+    try {
+      return { svg: (await mermaid.render(elementId, code)).svg };
+    } catch {
+      return { failed: true, code };
+    }
   }
 }

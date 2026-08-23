@@ -12,21 +12,32 @@ export interface FileGroup {
   readonly rows: readonly BlockRow[];
 }
 
-/** ブロック列をファイルごとのグループへ分け、各ブロックに階層深さを与える */
+interface MutableFileGroup {
+  fileIndex: number;
+  fileName: string;
+  rows: BlockRow[];
+  /** グループ内で直近に現れた見出しのレベル。本文の深さの基準になる */
+  headingLevel: number;
+}
+
+/** ブロックの属するグループを返す。ファイル境界では新しいグループを開始する */
+function groupFor(groups: MutableFileGroup[], block: Block): MutableFileGroup {
+  const last = groups.at(-1);
+  if (last !== undefined && last.fileIndex === block.fileIndex) return last;
+  const next = { fileIndex: block.fileIndex, fileName: block.fileName, rows: [], headingLevel: 0 };
+  groups.push(next);
+  return next;
+}
+
+function appendBlock(groups: MutableFileGroup[], block: Block): void {
+  const group = groupFor(groups, block);
+  if (block.kind === 'heading') group.headingLevel = block.level ?? 1;
+  const depth = block.kind === 'heading' ? (block.level ?? 1) : group.headingLevel + 1;
+  group.rows.push({ block, depth });
+}
+
 export function groupBlocks(blocks: readonly Block[]): readonly FileGroup[] {
-  const groups: FileGroup[] = [];
-  let current: { fileIndex: number; fileName: string; rows: BlockRow[] } | null = null;
-  let currentHeadingLevel = 0;
-  for (const block of blocks) {
-    if (current === null || block.fileIndex !== current.fileIndex) {
-      // ファイル境界で階層をリセットする (前ファイルの見出しレベルを持ち越さない)
-      currentHeadingLevel = 0;
-      current = { fileIndex: block.fileIndex, fileName: block.fileName, rows: [] };
-      groups.push(current);
-    }
-    if (block.kind === 'heading') currentHeadingLevel = block.level ?? 1;
-    const depth = block.kind === 'heading' ? (block.level ?? 1) : currentHeadingLevel + 1;
-    current.rows.push({ block, depth });
-  }
+  const groups: MutableFileGroup[] = [];
+  blocks.forEach((block) => appendBlock(groups, block));
   return groups.filter((group) => group.rows.length > 0);
 }

@@ -83,28 +83,37 @@ export function buildRenderedDocument(fragments: readonly FileFragment[]): Rende
   const container = document.createElement('div');
   container.className = 'markdown-body';
   const blocks: Block[] = [];
-
-  fragments.forEach((fragment) => {
-    const temp = document.createElement('div');
-    temp.innerHTML = fragment.html;
-    [...temp.children].forEach((el, blockIndex) => {
-      const id = `f${fragment.fileIndex}b${blockIndex}`;
-      // 著者が書いた id (アンカー) を潰さないよう、ブロック ID は data 属性で持つ
-      el.setAttribute('data-block-id', id);
-      blocks.push({
-        id,
-        kind: toKind(el),
-        label: toLabel(el),
-        level: toLevel(el),
-        fileIndex: fragment.fileIndex,
-        fileName: fragment.fileName,
-        isFileBoundary: fragment.fileIndex > 0 && blockIndex === 0,
-      });
-    });
-    container.append(...temp.childNodes);
-  });
-
+  fragments.forEach((fragment) => appendFragmentBlocks(container, blocks, fragment));
   return { container, blocks };
+}
+
+/** 1 ファイル分の HTML 断片を container へ追記し、生成した Block を blocks へ積む */
+function appendFragmentBlocks(
+  container: HTMLElement,
+  blocks: Block[],
+  fragment: FileFragment,
+): void {
+  const temp = document.createElement('div');
+  temp.innerHTML = fragment.html;
+  [...temp.children].forEach((el, blockIndex) => blocks.push(toBlock(fragment, el, blockIndex)));
+  container.append(...temp.childNodes);
+}
+
+/** トップレベル要素 1 つぶんの Block を組み立て、data-block-id を付与する */
+function toBlock(fragment: FileFragment, el: Element, blockIndex: number): Block {
+  const id = `f${fragment.fileIndex}b${blockIndex}`;
+  // 著者が書いた id (アンカー) を潰さないよう、ブロック ID は data 属性で持つ
+  el.setAttribute('data-block-id', id);
+  const meta = { kind: toKind(el), label: toLabel(el), level: toLevel(el) };
+  return { id, ...meta, ...toBlockOrigin(fragment, blockIndex) };
+}
+
+function toBlockOrigin(
+  fragment: FileFragment,
+  blockIndex: number,
+): Pick<Block, 'fileIndex' | 'fileName' | 'isFileBoundary'> {
+  const { fileIndex, fileName } = fragment;
+  return { fileIndex, fileName, isFileBoundary: fileIndex > 0 && blockIndex === 0 };
 }
 
 /**

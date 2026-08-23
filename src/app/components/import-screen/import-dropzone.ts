@@ -1,8 +1,18 @@
 import { Component, inject } from '@angular/core';
-import { EditorStore } from '../../state/editor-store';
+import { EditorStore, type ImportSource } from '../../state/editor-store';
 
 /** デモ原稿 (public/demo/ に同梱)。ガイド + 著作権消滅作品の長文 */
 const DEMO_FILES = ['printmd-guide.md', 'hashire-merosu.md'];
+
+async function fetchDemoText(name: string): Promise<string> {
+  const response = await fetch(`/demo/${name}`);
+  if (!response.ok) throw new Error(`demo fetch failed: ${name}`);
+  return response.text();
+}
+
+function toDemoFileInput(name: string): ImportSource {
+  return { name, text: () => fetchDemoText(name) };
+}
 
 /**
  * 空状態の取り込み面。最初の一手 (ドロップ / クリック選択) とアプリの用途を
@@ -60,15 +70,6 @@ export class ImportDropzone {
   protected loadDemo(event: Event): void {
     // label 内のボタンなので、既定動作 (ファイル選択ダイアログ) を抑止する
     event.preventDefault();
-    void this.store.addFiles(
-      DEMO_FILES.map((name) => ({
-        name,
-        text: async () => {
-          const response = await fetch(`/demo/${name}`);
-          if (!response.ok) throw new Error(`demo fetch failed: ${name}`);
-          return response.text();
-        },
-      })),
-    );
+    void this.store.addFiles(DEMO_FILES.map(toDemoFileInput));
   }
 }

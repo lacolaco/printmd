@@ -4,6 +4,62 @@ import type { Rule } from 'eslint';
 
 const DEFAULT_MAX_LINES = 20;
 
+/** @Component デコレータの引数オブジェクト直下の templateUrl だけを対象にするセレクタ */
+const TEMPLATE_URL_SELECTOR =
+  'Decorator > CallExpression[callee.name="Component"] > ObjectExpression > Property[key.name="templateUrl"]';
+
+function tryReadFile(file: string): string | null {
+  try {
+    return fs.readFileSync(file, 'utf-8').replace(/\n$/, '');
+  } catch {
+    return null;
+  }
+}
+
+function readTemplateFile(context: Rule.RuleContext, templateUrl: string): string | null {
+  const file = path.resolve(path.dirname(context.filename), templateUrl);
+  return tryReadFile(file);
+}
+
+function escapeForTemplateLiteral(content: string): string {
+  return content.replaceAll('\\', '\\\\').replaceAll('`', '\\`').replaceAll('${', '\\${');
+}
+
+/** プロパティのインデント (既定 2) に合わせて本文を 1 段深く敷き直す */
+function buildInlineTemplateBody(content: string, escaped: string, column: number): string {
+  if (content.trim() === '') return '';
+  const indent = ' '.repeat(column + 2);
+  return `\n${indent}${escaped.split('\n').join(`\n${indent}`)}\n${' '.repeat(column)}`;
+}
+
+function toInlineTemplateFix(fixer: Rule.RuleFixer, node: Rule.Node, content: string): Rule.Fix {
+  const column = node.loc?.start.column ?? 2;
+  const escaped = escapeForTemplateLiteral(content);
+  const body = buildInlineTemplateBody(content, escaped, column);
+  return fixer.replaceText(node, `template: \`${body}\``);
+}
+
+function reportIfShortEnough(
+  context: Rule.RuleContext,
+  maxLines: number,
+  node: Rule.Node,
+  content: string,
+): void {
+  const lines = content.split('\n').length;
+  if (lines > maxLines) return;
+  const data = { lines: String(lines), max: String(maxLines) };
+  const fix: Rule.ReportFixer = (fixer) => toInlineTemplateFix(fixer, node, content);
+  context.report({ node, messageId: 'inline', data, fix });
+}
+
+function checkTemplateUrl(context: Rule.RuleContext, maxLines: number, node: Rule.Node): void {
+  if (node.type !== 'Property') return;
+  if (node.value.type !== 'Literal' || typeof node.value.value !== 'string') return;
+  const content = readTemplateFile(context, node.value.value);
+  if (content === null) return;
+  reportIfShortEnough(context, maxLines, node, content);
+}
+
 /**
  * templateUrl の参照先の行数を実測し、閾値以下ならインライン template を要求する。
  * 閾値はオプション { maxLines } で変えられる (既定 20)
@@ -30,39 +86,7 @@ export const inlineShortTemplates: Rule.RuleModule = {
     const options = (context.options[0] ?? {}) as { maxLines?: number };
     const maxLines = options.maxLines ?? DEFAULT_MAX_LINES;
     return {
-      // @Component デコレータの引数オブジェクト直下の templateUrl だけを対象にする
-      'Decorator > CallExpression[callee.name="Component"] > ObjectExpression > Property[key.name="templateUrl"]'(
-        node: Rule.Node,
-      ) {
-        if (node.type !== 'Property') return;
-        if (node.value.type !== 'Literal' || typeof node.value.value !== 'string') return;
-        const file = path.resolve(path.dirname(context.filename), node.value.value);
-        let text: string;
-        try {
-          text = fs.readFileSync(file, 'utf-8');
-        } catch {
-          return;
-        }
-        const content = text.replace(/\n$/, '');
-        const lines = content.split('\n').length;
-        if (lines <= maxLines) {
-          context.report({
-            node,
-            messageId: 'inline',
-            data: { lines: String(lines), max: String(maxLines) },
-            fix(fixer) {
-              // プロパティのインデント (既定 2) に合わせて本文を 1 段深く敷き直す
-              const indent = ' '.repeat((node.loc?.start.column ?? 2) + 2);
-              const escaped = content
-                .replaceAll('\\', '\\\\')
-                .replaceAll('`', '\\`')
-                .replaceAll('${', '\\${');
-              const body = content.trim() === '' ? '' : `\n${indent}${escaped.split('\n').join(`\n${indent}`)}\n${' '.repeat(node.loc?.start.column ?? 2)}`;
-              return fixer.replaceText(node, `template: \`${body}\``);
-            },
-          });
-        }
-      },
+      [TEMPLATE_URL_SELECTOR]: (node: Rule.Node) => checkTemplateUrl(context, maxLines, node),
     };
   },
 };
