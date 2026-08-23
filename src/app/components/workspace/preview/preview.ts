@@ -1,6 +1,6 @@
 import { Component, DestroyRef, effect, inject, viewChild, type ElementRef } from '@angular/core';
 import type { RenderedDocument } from '../../../markdown/block-extractor';
-import type { PageSegment, Pagination } from '../../../page-count';
+import type { PageSegment, Pagination } from '../../../pagination';
 import { buildSegmentClone } from '../../../segment-clone';
 import { ifDefined } from '../../../collections';
 import { EditorStore } from '../../../state/editor-store';

@@ -1,24 +1,7 @@
 import type { Block, RenderedDocument } from './markdown/block-extractor';
+import type { Pagination, SegmentRange } from './pagination';
 import { Probe } from './probe';
 import { Ranges } from './ranges';
-
-/** 強制改ページで区切られた、連続するトップレベルブロックの範囲 [start, end) */
-export interface SegmentRange {
-  readonly start: number;
-  readonly end: number;
-}
-
-export interface PageSegment extends SegmentRange {
-  /** このセグメント単独のページ数 */
-  readonly pages: number;
-  /** 文書全体での開始ページ (0 始まり) */
-  readonly firstPage: number;
-}
-
-export interface Pagination {
-  readonly total: number;
-  readonly segments: readonly PageSegment[];
-}
 
 /**
  * 強制改ページ (指定 Set とファイル境界) の位置で文書をセグメントへ分割する。

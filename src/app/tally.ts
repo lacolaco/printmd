@@ -1,5 +1,5 @@
 import { A4, MM_TO_PX } from './page-geometry';
-import type { PageSegment, Pagination, SegmentRange } from './page-count';
+import type { PageSegment, Pagination, SegmentRange } from './pagination';
 
 function pagesForScrollWidth(scrollWidth: number): number {
   const raw = (scrollWidth + A4.column.gap * MM_TO_PX) / (A4.column.step * MM_TO_PX);

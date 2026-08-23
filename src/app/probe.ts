@@ -1,5 +1,5 @@
 import type { RenderedDocument } from './markdown/block-extractor';
-import type { Pagination, SegmentRange } from './page-count';
+import type { Pagination, SegmentRange } from './pagination';
 import { buildSegmentClone } from './segment-clone';
 import { tallySegments } from './tally';
 

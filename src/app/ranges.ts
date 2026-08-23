@@ -1,5 +1,5 @@
 import type { Block } from './markdown/block-extractor';
-import type { SegmentRange } from './page-count';
+import type { SegmentRange } from './pagination';
 
 /** 強制改ページ位置で切った [start, end) の並び。切断判定と締めを閉じる */
 export class Ranges {
