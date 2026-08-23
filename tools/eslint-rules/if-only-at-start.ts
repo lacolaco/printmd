@@ -8,8 +8,12 @@ function chainedElse(node: TSESTree.IfStatement, parent: TSESTree.Node): boolean
   return parent.type === 'IfStatement' && parent.alternate === node;
 }
 
+function asBlock(parent: TSESTree.Node): TSESTree.BlockStatement | undefined {
+  return parent.type === 'BlockStatement' ? parent : undefined;
+}
+
 function functionBodyOf(parent: TSESTree.Node): readonly TSESTree.Statement[] | undefined {
-  const block = parent.type === 'BlockStatement' ? parent : undefined;
+  const block = asBlock(parent);
   const grandType = block?.parent.type ?? '';
   return FUNCTION_TYPES.has(grandType) ? block?.body : undefined;
 }

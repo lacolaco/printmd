@@ -53,6 +53,7 @@ export default defineConfig([
     files: ['src/**/*.ts', 'tools/**/*.ts'],
     ignores: ['**/*.spec.ts'],
     rules: {
+      complexity: ['error', { max: 5 }],
       curly: ['error', 'all'],
       'no-sequences': ['error', { allowInParentheses: false }],
       '@stylistic/max-statements-per-line': ['error', { max: 1 }],
