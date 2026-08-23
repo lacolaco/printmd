@@ -90,10 +90,12 @@ function enclosingFunctions(id: Node): WithParent[] {
   return chain;
 }
 
+/** range が無いノードは包含と見なさない (既定値で相互包含になると報告が消える) */
 function containsRange(outer: Node, inner: Node): boolean {
-  const [outerStart, outerEnd] = outer.range ?? [0, 0];
-  const [innerStart, innerEnd] = inner.range ?? [0, 0];
-  return outerStart <= innerStart && innerEnd <= outerEnd;
+  const { range: outerRange } = outer;
+  const { range: innerRange } = inner;
+  if (outerRange === undefined || innerRange === undefined) return false;
+  return outerRange[0] <= innerRange[0] && innerRange[1] <= outerRange[1];
 }
 
 function unique<T>(items: readonly T[]): T[] {
