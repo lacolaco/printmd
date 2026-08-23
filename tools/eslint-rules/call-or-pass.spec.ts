@@ -1,14 +1,12 @@
-import { RuleTester } from 'eslint';
-import tseslint from 'typescript-eslint';
-import { describe, it } from 'vitest';
+import { RuleTester } from '@typescript-eslint/rule-tester';
+import { afterAll, describe, it } from 'vitest';
 import { callOrPass } from './call-or-pass';
 
-(RuleTester as unknown as { describe: unknown; it: unknown }).describe = describe;
-(RuleTester as unknown as { describe: unknown; it: unknown }).it = it;
+RuleTester.afterAll = afterAll;
+RuleTester.describe = describe;
+RuleTester.it = it;
 
-const tester = new RuleTester({
-  languageOptions: { parser: tseslint.parser, sourceType: 'module' },
-});
+const tester = new RuleTester();
 
 tester.run('call-or-pass', callOrPass, {
   valid: [
@@ -68,12 +66,12 @@ function f() {
   ],
   invalid: [
     {
-      name: '規律の禁止例: 赤線は混在を含む関数のヘッダに出る',
+      name: '規律の禁止例: 赤線は混在を含む関数のヘッダ (function 見出し) に出る',
       code: `declare function sum(a: number[]): number;
 function average(arr: number[]) {
   return sum(arr) / arr.length;
 }`,
-      errors: [{ messageId: 'both', line: 2, column: 1, endLine: 2, endColumn: 33 }],
+      errors: [{ messageId: 'both', line: 2, column: 1, endLine: 2, endColumn: 17 }],
     },
     {
       name: 'メソッド呼び出しと引数渡しの両方',
@@ -102,7 +100,7 @@ function f(a: number[]) {
       errors: [{ messageId: 'both', line: 2, column: 1 }],
     },
     {
-      name: '両方が入れ子の中にあるなら、混在を含む最も内側の関数 (コールバック) に出る',
+      name: '両方が入れ子の中にあるなら、最も内側の関数 (アロー関数は => の位置) に出る',
       code: `declare function g(a: number[]): void; declare function each(cb: () => void): void;
 function f(a: number[]) {
   each(() => {
@@ -110,7 +108,7 @@ function f(a: number[]) {
     g(a);
   });
 }`,
-      errors: [{ messageId: 'both', line: 3, column: 8 }],
+      errors: [{ messageId: 'both', line: 3, column: 11, endColumn: 13 }],
     },
     {
       name: '非 null アサーション越しの使用も同じ変数として数える',

@@ -1,14 +1,12 @@
-import { RuleTester } from 'eslint';
-import tseslint from 'typescript-eslint';
-import { describe, it } from 'vitest';
+import { RuleTester } from '@typescript-eslint/rule-tester';
+import { afterAll, describe, it } from 'vitest';
 import { maxFunctionLines } from './max-function-lines';
 
-(RuleTester as unknown as { describe: unknown; it: unknown }).describe = describe;
-(RuleTester as unknown as { describe: unknown; it: unknown }).it = it;
+RuleTester.afterAll = afterAll;
+RuleTester.describe = describe;
+RuleTester.it = it;
 
-const tester = new RuleTester({
-  languageOptions: { parser: tseslint.parser, sourceType: 'module' },
-});
+const tester = new RuleTester();
 
 const statements = (n: number) => Array.from({ length: n }, (_, i) => `  x = ${i};`).join('\n');
 
