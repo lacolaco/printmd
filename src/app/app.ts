@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Footer } from './components/footer';
 import { Header } from './components/header/header';
 import { ImportScreen } from './components/import-screen/import-screen';
@@ -18,8 +18,8 @@ import { ManuscriptState } from './state/manuscript.state';
       (dragover)="permitDrag($event)"
       (drop)="acceptDrop($event)"
     >
-      <app-header [active]="manuscripts.nonEmpty()" />
-      @if (manuscripts.nonEmpty()) {
+      <app-header [active]="nonEmpty()" />
+      @if (nonEmpty()) {
         <app-workspace class="min-h-0 flex-1" />
       } @else {
         <app-import-screen class="min-h-0 flex-1" />
@@ -32,8 +32,10 @@ import { ManuscriptState } from './state/manuscript.state';
   `,
 })
 export class App {
-  protected readonly manuscripts = inject(ManuscriptState);
+  private readonly manuscripts = inject(ManuscriptState);
   private readonly editor = inject(Editor);
+
+  protected readonly nonEmpty = computed(() => this.manuscripts.nonEmpty());
 
   /** ウィンドウ全体をドロップ先にする (誤ドロップでのページ遷移も防ぐ) */
   protected permitDrag(event: DragEvent): void {

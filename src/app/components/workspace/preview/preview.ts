@@ -1,4 +1,12 @@
-import { Component, DestroyRef, effect, inject, viewChild, type ElementRef } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  viewChild,
+  type ElementRef,
+} from '@angular/core';
 import { DocumentState } from '../../../state/document.state';
 import { Paginator } from '../../paginator';
 import { ZoomState } from '../../../state/zoom.state';
@@ -20,10 +28,10 @@ import { SheetRenderer } from './sheet-renderer';
         role="region"
         aria-label="紙面 (矢印キーでスクロール。各ページのブロック境界に改ページ指定ボタンがあります)"
       >
-        <div class="mx-auto w-fit" #sheetsHost [style.zoom]="zoom.value()"></div>
+        <div class="mx-auto w-fit" #sheetsHost [style.zoom]="scale()"></div>
       </div>
       <!-- 読み上げはヘッダの status が担うため、こちらは視覚専用 -->
-      @if (documents.rendering()) {
+      @if (rendering()) {
         <div
           class="app-rendering-indicator pointer-events-none absolute inset-x-0 top-4 flex justify-center"
           aria-hidden="true"
@@ -37,9 +45,12 @@ import { SheetRenderer } from './sheet-renderer';
   `,
 })
 export class Preview {
-  protected readonly documents = inject(DocumentState);
-  protected readonly paginator = inject(Paginator);
-  protected readonly zoom = inject(ZoomState);
+  private readonly documents = inject(DocumentState);
+  private readonly paginator = inject(Paginator);
+  private readonly zoom = inject(ZoomState);
+
+  protected readonly scale = computed(() => this.zoom.value());
+  protected readonly rendering = computed(() => this.documents.rendering());
 
   private readonly sheetsHost = viewChild.required<ElementRef<HTMLElement>>('sheetsHost');
   private renderer: SheetRenderer | null = null;

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { ToolbarWidget } from '@angular/aria/toolbar';
 import { Editor } from '../editor';
 import { ZoomState } from '../../state/zoom.state';
@@ -21,7 +21,7 @@ import { ZoomState } from '../../state/zoom.state';
     >
       −
     </button>
-    <span class="w-10 text-center">{{ zoom.label() }}</span>
+    <span class="w-10 text-center">{{ label() }}</span>
     <button
       class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
       ngToolbarWidget
@@ -36,5 +36,7 @@ import { ZoomState } from '../../state/zoom.state';
 })
 export class ZoomControl {
   protected readonly editor = inject(Editor);
-  protected readonly zoom = inject(ZoomState);
+  private readonly zoom = inject(ZoomState);
+
+  protected readonly label = computed(() => this.zoom.label());
 }
