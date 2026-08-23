@@ -8,10 +8,19 @@ import { ifOnlyAtStart } from './tools/eslint-rules/if-only-at-start';
 import { inlineShortTemplates } from './tools/eslint-rules/inline-short-templates';
 import { maxFunctionLines } from './tools/eslint-rules/max-function-lines';
 import { noElse } from './tools/eslint-rules/no-else';
+import { noSwitch } from './tools/eslint-rules/no-switch';
 
 export default defineConfig([
   {
     files: ['**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: ['*.ts', 'e2e/*.ts'],
+        },
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
     plugins: {
       '@stylistic': stylistic,
       printmd: {
@@ -21,6 +30,7 @@ export default defineConfig([
           'inline-short-templates': inlineShortTemplates,
           'max-function-lines': maxFunctionLines,
           'no-else': noElse,
+          'no-switch': noSwitch,
         },
       },
     },
@@ -40,6 +50,13 @@ export default defineConfig([
       'printmd/if-only-at-start': 'error',
       'printmd/max-function-lines': ['error', { maxLines: 5 }],
       'printmd/no-else': 'error',
+      'printmd/no-switch': 'error',
+      // requireDefaultForNonUnion は printmd/no-switch の default 禁止と意図的に矛盾させる。
+      // 両立不能にすることで、union 型以外を対象とする switch は書けない
+      '@typescript-eslint/switch-exhaustiveness-check': [
+        'error',
+        { allowDefaultCaseForExhaustiveSwitch: false, requireDefaultForNonUnion: true },
+      ],
     },
   },
   {

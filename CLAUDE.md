@@ -24,6 +24,8 @@ printmd のプロジェクト規範。
 
 - if で else は使わない: 分岐は早期 return・条件演算子・多態で表す。外部データ型 (制御できない入力) のチェックだけは `eslint-disable-next-line printmd/no-else -- 理由` で除外できる。lint ルール `printmd/no-else` が強制する。適用対象は 5 行ルールと同じ。
 
+- switch は使わない: 原則禁止。使う場合は default を持たず、全 case が return し、網羅性が型で保証されている形に限る。lint ルール `printmd/no-switch` (default 禁止・全 case return。throw 終端も不可) と `@typescript-eslint/switch-exhaustiveness-check` (型ベースの網羅性検査。type-aware lint) が強制し、`noImplicitReturns` が背後で漏れを拾う。union 型以外を対象とする switch は両ルールの組み合わせにより書けない (意図した閉じ方)。適用対象は 5 行ルールと同じ。
+
 ## 検証
 
 - テストファースト。修正はまず失敗するテストで再現してから行う。
