@@ -18,8 +18,7 @@ const MARKDOWN_NAME_PATTERN = /\.(md|markdown|txt)$/i;
 
 /** prev が next の先頭部分か (要素は同一参照)。真なら「末尾への追記だけ」の変化 */
 function isPrefixOf(prev: readonly ManuscriptFile[], next: readonly ManuscriptFile[]): boolean {
-  if (prev.length > next.length) return false;
-  return prev.every((file, index) => next[index] === file);
+  return prev.length <= next.length && prev.every((file, index) => next[index] === file);
 }
 
 /**
@@ -49,10 +48,10 @@ export class EditorStore {
    */
   private readonly breaksSignal = linkedSignal<readonly ManuscriptFile[], ReadonlySet<string>>({
     source: this.filesSignal,
-    computation: (files, previous) => {
-      if (previous !== undefined && isPrefixOf(previous.source, files)) return previous.value;
-      return new Set();
-    },
+    computation: (files, previous) =>
+      previous !== undefined && isPrefixOf(previous.source, files)
+        ? previous.value
+        : new Set<string>(),
   });
   /**
    * 変換パイプライン。filesSignal からの async 導出そのものなので resource で
@@ -62,14 +61,16 @@ export class EditorStore {
    */
   private readonly renderedResource = resource({
     params: () => this.filesSignal(),
-    loader: async ({ params: files }) => {
-      if (!hasItems(files)) return null;
-      const epoch = ++this.renderEpoch;
-      await this.renderNewFragments(files);
-      this.evictStaleFragments(epoch, files);
-      return this.buildDocumentFromCache(files);
-    },
+    loader: async ({ params: files }) =>
+      hasItems(files) ? this.renderDocument(files) : null,
   });
+
+  private async renderDocument(files: readonly ManuscriptFile[]): Promise<RenderedDocument> {
+    const epoch = ++this.renderEpoch;
+    await this.renderNewFragments(files);
+    this.evictStaleFragments(epoch, files);
+    return this.buildDocumentFromCache(files);
+  }
 
   private async renderNewFragments(files: readonly ManuscriptFile[]): Promise<void> {
     const toRender = files.filter((file) => !this.fragmentCache.has(file.content));
@@ -88,11 +89,19 @@ export class EditorStore {
   }
 
   private evictStaleFragments(epoch: number, files: readonly ManuscriptFile[]): void {
-    if (epoch !== this.renderEpoch) return;
-    const keep = new Set(files.map((file) => file.content));
-    for (const key of this.fragmentCache.keys()) {
-      if (!keep.has(key)) this.fragmentCache.delete(key);
+    if (epoch === this.renderEpoch) {
+      this.pruneFragmentsExcept(new Set(files.map((file) => file.content)));
     }
+  }
+
+  private pruneFragmentsExcept(keep: ReadonlySet<string>): void {
+    for (const key of this.fragmentCache.keys()) {
+      this.deleteFragmentUnlessKept(keep, key);
+    }
+  }
+
+  private deleteFragmentUnlessKept(keep: ReadonlySet<string>, key: string): void {
+    if (!keep.has(key)) this.fragmentCache.delete(key);
   }
 
   private buildDocumentFromCache(files: readonly ManuscriptFile[]): RenderedDocument {
@@ -131,9 +140,14 @@ export class EditorStore {
   async addFiles(files: readonly ImportSource[]): Promise<void> {
     const { loaded, failedNames } = await this.loadContents(files);
     const markdownOnly = loaded.filter((f) => MARKDOWN_NAME_PATTERN.test(f.name));
-    this.importWarningsSignal.set(importWarnings(loaded.length - markdownOnly.length, failedNames));
-    if (markdownOnly.length > 0) {
-      this.filesSignal.update((current) => [...current, ...markdownOnly]);
+    const { length: markdownCount } = markdownOnly;
+    this.importWarningsSignal.set(importWarnings(loaded.length - markdownCount, failedNames));
+    this.appendFiles(markdownOnly);
+  }
+
+  private appendFiles(files: readonly ManuscriptFile[]): void {
+    if (hasItems(files)) {
+      this.filesSignal.update((current) => [...current, ...files]);
     }
   }
 
@@ -204,7 +218,15 @@ function reordered(
   fromIndex: number,
   toIndex: number,
 ): readonly ManuscriptFile[] {
-  if (!isValidMove(current.length, fromIndex, toIndex)) return current;
+  const { length } = current;
+  return isValidMove(length, fromIndex, toIndex) ? spliced(current, fromIndex, toIndex) : current;
+}
+
+function spliced(
+  current: readonly ManuscriptFile[],
+  fromIndex: number,
+  toIndex: number,
+): readonly ManuscriptFile[] {
   const next = [...current];
   next.splice(toIndex, 0, ...next.splice(fromIndex, 1));
   return next;
@@ -220,8 +242,12 @@ function collectMermaidBlocks(
   return rendered.flatMap((r) => r.mermaidBlocks);
 }
 
+function addUnlessDeleted(next: Set<string>, blockId: string): void {
+  if (!next.delete(blockId)) next.add(blockId);
+}
+
 function toggled(current: ReadonlySet<string>, blockId: string): ReadonlySet<string> {
   const next = new Set(current);
-  if (!next.delete(blockId)) next.add(blockId);
+  addUnlessDeleted(next, blockId);
   return next;
 }

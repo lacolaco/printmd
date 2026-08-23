@@ -4,9 +4,13 @@ import { EditorStore, type ImportSource } from '../../state/editor-store';
 /** デモ原稿 (public/demo/ に同梱)。ガイド + 著作権消滅作品の長文 */
 const DEMO_FILES = ['printmd-guide.md', 'hashire-merosu.md'];
 
+function assertDemoFetched(ok: boolean, name: string): void {
+  if (!ok) throw new Error(`demo fetch failed: ${name}`);
+}
+
 async function fetchDemoText(name: string): Promise<string> {
   const response = await fetch(`/demo/${name}`);
-  if (!response.ok) throw new Error(`demo fetch failed: ${name}`);
+  assertDemoFetched(response.ok, name);
   return response.text();
 }
 
@@ -52,7 +56,7 @@ export class ImportDropzone {
 
   protected onFileInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files !== null) void this.store.addFiles([...input.files]);
+    this.importFiles(input.files);
     input.value = '';
   }
 
@@ -62,7 +66,14 @@ export class ImportDropzone {
 
   protected onDrop(event: DragEvent): void {
     event.preventDefault();
-    const files = event.dataTransfer?.files;
+    this.importDroppedFiles(event.dataTransfer?.files);
+  }
+
+  private importFiles(files: FileList | null): void {
+    if (files !== null) void this.store.addFiles([...files]);
+  }
+
+  private importDroppedFiles(files: FileList | undefined): void {
     if (files !== undefined && files.length > 0) void this.store.addFiles([...files]);
   }
 

@@ -44,7 +44,12 @@ export class MermaidRenderer {
   }
 
   async render(blocks: readonly MermaidBlock[]): Promise<ReadonlyMap<string, MermaidOutcome>> {
-    if (!hasItems(blocks)) return new Map();
+    return hasItems(blocks) ? this.renderNonEmpty(blocks) : new Map();
+  }
+
+  private async renderNonEmpty(
+    blocks: readonly MermaidBlock[],
+  ): Promise<ReadonlyMap<string, MermaidOutcome>> {
     const mermaid = await this.load();
     const runId = this.renderSeq++;
     return this.renderAll(mermaid, runId, blocks);

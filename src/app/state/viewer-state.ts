@@ -34,8 +34,9 @@ export function defaultZoomIndex(viewportWidth: number, hasSideColumn: boolean):
  */
 /** matchMedia を持たない環境 (jsdom) では実寸を既定にする */
 function initialZoomIndex(): number {
-  if (typeof window.matchMedia !== 'function') return ZOOMS.indexOf(1);
-  return defaultZoomIndex(window.innerWidth, window.matchMedia('(min-width: 768px)').matches);
+  return typeof window.matchMedia !== 'function'
+    ? ZOOMS.indexOf(1)
+    : defaultZoomIndex(window.innerWidth, window.matchMedia('(min-width: 768px)').matches);
 }
 
 @Service()
@@ -52,8 +53,7 @@ export class ViewerState {
    */
   readonly pagination = computed(() => {
     const doc = this.store.renderedDocument();
-    if (doc === null) return null;
-    return measurePagination(doc, this.store.breaks());
+    return doc === null ? null : measurePagination(doc, this.store.breaks());
   });
 
   readonly pageCount = computed(() => this.pagination()?.total ?? 0);

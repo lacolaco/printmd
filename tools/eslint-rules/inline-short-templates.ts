@@ -32,9 +32,9 @@ function escapeForTemplateLiteral(content: string): string {
 
 /** プロパティのインデント (既定 2) に合わせて本文を 1 段深く敷き直す */
 function buildInlineTemplateBody(content: string, escaped: string, column: number): string {
-  if (content.trim() === '') return '';
   const indent = ' '.repeat(column + 2);
-  return `\n${indent}${escaped.split('\n').join(`\n${indent}`)}\n${' '.repeat(column)}`;
+  const body = `\n${indent}${escaped.split('\n').join(`\n${indent}`)}\n${' '.repeat(column)}`;
+  return content.trim() === '' ? '' : body;
 }
 
 function indentColumnOf(node: TSESTree.Node): number {
@@ -56,31 +56,37 @@ function lineCountOf(content: string): number {
   return content.split('\n').length;
 }
 
-function reportIfShortEnough(
-  context: Context,
-  maxLines: number,
-  node: TSESTree.Node,
-  content: string,
-): void {
+function reportInline(context: Context, maxLines: number, node: TSESTree.Node, content: string): void {
   const lines = lineCountOf(content);
-  if (lines > maxLines) return;
   const data = { lines: String(lines), max: String(maxLines) };
   const fix: TSESLint.ReportFixFunction = (fixer) => toInlineTemplateFix(fixer, node, content);
   context.report({ node, messageId: 'inline', data, fix });
 }
 
+function reportIfShortEnough(
+  context: Context,
+  maxLines: number,
+  node: TSESTree.Node,
+  content: string | null,
+): void {
+  if (content !== null && lineCountOf(content) <= maxLines) {
+    reportInline(context, maxLines, node, content);
+  }
+}
+
 function templateUrlOf(node: TSESTree.Node): string | null {
-  if (node.type !== 'Property') return null;
-  const { value } = node;
-  return value.type === 'Literal' && typeof value.value === 'string' ? value.value : null;
+  const value = node.type === 'Property' ? node.value : undefined;
+  const literal = value?.type === 'Literal' ? value.value : undefined;
+  return typeof literal === 'string' ? literal : null;
+}
+
+function resolveTemplate(context: Context, node: TSESTree.Node): string | null {
+  const templateUrl = templateUrlOf(node);
+  return templateUrl === null ? null : readTemplateFile(context, templateUrl);
 }
 
 function checkTemplateUrl(context: Context, maxLines: number, node: TSESTree.Node): void {
-  const templateUrl = templateUrlOf(node);
-  if (templateUrl === null) return;
-  const content = readTemplateFile(context, templateUrl);
-  if (content === null) return;
-  reportIfShortEnough(context, maxLines, node, content);
+  reportIfShortEnough(context, maxLines, node, resolveTemplate(context, node));
 }
 
 /**

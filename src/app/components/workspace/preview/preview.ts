@@ -1,6 +1,7 @@
 import { Component, DestroyRef, effect, inject, viewChild, type ElementRef } from '@angular/core';
 import type { RenderedDocument } from '../../../markdown/block-extractor';
 import { buildSegmentClone, type PageSegment, type Pagination } from '../../../page-count';
+import { ifDefined } from '../../../collections';
 import { EditorStore } from '../../../state/editor-store';
 import { ViewerState } from '../../../state/viewer-state';
 import { COLUMN_STEP_MM } from '../../../page-geometry';
@@ -56,9 +57,14 @@ export class Preview {
 
   private rebuild(doc: RenderedDocument | null, pagination: Pagination | null): void {
     this.resetSheets();
-    if (doc === null || pagination === null) return;
-    this.observer = this.createObserver(doc, pagination);
-    this.appendSheets(doc, pagination);
+    this.populateSheets(doc, pagination);
+  }
+
+  private populateSheets(doc: RenderedDocument | null, pagination: Pagination | null): void {
+    if (doc !== null && pagination !== null) {
+      this.observer = this.createObserver(doc, pagination);
+      this.appendSheets(doc, pagination);
+    }
   }
 
   private resetSheets(): void {
@@ -72,10 +78,11 @@ export class Preview {
     doc: RenderedDocument,
     pagination: Pagination,
   ): IntersectionObserver | null {
-    if (typeof IntersectionObserver === 'undefined') return null;
-    return new IntersectionObserver((entries) => this.fillVisibleSheets(entries, doc, pagination), {
-      rootMargin: '600px 0px',
-    });
+    return typeof IntersectionObserver === 'undefined'
+      ? null
+      : new IntersectionObserver((entries) => this.fillVisibleSheets(entries, doc, pagination), {
+          rootMargin: '600px 0px',
+        });
   }
 
   private fillVisibleSheets(
@@ -83,8 +90,15 @@ export class Preview {
     doc: RenderedDocument,
     pagination: Pagination,
   ): void {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
+    entries.forEach((entry) => this.processVisibleEntry(entry, doc, pagination));
+  }
+
+  private processVisibleEntry(
+    entry: IntersectionObserverEntry,
+    doc: RenderedDocument,
+    pagination: Pagination,
+  ): void {
+    if (entry.isIntersecting) {
       this.fillSheet(entry.target as HTMLElement, doc, pagination);
       this.observer?.unobserve(entry.target);
     }
@@ -109,13 +123,19 @@ export class Preview {
 
   /** シートへ段組クローンの窓を実体化する。実体化済みなら何もしない */
   private fillSheet(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
-    if (sheet.childElementCount > 0) return;
-    const index = Number(sheet.dataset['page']) - 1;
-    const segment = segmentForPage(pagination, index);
-    if (segment !== undefined) {
-      sheet.append(buildSheetWindow(doc, segment, columnFor(segment, index)));
-    }
+    if (isEmptySheet(sheet)) this.materializeSheet(sheet, doc, pagination);
   }
+
+  private materializeSheet(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
+    const index = Number(sheet.dataset['page']) - 1;
+    ifDefined(segmentForPage(pagination, index), (segment) =>
+      sheet.append(buildSheetWindow(doc, segment, columnFor(segment, index))),
+    );
+  }
+}
+
+function isEmptySheet(sheet: HTMLElement): boolean {
+  return sheet.childElementCount === 0;
 }
 
 function createSheet(index: number): HTMLElement {

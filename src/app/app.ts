@@ -39,7 +39,10 @@ export class App {
 
   protected onWindowDrop(event: DragEvent): void {
     event.preventDefault();
-    const files = event.dataTransfer?.files;
+    this.importDroppedFiles(event.dataTransfer?.files);
+  }
+
+  private importDroppedFiles(files: FileList | undefined): void {
     if (files !== undefined && files.length > 0) void this.store.addFiles([...files]);
   }
 }

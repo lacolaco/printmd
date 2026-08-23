@@ -19,9 +19,9 @@ interface Usage {
 
 function classify(id: TSESTree.Node): keyof Usage | null {
   const { use, parent } = effectiveUse(id);
-  if (parent === undefined) return null;
-  if (isMemberReceiver(parent, use)) return 'member';
-  return isCallArgument(parent, use) ? 'passed' : null;
+  const member = parent !== undefined && isMemberReceiver(parent, use);
+  const passed = parent !== undefined && isCallArgument(parent, use);
+  return member ? 'member' : passed ? 'passed' : null;
 }
 
 const TARGET_DEF_TYPES: ReadonlySet<string> = new Set(['Parameter', 'Variable', 'CatchClause']);
@@ -29,13 +29,19 @@ const TARGET_DEF_TYPES: ReadonlySet<string> = new Set(['Parameter', 'Variable', 
 /** 対象は関数内で宣言された引数・ローカル変数・catch 変数 (モジュールスコープは除く) */
 function isTargetVariable(variable: TSESLint.Scope.Variable): boolean {
   const def = variable.defs[0];
-  if (def === undefined || !TARGET_DEF_TYPES.has(def.type)) return false;
-  return variable.scope.variableScope.type === 'function';
+  return (
+    def !== undefined &&
+    TARGET_DEF_TYPES.has(def.type) &&
+    variable.scope.variableScope.type === 'function'
+  );
+}
+
+function appendUsage(usage: Usage, kind: keyof Usage | null, id: TSESTree.Node): void {
+  if (kind !== null) usage[kind].push(id);
 }
 
 function markUsage(usage: Usage, id: TSESTree.Node): void {
-  const kind = classify(id);
-  if (kind !== null) usage[kind].push(id);
+  appendUsage(usage, classify(id), id);
 }
 
 function collectUsage(variable: TSESLint.Scope.Variable): Usage {
@@ -70,17 +76,16 @@ function usageFindings(usage: Usage, name: string, sourceCode: TSESLint.SourceCo
   const { member, passed } = usage;
   const { length: memberCount } = member;
   const { length: passedCount } = passed;
-  if (memberCount === 0 || passedCount === 0) return [];
-  return mixedFunctions(member, passed).map((fn) => findingAt(fn, name, sourceCode));
+  const mixed = memberCount > 0 && passedCount > 0 ? mixedFunctions(member, passed) : [];
+  return mixed.map((fn) => findingAt(fn, name, sourceCode));
 }
 
 function variableFindings(
   variable: TSESLint.Scope.Variable,
   sourceCode: TSESLint.SourceCode,
 ): Finding[] {
-  if (!isTargetVariable(variable)) return [];
   const { name } = variable;
-  return usageFindings(collectUsage(variable), name, sourceCode);
+  return isTargetVariable(variable) ? usageFindings(collectUsage(variable), name, sourceCode) : [];
 }
 
 function collectFindings(sourceCode: TSESLint.SourceCode): Finding[] {

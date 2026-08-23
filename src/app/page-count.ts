@@ -30,10 +30,10 @@ function collectBreak(
   index: number,
   breaks: ReadonlySet<string>,
 ): void {
-  if (index === 0) return;
-  if (!block.isFileBoundary && !breaks.has(block.id)) return;
-  acc.ranges.push({ start: acc.start, end: index });
-  acc.start = index;
+  if (index !== 0 && (block.isFileBoundary || breaks.has(block.id))) {
+    acc.ranges.push({ start: acc.start, end: index });
+    acc.start = index;
+  }
 }
 
 /**
@@ -68,8 +68,12 @@ function appendClonedChildren(
   }
 }
 
-function attachClone(mc: HTMLElement, parent: HTMLElement): HTMLElement {
+function appendIfDifferent(mc: HTMLElement, parent: HTMLElement): void {
   if (parent !== mc) mc.append(parent);
+}
+
+function attachClone(mc: HTMLElement, parent: HTMLElement): HTMLElement {
+  appendIfDifferent(mc, parent);
   return mc;
 }
 

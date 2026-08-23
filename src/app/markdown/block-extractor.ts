@@ -1,3 +1,5 @@
+import { ifDefined } from '../collections';
+
 export type BlockKind =
   | 'heading'
   | 'paragraph'
@@ -59,9 +61,8 @@ function isMermaidFigure(el: Element): boolean {
 }
 
 function toKind(el: Element): BlockKind {
-  if (isMermaidFigure(el)) return 'mermaid';
   const { tagName } = el;
-  return KIND_BY_TAG[tagName] ?? 'other';
+  return isMermaidFigure(el) ? 'mermaid' : (KIND_BY_TAG[tagName] ?? 'other');
 }
 
 function toLevel(el: Element): number | null {
@@ -70,14 +71,16 @@ function toLevel(el: Element): number | null {
 }
 
 function toLabel(el: Element): string {
-  if (isMermaidFigure(el)) return 'mermaid 図';
-  return textLabel(el);
+  return isMermaidFigure(el) ? 'mermaid 図' : textLabel(el);
+}
+
+function truncateLabel(text: string): string {
+  return text.length > LABEL_MAX_LENGTH ? text.slice(0, LABEL_MAX_LENGTH) : text;
 }
 
 function textLabel(el: Element): string {
-  if (el.tagName === 'HR') return '———';
   const text = (el.textContent ?? '').trim().replaceAll(/\s+/g, ' ');
-  return text.length > LABEL_MAX_LENGTH ? text.slice(0, LABEL_MAX_LENGTH) : text;
+  return el.tagName === 'HR' ? '———' : truncateLabel(text);
 }
 
 /**
@@ -143,9 +146,9 @@ export function applyForcedBreaks(
   blocks: readonly Block[],
   breaks: ReadonlySet<string>,
 ): void {
-  [...container.children].forEach((el, index) => {
-    const block = blocks[index];
-    if (block === undefined) return;
-    el.classList.toggle('forced-break', block.isFileBoundary || breaks.has(block.id));
-  });
+  [...container.children].forEach((el, index) =>
+    ifDefined(blocks[index], (block) =>
+      el.classList.toggle('forced-break', block.isFileBoundary || breaks.has(block.id)),
+    ),
+  );
 }

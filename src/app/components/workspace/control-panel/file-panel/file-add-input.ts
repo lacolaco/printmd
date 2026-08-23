@@ -30,14 +30,16 @@ export class FileAddInput {
 
   protected onDrop(event: DragEvent): void {
     event.preventDefault();
-    const files = [...(event.dataTransfer?.files ?? [])];
-    if (hasItems(files)) this.selected.emit(files);
+    this.emitIfSelected([...(event.dataTransfer?.files ?? [])]);
   }
 
   protected onFileInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const files = [...(input.files ?? [])];
-    if (hasItems(files)) this.selected.emit(files);
+    this.emitIfSelected([...(input.files ?? [])]);
     input.value = '';
+  }
+
+  private emitIfSelected(files: readonly File[]): void {
+    if (hasItems(files)) this.selected.emit(files);
   }
 }

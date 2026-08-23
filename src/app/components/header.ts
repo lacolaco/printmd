@@ -61,9 +61,8 @@ export class Header {
   protected readonly maxZoomIndex = ZOOMS.length - 1;
 
   protected readonly statusLabel = computed(() => {
-    if (this.store.rendering()) return '変換中…';
     const count = this.viewer.pageCount();
-    return count === 0 ? '—' : `${count}ページ`;
+    return this.store.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
   });
 
   protected print(): void {
