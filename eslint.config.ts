@@ -19,6 +19,7 @@ import { noSingleImplementationInterface } from './tools/eslint-rules/classes/no
 import { noSwitch } from './tools/eslint-rules/functions/no-switch';
 import { pureConditions } from './tools/eslint-rules/functions/pure-conditions';
 import { requireState } from './tools/eslint-rules/structure/require-state';
+import { stateOwnership } from './tools/eslint-rules/structure/state-ownership';
 
 /** 層の定義 (依存方向と層固有ルール)。層の追加・変更はこの配列だけを編集する */
 const LAYERS = [
@@ -94,6 +95,7 @@ export default defineConfig([
           'no-switch': noSwitch,
           'pure-conditions': pureConditions,
           'require-state': requireState,
+          'state-ownership': stateOwnership,
         },
       },
     },
@@ -125,6 +127,7 @@ export default defineConfig([
       'printmd/no-single-implementation-interface': 'error',
       'printmd/no-switch': 'error',
       'printmd/pure-conditions': 'error',
+      'printmd/state-ownership': 'error',
       // requireDefaultForNonUnion は printmd/no-switch の default 禁止と意図的に矛盾させる。
       // 両立不能にすることで、union 型以外を対象とする switch は書けない
       '@typescript-eslint/switch-exhaustiveness-check': [
