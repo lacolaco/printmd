@@ -39,16 +39,17 @@ const CONDITION_NODE_TYPES = [
   'ForStatement',
 ] as const;
 
+function identifierText(node: TSESTree.Node | undefined): string {
+  return node?.type === 'Identifier' ? node.name : '';
+}
+
 function propertyName(callee: TSESTree.Node): string {
-  const property = callee.type === 'MemberExpression' ? callee.property : undefined;
-  return property?.type === 'Identifier' ? property.name : '';
+  return identifierText(callee.type === 'MemberExpression' ? callee.property : undefined);
 }
 
 function calleePath(callee: TSESTree.Node): string {
   const named = callee.type === 'MemberExpression' ? callee : undefined;
-  const object = named?.object.type === 'Identifier' ? named.object.name : '';
-  const property = named?.property.type === 'Identifier' ? named.property.name : '';
-  return `${object}.${property}`;
+  return `${identifierText(named?.object)}.${identifierText(named?.property)}`;
 }
 
 function impureCallee(callee: TSESTree.Node): boolean {
@@ -57,10 +58,11 @@ function impureCallee(callee: TSESTree.Node): boolean {
   );
 }
 
+const MUTATION_KINDS: ReadonlySet<string> = new Set(['AssignmentExpression', 'UpdateExpression']);
+
 function isImpureNode(node: TSESTree.Node): boolean {
   const impureKind =
-    node.type === 'AssignmentExpression' ||
-    node.type === 'UpdateExpression' ||
+    MUTATION_KINDS.has(node.type) ||
     (node.type === 'UnaryExpression' && node.operator === 'delete');
   return impureKind || (node.type === 'CallExpression' && impureCallee(node.callee));
 }
