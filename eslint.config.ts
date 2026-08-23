@@ -10,6 +10,7 @@ import { maxFunctionLines } from './tools/eslint-rules/max-function-lines';
 import { noClassInheritance } from './tools/eslint-rules/no-class-inheritance';
 import { noElse } from './tools/eslint-rules/no-else';
 import { noSwitch } from './tools/eslint-rules/no-switch';
+import { pureConditions } from './tools/eslint-rules/pure-conditions';
 
 export default defineConfig([
   {
@@ -33,6 +34,7 @@ export default defineConfig([
           'no-class-inheritance': noClassInheritance,
           'no-else': noElse,
           'no-switch': noSwitch,
+          'pure-conditions': pureConditions,
         },
       },
     },
@@ -54,6 +56,7 @@ export default defineConfig([
       'printmd/no-class-inheritance': 'error',
       'printmd/no-else': 'error',
       'printmd/no-switch': 'error',
+      'printmd/pure-conditions': 'error',
       // requireDefaultForNonUnion は printmd/no-switch の default 禁止と意図的に矛盾させる。
       // 両立不能にすることで、union 型以外を対象とする switch は書けない
       '@typescript-eslint/switch-exhaustiveness-check': [
