@@ -24,7 +24,7 @@ import { ViewerState } from '../state/viewer-state';
             class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
             ngToolbarWidget
             value="zoom-out"
-            [disabled]="viewer.zoom.atLimit(-1)"
+            [disabled]="viewer.zoom.isAtLimit(-1)"
             aria-label="縮小"
             (click)="viewer.zoom.by(-1)"
           >
@@ -35,7 +35,7 @@ import { ViewerState } from '../state/viewer-state';
             class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
             ngToolbarWidget
             value="zoom-in"
-            [disabled]="viewer.zoom.atLimit(1)"
+            [disabled]="viewer.zoom.isAtLimit(1)"
             aria-label="拡大"
             (click)="viewer.zoom.by(1)"
           >

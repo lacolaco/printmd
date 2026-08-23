@@ -1,5 +1,5 @@
 import { Component, output } from '@angular/core';
-import { hasItems } from '../../../../collections';
+import { isNonEmpty } from '../../../../collections';
 
 /** 追加取り込みの入力面。ファイル選択とドロップを受けて選ばれたファイルを通知する */
 @Component({
@@ -40,7 +40,7 @@ export class FileAddInput {
   }
 
   private emitIfSelected(files: readonly File[]): void {
-    if (hasItems(files)) {
+    if (isNonEmpty(files)) {
       this.selected.emit(files);
     }
   }

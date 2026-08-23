@@ -8,20 +8,20 @@ type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>
 
 type Services = ReturnType<typeof ESLintUtils.getParserServices>;
 
-function literalAlias(statement: ts.Statement): statement is ts.TypeAliasDeclaration {
+function isLiteralAlias(statement: ts.Statement): statement is ts.TypeAliasDeclaration {
   const alias = ts.isTypeAliasDeclaration(statement) ? statement : undefined;
   return alias !== undefined && ts.isTypeLiteralNode(alias.type);
 }
 
 /** 対象はモジュール内で形を定義した型だけ (interface とオブジェクトリテラル型の別名) */
-function ownShape(
+function isOwnShape(
   statement: ts.Statement,
 ): statement is ts.InterfaceDeclaration | ts.TypeAliasDeclaration {
-  return ts.isInterfaceDeclaration(statement) || literalAlias(statement);
+  return ts.isInterfaceDeclaration(statement) || isLiteralAlias(statement);
 }
 
 function localTypes(file: ts.SourceFile): Map<string, ts.DeclarationStatement> {
-  const declarations = file.statements.filter(ownShape);
+  const declarations = file.statements.filter(isOwnShape);
   return new Map(declarations.map((declaration) => [declaration.name.text, declaration]));
 }
 

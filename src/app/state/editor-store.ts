@@ -2,7 +2,7 @@ import { Service, computed, inject, linkedSignal, resource, signal } from '@angu
 import type { Block, FileFragment, RenderedDocument } from '../markdown/block-extractor';
 import { buildRenderedDocument } from '../markdown/block-extractor';
 import { applyMermaidResults } from '../mermaid/apply-mermaid-results';
-import { hasItems } from '../collections';
+import { isNonEmpty } from '../collections';
 import { groupBlocks } from './block-groups';
 import { MermaidRenderer, type MermaidOutcome } from '../mermaid/mermaid-renderer';
 import { renderMarkdown, type MermaidBlock } from '../markdown/render-markdown';
@@ -21,18 +21,24 @@ class FileOrder {
   constructor(private readonly items: readonly ManuscriptFile[]) {}
 
   /** 自身が next の先頭部分か (要素は同一参照)。真なら「末尾への追記だけ」の変化 */
-  prefixes(next: readonly ManuscriptFile[]): boolean {
+  isPrefixOf(next: readonly ManuscriptFile[]): boolean {
     const { items } = this;
     return items.length <= next.length && items.every((file, index) => next[index] === file);
   }
 
   reordered(from: number, to: number): readonly ManuscriptFile[] {
-    return this.movable(from, to) ? this.spliced(from, to) : this.items;
+    return this.isMovable(from, to) ? this.spliced(from, to) : this.items;
   }
 
-  private movable(from: number, to: number): boolean {
+  isMovable(from: number, to: number): boolean {
     const { length } = this.items;
     return from !== to && from >= 0 && to >= 0 && from < length && to < length;
+  }
+
+  /** id のファイルを delta 方向へ動かせるか */
+  isNudgeable(id: number, delta: -1 | 1): boolean {
+    const index = this.items.findIndex((file) => file.id === id);
+    return this.isMovable(index, index + delta);
   }
 
   private spliced(from: number, to: number): readonly ManuscriptFile[] {
@@ -62,7 +68,7 @@ class FragmentCache {
     return ++this.epoch;
   }
 
-  has(content: string): boolean {
+  isCached(content: string): boolean {
     return this.entries.has(content);
   }
 
@@ -70,8 +76,9 @@ class FragmentCache {
     this.entries.set(content, html);
   }
 
-  htmlOf(content: string): string {
-    return this.entries.get(content) ?? '';
+  /** 古い loader は最新世代の追い出しでエントリを失い得るが、その結果は resource が捨てる */
+  fragmentFor(file: ManuscriptFile, fileIndex: number): FileFragment {
+    return { fileIndex, fileName: file.name, html: this.entries.get(file.content) ?? '' };
   }
 
   evict(epoch: number, keep: ReadonlySet<string>): void {
@@ -110,7 +117,7 @@ export class EditorStore {
   private readonly marks = linkedSignal<readonly ManuscriptFile[], ReadonlySet<string>>({
     source: this.manuscripts,
     computation: (files, previous) =>
-      previous !== undefined && new FileOrder(previous.source).prefixes(files)
+      previous !== undefined && new FileOrder(previous.source).isPrefixOf(files)
         ? previous.value
         : new Set<string>(),
   });
@@ -122,7 +129,7 @@ export class EditorStore {
    */
   private readonly pipeline = resource({
     params: () => this.manuscripts(),
-    loader: async ({ params: files }) => (hasItems(files) ? this.runPipeline(files) : null),
+    loader: async ({ params: files }) => (isNonEmpty(files) ? this.runPipeline(files) : null),
   });
 
   private async runPipeline(files: readonly ManuscriptFile[]): Promise<RenderedDocument> {
@@ -133,7 +140,7 @@ export class EditorStore {
   }
 
   private async convertMissing(files: readonly ManuscriptFile[]): Promise<void> {
-    const toRender = files.filter((file) => !this.cache.has(file.content));
+    const toRender = files.filter((file) => !this.cache.isCached(file.content));
     const rendered = toRender.map((file) => ({ file, ...renderMarkdown(file.content) }));
     const results = await this.mermaidRenderer.render(collectMermaidBlocks(rendered));
     this.storeFragments(rendered, results);
@@ -153,12 +160,7 @@ export class EditorStore {
   }
 
   private assembleFromCache(files: readonly ManuscriptFile[]): RenderedDocument {
-    return buildRenderedDocument(files.map((file, index) => this.cachedFragment(file, index)));
-  }
-
-  /** 古い loader は最新世代の追い出しでエントリを失い得るが、その結果は resource が捨てる */
-  private cachedFragment(file: ManuscriptFile, fileIndex: number): FileFragment {
-    return { fileIndex, fileName: file.name, html: this.cache.htmlOf(file.content) };
+    return buildRenderedDocument(files.map((file, index) => this.cache.fragmentFor(file, index)));
   }
 
   private readonly notices = signal<readonly string[]>([]);
@@ -194,7 +196,7 @@ export class EditorStore {
   }
 
   private append(files: readonly ManuscriptFile[]): void {
-    if (hasItems(files)) {
+    if (isNonEmpty(files)) {
       this.manuscripts.update((current) => [...current, ...files]);
     }
   }
@@ -218,14 +220,23 @@ export class EditorStore {
     );
   }
 
-  /** ファイルを 1 つ上/下へ動かす。実際に動いたら true (呼び出し側の告知・フォーカス制御用) */
-  nudge(id: number, delta: -1 | 1): boolean {
-    const index = this.manuscripts().findIndex((f) => f.id === id);
-    return this.reorder(index, index + delta);
+  /** id のファイルを delta 方向へ動かせるか */
+  isMovable(id: number, delta: -1 | 1): boolean {
+    return new FileOrder(this.manuscripts()).isNudgeable(id, delta);
   }
 
-  reorder(from: number, to: number): boolean {
-    return this.applyStructuralChange((current) => new FileOrder(current).reordered(from, to));
+  isReorderable(from: number, to: number): boolean {
+    return new FileOrder(this.manuscripts()).isMovable(from, to);
+  }
+
+  /** ファイルを 1 つ上/下へ動かす。動けるかは isMovable で先に問い合わせる */
+  nudge(id: number, delta: -1 | 1): void {
+    const index = this.manuscripts().findIndex((f) => f.id === id);
+    this.reorder(index, index + delta);
+  }
+
+  reorder(from: number, to: number): void {
+    this.applyStructuralChange((current) => new FileOrder(current).reordered(from, to));
   }
 
   /**
@@ -235,10 +246,8 @@ export class EditorStore {
    */
   private applyStructuralChange(
     updater: (current: readonly ManuscriptFile[]) => readonly ManuscriptFile[],
-  ): boolean {
-    const before = this.manuscripts();
+  ): void {
     this.manuscripts.update(updater);
-    return this.manuscripts() !== before;
   }
 
   toggleBreak(blockId: string): void {
@@ -267,7 +276,7 @@ function collectMermaidBlocks(
   return rendered.flatMap((r) => r.mermaidBlocks);
 }
 
-function marked(breaks: ReadonlySet<string>, blockId: string): boolean {
+function isMarked(breaks: ReadonlySet<string>, blockId: string): boolean {
   return breaks.has(blockId);
 }
 
@@ -284,5 +293,5 @@ function withAdded(current: ReadonlySet<string>, blockId: string): ReadonlySet<s
 }
 
 function toggled(current: ReadonlySet<string>, blockId: string): ReadonlySet<string> {
-  return marked(current, blockId) ? without(current, blockId) : withAdded(current, blockId);
+  return isMarked(current, blockId) ? without(current, blockId) : withAdded(current, blockId);
 }

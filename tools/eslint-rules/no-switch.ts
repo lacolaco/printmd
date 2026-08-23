@@ -2,17 +2,17 @@ import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
 
 type MessageIds = 'noDefault' | 'caseMustReturn';
 
-function endsWithReturn(statements: readonly TSESTree.Statement[]): boolean {
+function isReturning(statements: readonly TSESTree.Statement[]): boolean {
   const last = statements[statements.length - 1];
   const lastOfBlock = last?.type === 'BlockStatement' ? last.body[last.body.length - 1] : last;
   return lastOfBlock?.type === 'ReturnStatement';
 }
 
 /** fallthrough でまとめた空 case は、末尾でなければ許す */
-function tolerated(switchCase: TSESTree.SwitchCase, isLast: boolean): boolean {
+function isTolerable(switchCase: TSESTree.SwitchCase, isLast: boolean): boolean {
   const { consequent } = switchCase;
   const { length } = consequent;
-  return (length === 0 && !isLast) || endsWithReturn(consequent);
+  return (length === 0 && !isLast) || isReturning(consequent);
 }
 
 function caseFinding(
@@ -21,7 +21,7 @@ function caseFinding(
 ): { node: TSESTree.SwitchCase; messageId: MessageIds } | null {
   const { test } = switchCase;
   const messageId = test === null ? 'noDefault' : 'caseMustReturn';
-  const compliant = test !== null && tolerated(switchCase, isLast);
+  const compliant = test !== null && isTolerable(switchCase, isLast);
   return compliant ? null : { node: switchCase, messageId };
 }
 

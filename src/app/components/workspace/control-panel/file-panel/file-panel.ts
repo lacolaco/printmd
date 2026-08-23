@@ -48,13 +48,15 @@ export class FilePanel {
   private readonly injector = inject(Injector);
 
   protected onListDrop(event: CdkDragDrop<unknown>): void {
-    if (this.store.reorder(event.previousIndex, event.currentIndex)) {
+    if (this.store.isReorderable(event.previousIndex, event.currentIndex)) {
+      this.store.reorder(event.previousIndex, event.currentIndex);
       this.announceOrder(this.store.files()[event.currentIndex].name, event.currentIndex);
     }
   }
 
   protected move(id: number, name: string, delta: -1 | 1): void {
-    if (this.store.nudge(id, delta)) {
+    if (this.store.isMovable(id, delta)) {
+      this.store.nudge(id, delta);
       const index = this.store.files().findIndex((file) => file.id === id);
       this.announceOrder(name, index);
       afterNextRender(() => this.focusMovedFileButton(id, delta), { injector: this.injector });

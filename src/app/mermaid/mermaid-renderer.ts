@@ -1,5 +1,5 @@
 import { Service } from '@angular/core';
-import { hasItems } from '../collections';
+import { isNonEmpty } from '../collections';
 import type { MermaidBlock } from '../markdown/render-markdown';
 
 export type MermaidOutcome =
@@ -45,7 +45,7 @@ export class MermaidRenderer {
   }
 
   async render(blocks: readonly MermaidBlock[]): Promise<ReadonlyMap<string, MermaidOutcome>> {
-    return hasItems(blocks) ? this.produceOutcomes(blocks) : new Map();
+    return isNonEmpty(blocks) ? this.produceOutcomes(blocks) : new Map();
   }
 
   private async produceOutcomes(

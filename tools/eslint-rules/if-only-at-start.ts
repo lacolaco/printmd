@@ -4,7 +4,7 @@ import { FUNCTION_TYPES, enclosingFunctions } from './ast-utils';
 type MessageIds = 'notAtStart';
 
 /** else if の連鎖は先頭の if の一部と見なす */
-function chainedElse(node: TSESTree.IfStatement, parent: TSESTree.Node): boolean {
+function isChainedElse(node: TSESTree.IfStatement, parent: TSESTree.Node): boolean {
   return parent.type === 'IfStatement' && parent.alternate === node;
 }
 
@@ -19,7 +19,7 @@ function functionBodyOf(parent: TSESTree.Node): readonly TSESTree.Statement[] | 
 }
 
 /** 関数本体の先頭かつ唯一の文であるか */
-function soleStatement(node: TSESTree.IfStatement, parent: TSESTree.Node): boolean {
+function isSoleStatement(node: TSESTree.IfStatement, parent: TSESTree.Node): boolean {
   const body = functionBodyOf(parent) ?? [];
   return body[0] === node && body.length === 1;
 }
@@ -28,7 +28,7 @@ function soleStatement(node: TSESTree.IfStatement, parent: TSESTree.Node): boole
 function isCompliant(node: TSESTree.IfStatement): boolean {
   const { parent } = node;
   const insideFunction = enclosingFunctions(node).length > 0;
-  return !insideFunction || chainedElse(node, parent) || soleStatement(node, parent);
+  return !insideFunction || isChainedElse(node, parent) || isSoleStatement(node, parent);
 }
 
 type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>[0]['create']>[0];
