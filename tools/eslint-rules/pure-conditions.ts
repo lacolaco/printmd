@@ -60,7 +60,7 @@ function impureCallee(callee: TSESTree.Node): boolean {
 
 const MUTATION_KINDS: ReadonlySet<string> = new Set(['AssignmentExpression', 'UpdateExpression']);
 
-function isImpureNode(node: TSESTree.Node): boolean {
+function sideEffecting(node: TSESTree.Node): boolean {
   const impureKind =
     MUTATION_KINDS.has(node.type) ||
     (node.type === 'UnaryExpression' && node.operator === 'delete');
@@ -81,7 +81,7 @@ function childNodesOf(node: TSESTree.Node): TSESTree.Node[] {
 
 /** 条件式の部分木 (コールバックの中身を含む) から不純な操作を集める */
 function collectImpure(node: TSESTree.Node): TSESTree.Node[] {
-  const own = isImpureNode(node) ? [node] : [];
+  const own = sideEffecting(node) ? [node] : [];
   const children = childNodesOf(node);
   return [...own, ...children.flatMap(collectImpure)];
 }

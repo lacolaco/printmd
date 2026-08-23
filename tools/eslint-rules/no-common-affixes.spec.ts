@@ -27,6 +27,19 @@ tester.run('no-common-affixes', noCommonAffixes, {
 }`,
     },
     {
+      name: 'マーカー接頭辞 on / is は検査対象にしない',
+      code: `export class Panel {
+  onClick(): void {}
+  onFocus(): void {}
+  isOpen(): boolean {
+    return true;
+  }
+  isValid(): boolean {
+    return true;
+  }
+}`,
+    },
+    {
       name: 'スコープが異なれば同じ接頭辞でも許可',
       code: `export function first(): string {
   const pageCount = 1;
@@ -44,6 +57,17 @@ export function second(): string {
       code: `export class Screen {
   timerStart(): void {}
   timerStop(): void {}
+}`,
+      errors: [
+        { messageId: 'commonAffix', data: { affix: 'timer' } },
+        { messageId: 'commonAffix', data: { affix: 'timer' } },
+      ],
+    },
+    {
+      name: 'マーカー接頭辞の次の語が実質の接頭辞になる (onFooXxx の Foo)',
+      code: `export class Screen {
+  onTimerStart(): void {}
+  onTimerStop(): void {}
 }`,
       errors: [
         { messageId: 'commonAffix', data: { affix: 'timer' } },
