@@ -1,4 +1,4 @@
-import { computed, signal } from '@angular/core';
+import { Service, computed, signal } from '@angular/core';
 import { A4, MM_TO_PX } from './page-geometry';
 
 export const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
@@ -36,6 +36,7 @@ function startupStep(): number {
 }
 
 /** ズーム段。100% = A4 実寸 */
+@Service()
 export class Zoom {
   private readonly index = signal(startupStep());
   readonly value = computed(() => ZOOMS[this.index()]);

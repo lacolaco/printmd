@@ -13,7 +13,7 @@ export class ViewerState {
   private readonly documents = inject(DocumentState);
   private readonly marks = inject(BreakState);
 
-  readonly zoom = new Zoom();
+  readonly zoom = inject(Zoom);
 
   /**
    * ページ組。(doc, breaks) を現在の CSS で組んだときのレイアウト結果の

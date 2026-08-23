@@ -19,7 +19,7 @@ function collectMermaidBlocks(
 @Service()
 export class Converter {
   private readonly mermaid = inject(MermaidRenderer);
-  private readonly cache = new FragmentCache();
+  private readonly cache = inject(FragmentCache);
 
   async render(files: readonly ManuscriptFile[]): Promise<RenderedDocument> {
     const epoch = this.cache.begin();

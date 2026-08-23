@@ -1,10 +1,5 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
-import {
-  enclosingClass,
-  isAngularComponent,
-  originOf,
-  resolvedSymbol,
-} from '../support/angular-utils';
+import { enclosingClass, isManaged, originOf, resolvedSymbol } from '../support/angular-utils';
 import { FUNCTION_TYPES } from '../support/ast-utils';
 
 type MessageIds = 'noNewInProps';
@@ -36,7 +31,7 @@ function isProjectClass(services: Services, callee: TSESTree.Node): boolean {
 function audit(context: Context, services: Services, node: TSESTree.NewExpression): void {
   const { parent, callee } = node;
   const owner = ownerOf(parent);
-  const banned = owner === undefined ? false : isAngularComponent(services, enclosingClass(owner));
+  const banned = owner === undefined ? false : isManaged(services, enclosingClass(owner));
   condemn(context, node, banned && isProjectClass(services, callee));
 }
 
@@ -47,15 +42,16 @@ function condemn(context: Context, node: TSESTree.NewExpression, violated: boole
 }
 
 /**
- * コンポーネントのプロパティ初期化で new しない。協力オブジェクトは DI
- * (providers + inject) から受け取る。関数の中の new (遅延生成) は対象外
+ * Angular 管理クラス (コンポーネント・サービス等) のプロパティ初期化で
+ * プロジェクト定義クラスを new しない。協力オブジェクトは DI (providers +
+ * inject) から受け取る。関数の中の new (遅延生成) と組み込み値は対象外
  */
-export const noNewInComponentProps = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
+export const noNewInProps = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
   meta: {
     type: 'suggestion',
     messages: {
       noNewInProps:
-        'コンポーネントのプロパティ初期化で new しない。providers に登録して inject で受け取る',
+        'コンポーネント / サービスのプロパティ初期化で new しない。providers に登録して inject で受け取る',
     },
     schema: [],
   },

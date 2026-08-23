@@ -1,6 +1,6 @@
 import { RuleTester } from '@typescript-eslint/rule-tester';
 import { afterAll, describe, it } from 'vitest';
-import { noNewInComponentProps } from './no-new-in-component-props';
+import { noNewInProps } from './no-new-in-props';
 
 RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
@@ -15,7 +15,7 @@ const tester = new RuleTester({
   },
 });
 
-tester.run('no-new-in-component-props', noNewInComponentProps, {
+tester.run('no-new-in-props', noNewInProps, {
   valid: [
     {
       name: 'inject によるプロパティ初期化は許可',
@@ -44,6 +44,16 @@ export class Engine {
     },
   ],
   invalid: [
+    {
+      name: 'サービスのプロパティ初期化での new も禁止',
+      code: `import { Service } from '@angular/core';
+class Helper {}
+@Service()
+export class Facade {
+  private readonly helper = new Helper();
+}`,
+      errors: [{ messageId: 'noNewInProps' }],
+    },
     {
       name: 'コンポーネントのプロパティ初期化での new は禁止',
       code: `import { Component } from '@angular/core';
