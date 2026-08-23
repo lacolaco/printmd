@@ -11,6 +11,7 @@ import { maxFunctionLines } from './tools/eslint-rules/functions/max-function-li
 import { noClassInheritance } from './tools/eslint-rules/classes/no-class-inheritance';
 import { noCommonAffixes } from './tools/eslint-rules/classes/no-common-affixes';
 import { noDataClump } from './tools/eslint-rules/classes/no-data-clump';
+import { noExposedState } from './tools/eslint-rules/angular/no-exposed-state';
 import { noElse } from './tools/eslint-rules/functions/no-else';
 import { noGetterSetter } from './tools/eslint-rules/classes/no-getter-setter';
 import { noNewInProps } from './tools/eslint-rules/angular/no-new-in-props';
@@ -88,6 +89,7 @@ export default defineConfig([
           'no-common-affixes': noCommonAffixes,
           'no-data-clump': noDataClump,
           'no-else': noElse,
+          'no-exposed-state': noExposedState,
           'no-getter-setter': noGetterSetter,
           'no-new-in-props': noNewInProps,
           'no-private-component-methods': noPrivateComponentMethods,
@@ -121,6 +123,7 @@ export default defineConfig([
       'printmd/no-common-affixes': 'error',
       'printmd/no-data-clump': 'error',
       'printmd/no-else': 'error',
+      'printmd/no-exposed-state': 'error',
       'printmd/no-getter-setter': 'error',
       'printmd/no-new-in-props': 'error',
       'printmd/no-private-component-methods': 'error',
