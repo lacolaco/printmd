@@ -1,5 +1,10 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
-import { isAngularComponent } from '../support/angular-utils';
+import {
+  enclosingClass,
+  isAngularComponent,
+  originOf,
+  resolvedSymbol,
+} from '../support/angular-utils';
 import { FUNCTION_TYPES } from '../support/ast-utils';
 
 type MessageIds = 'noNewInProps';
@@ -22,16 +27,17 @@ function pick(node: TSESTree.Node): TSESTree.PropertyDefinition | undefined {
   return node.type === 'PropertyDefinition' ? node : ownerOf(node.parent);
 }
 
-function enclosing(
-  property: TSESTree.PropertyDefinition,
-): TSESTree.ClassDeclaration | TSESTree.ClassExpression {
-  return property.parent.parent as TSESTree.ClassDeclaration | TSESTree.ClassExpression;
+/** DI で受け取るべきはプロジェクト定義のクラスだけ。Set や Map などの組み込み値は対象外 */
+function isProjectClass(services: Services, callee: TSESTree.Node): boolean {
+  const origin = originOf(resolvedSymbol(services, callee));
+  return origin !== '' && !origin.includes('node_modules');
 }
 
 function audit(context: Context, services: Services, node: TSESTree.NewExpression): void {
-  const { parent } = node;
+  const { parent, callee } = node;
   const owner = ownerOf(parent);
-  condemn(context, node, owner !== undefined && isAngularComponent(services, enclosing(owner)));
+  const banned = owner === undefined ? false : isAngularComponent(services, enclosingClass(owner));
+  condemn(context, node, banned && isProjectClass(services, callee));
 }
 
 function condemn(context: Context, node: TSESTree.NewExpression, violated: boolean): void {

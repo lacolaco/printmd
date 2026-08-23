@@ -17,16 +17,27 @@ function resolved(services: Services, node: TSESTree.Node): ts.Symbol | undefine
   return raw === undefined ? undefined : resolveAlias(checker, raw);
 }
 
-function originOf(symbol: ts.Symbol | undefined): string {
-  return symbol?.declarations?.[0]?.getSourceFile().fileName ?? '';
-}
-
 /** デコレータが @angular/core の Component か。別名 import や名前空間 import も追跡する */
 function isFromCore(services: Services, decorator: TSESTree.Decorator): boolean {
   const target = calleeName(decorator.expression);
   const symbol = target === undefined ? undefined : resolved(services, target);
   const { name } = symbol ?? { name: '' };
   return name === 'Component' && originOf(symbol).includes('@angular/core');
+}
+
+/** クラスメンバー (parent = ClassBody) からその所属クラスを得る */
+export function enclosingClass(
+  node: TSESTree.Node,
+): TSESTree.ClassDeclaration | TSESTree.ClassExpression {
+  return node.parent?.parent as TSESTree.ClassDeclaration | TSESTree.ClassExpression;
+}
+
+export function resolvedSymbol(services: Services, node: TSESTree.Node): ts.Symbol | undefined {
+  return resolved(services, node);
+}
+
+export function originOf(symbol: ts.Symbol | undefined): string {
+  return symbol?.declarations?.[0]?.getSourceFile().fileName ?? '';
 }
 
 export function isAngularComponent(

@@ -18,8 +18,12 @@ function isCounted(entry: fs.Dirent): boolean {
 }
 
 function tally(dir: string): number {
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  return entries.filter(isCounted).length;
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    return entries.filter(isCounted).length;
+  } catch {
+    return 0;
+  }
 }
 
 function audit(context: Context, limit: number): void {

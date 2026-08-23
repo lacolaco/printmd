@@ -45,6 +45,8 @@ function shiftedClone(doc: RenderedDocument, segment: PageSegment, column: numbe
 export class SheetRenderer {
   /** 可視シートの遅延実体化に使う */
   private observer: IntersectionObserver | null = null;
+  /** シート要素 → ページ番号 (0 始まり) */
+  private readonly pages = new WeakMap<HTMLElement, number>();
 
   constructor(private readonly host: HTMLElement) {}
 
@@ -105,6 +107,7 @@ export class SheetRenderer {
 
   private placeSheet(index: number, doc: RenderedDocument, pagination: Pagination): void {
     const sheet = blankFrame(index);
+    this.pages.set(sheet, index);
     this.host.append(sheet);
     this.settle(sheet, doc, pagination);
   }
@@ -128,12 +131,16 @@ export class SheetRenderer {
 
   private realize(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
     if (isEmpty(sheet)) {
-      this.materialize(sheet, doc, pagination);
+      this.materialize(sheet, this.pages.get(sheet) ?? NaN, doc, pagination);
     }
   }
 
-  private materialize(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
-    const index = Number(sheet.dataset['page']) - 1;
+  private materialize(
+    sheet: HTMLElement,
+    index: number,
+    doc: RenderedDocument,
+    pagination: Pagination,
+  ): void {
     ifDefined(segmentAt(pagination, index), (segment) =>
       sheet.append(clipWindow(doc, segment, columnFor(segment, index))),
     );

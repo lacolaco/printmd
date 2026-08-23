@@ -1,5 +1,5 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
-import { isAngularComponent } from '../support/angular-utils';
+import { enclosingClass, isAngularComponent } from '../support/angular-utils';
 
 type MessageIds = 'noPrivateMethod';
 
@@ -8,10 +8,6 @@ type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>
 type Services = ReturnType<typeof ESLintUtils.getParserServices>;
 
 type Member = TSESTree.MethodDefinition | TSESTree.PropertyDefinition;
-
-function enclosingClass(node: Member): TSESTree.ClassDeclaration | TSESTree.ClassExpression {
-  return node.parent.parent as TSESTree.ClassDeclaration | TSESTree.ClassExpression;
-}
 
 function isHidden(node: Member): boolean {
   const { accessibility, key } = node;

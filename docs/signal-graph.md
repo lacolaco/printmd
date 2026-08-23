@@ -6,7 +6,8 @@
 - `renderedDocument` は resource: manuscripts を params とする async 導出 (Converter サービスが markdown 変換 + mermaid SVG 化 + キャッシュを担う)。`rendering` はその isLoading
 - `pagination` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
 - `marks` は linkedSignal: manuscripts に連動し、末尾への追記では維持・構造変更ではリセット
-- パネル内で完結するローカル UI state (dragOver / draggingIndex / announcement) は省略
+- パネル内で完結するローカル UI state (dragOver / draggingIndex / Announcer の message) は省略
+- `Zoom` (index / value / label) は state/zoom.ts へ分離済みで、ViewerState が保持する
 
 ```mermaid
 flowchart LR

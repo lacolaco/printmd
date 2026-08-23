@@ -101,7 +101,7 @@ export class EditorStore {
   }
 
   removeFile(id: number): void {
-    this.applyStructuralChange((current) =>
+    this.manuscripts.update((current) =>
       current.some((f) => f.id === id) ? current.filter((f) => f.id !== id) : current,
     );
   }
@@ -121,18 +121,7 @@ export class EditorStore {
   }
 
   reorder(from: number, to: number): void {
-    this.applyStructuralChange((current) => new FileOrder(current).reordered(from, to));
-  }
-
-  /**
-   * ファイル並びの構造変更 (削除・並べ替え) を 1 か所で扱う。updater が同一参照を
-   * 返したら無変更 (改ページ指定のリセットは marks の linkedSignal が
-   * source の変化から自動で行う)
-   */
-  private applyStructuralChange(
-    updater: (current: readonly ManuscriptFile[]) => readonly ManuscriptFile[],
-  ): void {
-    this.manuscripts.update(updater);
+    this.manuscripts.update((current) => new FileOrder(current).reordered(from, to));
   }
 
   toggleBreak(blockId: string): void {

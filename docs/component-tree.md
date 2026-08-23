@@ -1,6 +1,6 @@
 # コンポーネントツリー
 
-各コンポーネントの配置と責務。`src/app/components/` のディレクトリ構造はこのツリーの親子関係をそのまま写す (親コンポーネントのディレクトリ配下に子コンポーネントを置く。App 直下の葉は components/ 直下)。
+各コンポーネントの配置と責務。`src/app/components/` のディレクトリ構造はこのツリーの親子関係をそのまま写す (親コンポーネントのディレクトリ配下に子コンポーネントを置く。App 直下の葉は components/ 直下)。コンポーネントの協力オブジェクト (SheetRenderer / Announcer / Demo など、コンポーネントではないクラス) は、それを使うコンポーネントと同じディレクトリに置く。
 **コンポーネントの追加・削除・責務変更のコミットでは、この図と docs/signal-graph.md を同じコミットで更新すること** (CLAUDE.md の生きたドキュメント規則)。
 
 ```mermaid
@@ -9,15 +9,15 @@ flowchart TB
   HEADER["Header<br/><small>ロゴ / 頁数・ズーム / 印刷</small>"]
   WS["Workspace<br/><small>作業画面: md+ は 2 カラム、スマートフォン幅は<br/>シングルカラム + ボトムシート (開閉状態を所有)</small>"]
   IMPORT["ImportScreen<br/><small>空状態の画面 (初回のみ)</small>"]
-  PREVIEW["Preview<br/><small>A4 シートの多段組プレビュー<br/>(遅延実体化)</small>"]
+  PREVIEW["Preview<br/><small>A4 シート面の結線。描画は<br/>SheetRenderer に委譲 (遅延実体化)</small>"]
   PANEL["ControlPanel<br/><small>調整パネル: md+ は右カラム /<br/>モバイルはボトムシートの中身</small>"]
-  FILEP["FilePanel<br/><small>原稿の取り込み・並べ替え・削除</small>"]
+  FILEP["FilePanel<br/><small>原稿の取り込み・並べ替え・削除<br/>(読み上げは Announcer)</small>"]
   BREAKP["BreakPanel<br/><small>全ブロックの改ページ指定一覧</small>"]
   BREAKROW["BreakRowItem<br/><small>一覧の 1 行 (ラベル・インデント・強調)</small>"]
   FILEROW["FileRowItem<br/><small>ファイル行の操作面 (移動・削除)</small>"]
   FILEADD["FileAddInput<br/><small>追加取り込みの入力面</small>"]
   FOOTER["Footer<br/><small>下端の帯: 著作権表記・ライセンス導線・Angular バージョン<br/>(ヘッダと対)</small>"]
-  DROP["ImportDropzone<br/><small>取り込み面</small>"]
+  DROP["ImportDropzone<br/><small>取り込み面 (デモ取り込みは<br/>Demo サービス)</small>"]
   PRINT["PrintRoot<br/><small>印刷対象 (変換済み文書の掲示)</small>"]
 
   APP --> HEADER
@@ -43,5 +43,5 @@ flowchart TB
 ```
 
 - 画面領域の責務で階層化: App は骨格、Workspace / ImportScreen が画面、ControlPanel が右カラムを所有する
-- コンポーネント間の疎通はすべて共有サービス (EditorStore / ViewerState) 経由で、input/output は存在しない (該当ユースケースがない)
+- コンポーネント間の疎通はすべて共有サービス (EditorStore / ViewerState) 経由。input/output は FileAddInput の selected など最小限
 - リアクティブ構造は [signal-graph.md](./signal-graph.md) を参照
