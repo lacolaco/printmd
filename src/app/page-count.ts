@@ -157,6 +157,15 @@ export function measurePagination(doc: RenderedDocument, breaks: ReadonlySet<str
   const { blocks } = doc;
   const ranges = splitAtForcedBreaks(blocks, breaks);
   const { probe, clones } = createProbe(doc, ranges);
+  return finishMeasurement(probe, ranges, clones);
+}
+
+/** 計測してからプローブを破棄する (計測は必ず破棄より先) */
+function finishMeasurement(
+  probe: HTMLElement,
+  ranges: readonly SegmentRange[],
+  clones: readonly HTMLElement[],
+): Pagination {
   const result = buildSegments(ranges, clones);
   probe.remove();
   return result;
