@@ -70,17 +70,17 @@ export class ImportDropzone {
   }
 
   private importFiles(files: FileList | null): void {
-    if (files !== null) void this.store.addFiles([...files]);
+    if (files !== null) this.store.addFiles([...files]);
   }
 
   private importDroppedFiles(files: FileList | undefined): void {
-    if (files !== undefined && files.length > 0) void this.store.addFiles([...files]);
+    if (files !== undefined && files.length > 0) this.store.addFiles([...files]);
   }
 
   /** 同梱のデモ原稿を通常の取り込み経路で読み込む */
   protected loadDemo(event: Event): void {
     // label 内のボタンなので、既定動作 (ファイル選択ダイアログ) を抑止する
     event.preventDefault();
-    void this.store.addFiles(DEMO_FILES.map(toDemoFileInput));
+    this.store.addFiles(DEMO_FILES.map(toDemoFileInput));
   }
 }
