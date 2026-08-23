@@ -28,10 +28,14 @@ const COUNTED_DEFS: ReadonlySet<string> = new Set([
 
 const WORD_BOUNDARY = /(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|_/;
 
+/** 文法上のマーカー。それ自体は接頭辞と見なさず、次の語を実質の接頭辞とする */
+const MARKER_PREFIXES: ReadonlySet<string> = new Set(['on', 'is']);
+
 function splitWords(name: string): string[] {
   const bare = name.replace(/^[#_$]+/, '');
   const words = bare.split(WORD_BOUNDARY).filter((word) => word !== '');
-  return words.map((word) => word.toLowerCase());
+  const lower = words.map((word) => word.toLowerCase());
+  return lower.length > 1 && MARKER_PREFIXES.has(lower[0]) ? lower.slice(1) : lower;
 }
 
 /** 2 語以上の名前だけが接辞 (先頭語・末尾語) を持つ */
