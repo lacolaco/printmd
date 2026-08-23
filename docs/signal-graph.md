@@ -42,7 +42,7 @@ flowchart LR
   end
 
   subgraph ZoomS["ZoomState"]
-    V1((step))
+    V1((index))
     VC1[/value/]
     VC2[/label/]
   end
