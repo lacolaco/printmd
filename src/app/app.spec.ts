@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './app';
 import { MermaidRenderer, type MermaidLike } from './mermaid/mermaid-renderer';
-import { EditorStore } from './state/editor-store';
+import { ManuscriptState } from './state/manuscript-state';
 
 class FakeMermaidRenderer extends MermaidRenderer {
   protected override loadModule(): Promise<MermaidLike> {
@@ -35,7 +35,7 @@ describe('App', () => {
 
   it('原稿があれば印刷ボタンが window.print を呼ぶ', async () => {
     const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {});
-    const store = TestBed.inject(EditorStore);
+    const store = TestBed.inject(ManuscriptState);
     await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
@@ -55,7 +55,7 @@ describe('App', () => {
   });
 
   it('原稿を取り込むとプレビューと印刷用マスターを表示する', async () => {
-    const store = TestBed.inject(EditorStore);
+    const store = TestBed.inject(ManuscriptState);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し') }]);
@@ -69,7 +69,7 @@ describe('App', () => {
   });
 
   it('原稿があればファイルチップ列とプレビューを表示する', async () => {
-    const store = TestBed.inject(EditorStore);
+    const store = TestBed.inject(ManuscriptState);
     await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
@@ -96,7 +96,7 @@ describe('App ウィンドウ全体のドロップ受け', () => {
   }
 
   it('ウィンドウへのドロップで原稿を取り込み、既定動作を抑止する', async () => {
-    const store = TestBed.inject(EditorStore);
+    const store = TestBed.inject(ManuscriptState);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const host = (fixture.nativeElement as HTMLElement).querySelector('.app-ui')!;
@@ -108,7 +108,7 @@ describe('App ウィンドウ全体のドロップ受け', () => {
   });
 
   it('ファイルの無いドロップでは何も取り込まない', async () => {
-    const store = TestBed.inject(EditorStore);
+    const store = TestBed.inject(ManuscriptState);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const host = (fixture.nativeElement as HTMLElement).querySelector('.app-ui')!;

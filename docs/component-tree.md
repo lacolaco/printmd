@@ -43,5 +43,5 @@ flowchart TB
 ```
 
 - 画面領域の責務で階層化: App は骨格、Workspace / ImportScreen が画面、ControlPanel が右カラムを所有する
-- コンポーネント間の疎通はすべて共有サービス (EditorStore / ViewerState) 経由。input/output は FileAddInput の selected など最小限
+- コンポーネント間の疎通はすべて共有サービス (ManuscriptState / BreakState / DocumentState / ViewerState) 経由。input/output は FileAddInput の selected など最小限
 - リアクティブ構造は [signal-graph.md](./signal-graph.md) を参照

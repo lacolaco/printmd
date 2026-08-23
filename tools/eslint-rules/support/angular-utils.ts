@@ -17,12 +17,20 @@ function resolved(services: Services, node: TSESTree.Node): ts.Symbol | undefine
   return raw === undefined ? undefined : resolveAlias(checker, raw);
 }
 
-/** デコレータが @angular/core の Component か。別名 import や名前空間 import も追跡する */
-function isFromCore(services: Services, decorator: TSESTree.Decorator): boolean {
+/** デコレータが @angular/core の expected か。別名 import や名前空間 import も追跡する */
+function isFromCore(services: Services, decorator: TSESTree.Decorator, expected: string): boolean {
   const target = calleeName(decorator.expression);
   const symbol = target === undefined ? undefined : resolved(services, target);
   const { name } = symbol ?? { name: '' };
-  return name === 'Component' && originOf(symbol).includes('@angular/core');
+  return name === expected && originOf(symbol).includes('@angular/core');
+}
+
+export function isDecorated(
+  services: Services,
+  node: TSESTree.ClassDeclaration | TSESTree.ClassExpression,
+  expected: string,
+): boolean {
+  return node.decorators.some((decorator) => isFromCore(services, decorator, expected));
 }
 
 /** クラスメンバー (parent = ClassBody) からその所属クラスを得る */
@@ -44,5 +52,5 @@ export function isAngularComponent(
   services: Services,
   node: TSESTree.ClassDeclaration | TSESTree.ClassExpression,
 ): boolean {
-  return node.decorators.some((decorator) => isFromCore(services, decorator));
+  return isDecorated(services, node, 'Component');
 }

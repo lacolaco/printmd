@@ -1,5 +1,5 @@
 import { computed, signal } from '@angular/core';
-import { A4, MM_TO_PX } from '../pagination/page-geometry';
+import { A4, MM_TO_PX } from './page-geometry';
 
 export const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
 

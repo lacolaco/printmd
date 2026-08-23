@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { sourcesFrom } from '../../manuscript/manuscript';
-import { EditorStore } from '../../state/editor-store';
+import { ManuscriptState } from '../../state/manuscript-state';
 import { Demo } from './demo';
 
 /**
@@ -37,7 +37,7 @@ import { Demo } from './demo';
   host: { class: 'block h-full' },
 })
 export class ImportDropzone {
-  private readonly store = inject(EditorStore);
+  private readonly store = inject(ManuscriptState);
   private readonly demo = inject(Demo);
 
   protected readSelection(event: Event): void {

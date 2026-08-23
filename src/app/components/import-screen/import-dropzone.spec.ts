@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../mermaid/mermaid-renderer';
-import { EditorStore } from '../../state/editor-store';
+import { ManuscriptState } from '../../state/manuscript-state';
 import { ImportDropzone } from './import-dropzone';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -30,7 +30,7 @@ describe('ImportDropzone', () => {
         text: async () => `# ${url}`,
       })),
     );
-    const store = TestBed.inject(EditorStore);
+    const store = TestBed.inject(ManuscriptState);
     const fixture = TestBed.createComponent(ImportDropzone);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -54,7 +54,7 @@ describe('ImportDropzone 取り込み経路', () => {
   });
 
   it('ファイル選択 (input change) で取り込む', async () => {
-    const store = TestBed.inject(EditorStore);
+    const store = TestBed.inject(ManuscriptState);
     const fixture = TestBed.createComponent(ImportDropzone);
     fixture.detectChanges();
     const input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
@@ -71,7 +71,7 @@ describe('ImportDropzone 取り込み経路', () => {
   });
 
   it('ドロップで取り込み、既定動作を抑止する', async () => {
-    const store = TestBed.inject(EditorStore);
+    const store = TestBed.inject(ManuscriptState);
     const fixture = TestBed.createComponent(ImportDropzone);
     fixture.detectChanges();
     const label = (fixture.nativeElement as HTMLElement).querySelector('label')!;
@@ -95,7 +95,7 @@ describe('ImportDropzone 取り込み経路', () => {
       ),
     );
     try {
-      const store = TestBed.inject(EditorStore);
+      const store = TestBed.inject(ManuscriptState);
       const fixture = TestBed.createComponent(ImportDropzone);
       fixture.detectChanges();
       (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button')!.click();
@@ -112,7 +112,7 @@ describe('ImportDropzone 取り込み経路', () => {
       vi.fn(() => Promise.resolve({ ok: false })),
     );
     try {
-      const store = TestBed.inject(EditorStore);
+      const store = TestBed.inject(ManuscriptState);
       const fixture = TestBed.createComponent(ImportDropzone);
       fixture.detectChanges();
       (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button')!.click();

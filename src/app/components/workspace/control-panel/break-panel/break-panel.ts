@@ -1,5 +1,7 @@
 import { Component, inject } from '@angular/core';
-import { EditorStore } from '../../../../state/editor-store';
+import { BreakState } from '../../../../state/break-state';
+import { DocumentState } from '../../../../state/document-state';
+import { ManuscriptState } from '../../../../state/manuscript-state';
 import { BreakRowItem } from './break-row-item';
 
 /**
@@ -15,12 +17,12 @@ import { BreakRowItem } from './break-row-item';
         <div class="mb-2 flex items-center justify-between gap-2">
           <h2 id="break-heading" class="text-sm font-bold text-stone-700">改ページ調整</h2>
         </div>
-        @if (store.rowTotal() === 0) {
+        @if (documents.rowTotal() === 0) {
           <p class="text-xs text-stone-500">改ページを調整できるブロックがありません</p>
         }
-        @for (group of store.blockGroups(); track group.fileIndex) {
-          <div role="group" [attr.aria-label]="store.multiSource() ? group.fileName : null">
-            @if (store.multiSource()) {
+        @for (group of documents.blockGroups(); track group.fileIndex) {
+          <div role="group" [attr.aria-label]="documents.multiSource() ? group.fileName : null">
+            @if (documents.multiSource()) {
               <p class="mt-2 truncate text-xs font-bold text-stone-500">{{ group.fileName }}</p>
             }
             <ul class="space-y-0.5" role="list">
@@ -28,8 +30,8 @@ import { BreakRowItem } from './break-row-item';
                 <li>
                   <app-break-row-item
                     [row]="row"
-                    [checked]="store.breaks().has(row.block.id)"
-                    (toggled)="store.toggleBreak(row.block.id)"
+                    [checked]="marks.breaks().has(row.block.id)"
+                    (toggled)="marks.toggleBreak(row.block.id)"
                   />
                 </li>
               }
@@ -41,5 +43,7 @@ import { BreakRowItem } from './break-row-item';
   `,
 })
 export class BreakPanel {
-  protected readonly store = inject(EditorStore);
+  protected readonly store = inject(ManuscriptState);
+  protected readonly documents = inject(DocumentState);
+  protected readonly marks = inject(BreakState);
 }

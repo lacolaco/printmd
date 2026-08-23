@@ -5,7 +5,7 @@ import { ImportScreen } from './components/import-screen/import-screen';
 import { PrintRoot } from './components/print-root';
 import { Workspace } from './components/workspace/workspace';
 import { sourcesFrom } from './manuscript/manuscript';
-import { EditorStore } from './state/editor-store';
+import { ManuscriptState } from './state/manuscript-state';
 
 /** 画面骨格。ヘッダ / 画面の切替 / 印刷対象の配置と、ウィンドウ全体のドロップ受け */
 @Component({
@@ -31,7 +31,7 @@ import { EditorStore } from './state/editor-store';
   `,
 })
 export class App {
-  protected readonly store = inject(EditorStore);
+  protected readonly store = inject(ManuscriptState);
 
   /** ウィンドウ全体をドロップ先にする (誤ドロップでのページ遷移も防ぐ) */
   protected permitDrag(event: DragEvent): void {

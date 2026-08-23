@@ -1,6 +1,6 @@
 import { CdkDrag, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, Injector, inject } from '@angular/core';
-import { EditorStore } from '../../../../state/editor-store';
+import { ManuscriptState } from '../../../../state/manuscript-state';
 import { Announcer } from './announcer';
 import { FileAddInput } from './file-add-input';
 import { FileRowItem } from './file-row-item';
@@ -45,7 +45,7 @@ import { focusLater } from './move-focus';
   `,
 })
 export class FilePanel {
-  protected readonly store = inject(EditorStore);
+  protected readonly store = inject(ManuscriptState);
   protected readonly announcer = inject(Announcer);
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly injector = inject(Injector);

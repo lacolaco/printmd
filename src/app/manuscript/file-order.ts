@@ -1,4 +1,4 @@
-import type { ManuscriptFile } from '../manuscript/manuscript';
+import type { ManuscriptFile } from './manuscript';
 
 /** 原稿ファイル列の純粋操作 */
 export class FileOrder {

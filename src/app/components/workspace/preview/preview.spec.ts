@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../../mermaid/mermaid-renderer';
-import { EditorStore } from '../../../state/editor-store';
+import { DocumentState } from '../../../state/document-state';
+import { ManuscriptState } from '../../../state/manuscript-state';
 import { ViewerState } from '../../../state/viewer-state';
 import { Preview } from './preview';
 
@@ -31,7 +32,7 @@ describe('Preview', () => {
   });
 
   it('原稿があればマスターを複製したシートを作る (jsdom はレイアウトを持たないため 1 枚)', async () => {
-    const store = TestBed.inject(EditorStore);
+    const store = TestBed.inject(ManuscriptState);
     await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文') }]);
 
     const fixture = TestBed.createComponent(Preview);
@@ -61,7 +62,7 @@ describe('Preview', () => {
     }
     vi.stubGlobal('IntersectionObserver', StubIntersectionObserver);
     try {
-      const store = TestBed.inject(EditorStore);
+      const store = TestBed.inject(ManuscriptState);
       await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文') }]);
 
       const fixture = TestBed.createComponent(Preview);
@@ -82,7 +83,7 @@ describe('Preview', () => {
   });
 
   it('ファイル境界でシートが分かれ、各シートは自セグメントのブロックだけを持つ', async () => {
-    const store = TestBed.inject(EditorStore);
+    const store = TestBed.inject(ManuscriptState);
     await store.addFiles([
       { name: 'a.md', text: () => Promise.resolve('# A\n\n本文a') },
       { name: 'b.md', text: () => Promise.resolve('# B\n\n本文b') },
@@ -104,19 +105,19 @@ describe('Preview', () => {
   });
 
   it('変換中はプレビュー面に進行表示を出し、完了したら消す', async () => {
-    const store = TestBed.inject(EditorStore);
+    const store = TestBed.inject(ManuscriptState);
     const fixture = TestBed.createComponent(Preview);
     fixture.detectChanges();
     await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文') }]);
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(store.rendering()).toBe(true);
+    expect(TestBed.inject(DocumentState).rendering()).toBe(true);
     expect(el.querySelector('.app-rendering-indicator')).not.toBeNull();
 
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(store.rendering()).toBe(false);
+    expect(TestBed.inject(DocumentState).rendering()).toBe(false);
     expect(el.querySelector('.app-rendering-indicator')).toBeNull();
   });
 
@@ -143,7 +144,7 @@ describe('Preview', () => {
     }
     vi.stubGlobal('IntersectionObserver', StubIntersectionObserver);
     try {
-      const store = TestBed.inject(EditorStore);
+      const store = TestBed.inject(ManuscriptState);
       await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し') }]);
       const fixture = TestBed.createComponent(Preview);
       fixture.detectChanges();

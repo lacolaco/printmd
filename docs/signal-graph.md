@@ -3,11 +3,11 @@
 アプリ全体のリアクティブ構造。**構造 (signal / computed / effect / コンポーネント構成) を変えるコミットでは、この図も同じコミットで更新すること。**
 
 - 逆流 (effect からの signal 書き込み)・循環: なし
-- `renderedDocument` は resource: manuscripts を params とする async 導出 (Converter サービスが markdown 変換 + mermaid SVG 化 + キャッシュを担う)。`rendering` はその isLoading
+- `renderedDocument` は resource: ManuscriptState.files を params とする async 導出 (Converter サービスが markdown 変換 + mermaid SVG 化 + キャッシュを担う)。`rendering` はその isLoading
 - `pagination` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
-- `marks` は linkedSignal: manuscripts に連動し、末尾への追記では維持・構造変更ではリセット
+- `marks` は linkedSignal: ManuscriptState.files に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / Announcer の message) は省略
-- `Zoom` (index / value / label) は state/zoom.ts へ分離済みで、ViewerState が保持する
+- `Zoom` (index / value / label) は pagination/zoom.ts へ分離済みで、ViewerState が保持する
 
 ```mermaid
 flowchart LR
@@ -17,13 +17,19 @@ flowchart LR
     A3([ズーム − / ＋])
   end
 
-  subgraph Store["EditorStore"]
+  subgraph Manuscripts["ManuscriptState"]
     S1((manuscripts))
-    S2((marks<br/>linkedSignal))
-    S4[["renderedDocument<br/>resource (async 導出)"]]
-    S3[/rendering<br/>= isLoading/]
     S5((notices))
     C1[/nonEmpty/]
+  end
+
+  subgraph Breaks["BreakState"]
+    S2((marks<br/>linkedSignal))
+  end
+
+  subgraph Documents["DocumentState"]
+    S4[["renderedDocument<br/>resource (async 導出)"]]
+    S3[/rendering<br/>= isLoading/]
     C2[/blocks/]
     C3[/blockGroups/]
     C4[/rowTotal/]

@@ -18,15 +18,18 @@ import { noPrivateComponentMethods } from './tools/eslint-rules/angular/no-priva
 import { noSingleImplementationInterface } from './tools/eslint-rules/classes/no-single-implementation-interface';
 import { noSwitch } from './tools/eslint-rules/functions/no-switch';
 import { pureConditions } from './tools/eslint-rules/functions/pure-conditions';
+import { requireState } from './tools/eslint-rules/structure/require-state';
 
-/** 依存方向の定義。層の追加・変更はこの配列だけを編集する */
+/** 層の定義 (依存方向と層固有ルール)。層の追加・変更はこの配列だけを編集する */
 const LAYERS = [
   {
+    // state には状態 (@Service の状態クラス) だけを置く
     files: ['src/app/state/**/*.ts'],
     patterns: [
       { group: ['**/components/**'], message: 'state は components に依存しない' },
       { group: ['**/mermaid/**'], message: 'state は変換の実装に依存しない。Converter を経由する' },
     ],
+    rules: { 'printmd/require-state': 'error' },
   },
   {
     files: ['src/app/markdown/**/*.ts'],
@@ -86,6 +89,7 @@ export default defineConfig([
           'no-single-implementation-interface': noSingleImplementationInterface,
           'no-switch': noSwitch,
           'pure-conditions': pureConditions,
+          'require-state': requireState,
         },
       },
     },
@@ -132,6 +136,7 @@ export default defineConfig([
     ignores: [...(layer.ignores ?? []), '**/*.spec.ts'],
     rules: {
       'no-restricted-imports': ['error', { patterns: layer.patterns }],
+      ...(layer.rules ?? {}),
     },
   })),
   {

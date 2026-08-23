@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { Toolbar, ToolbarWidget } from '@angular/aria/toolbar';
-import { EditorStore } from '../state/editor-store';
+import { DocumentState } from '../state/document-state';
+import { ManuscriptState } from '../state/manuscript-state';
 import { ViewerState } from '../state/viewer-state';
 
 /**
@@ -56,12 +57,13 @@ import { ViewerState } from '../state/viewer-state';
   `,
 })
 export class Header {
-  protected readonly store = inject(EditorStore);
+  protected readonly store = inject(ManuscriptState);
+  protected readonly documents = inject(DocumentState);
   protected readonly viewer = inject(ViewerState);
 
   protected readonly statusLabel = computed(() => {
     const count = this.viewer.pageCount();
-    return this.store.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
+    return this.documents.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
   });
 
   protected print(): void {
