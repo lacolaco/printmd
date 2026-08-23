@@ -4,9 +4,15 @@ import type { Node } from 'estree';
 type WithParent = Node & { parent?: WithParent };
 
 interface Usage {
-  member: boolean;
-  passed: boolean;
+  member: Node[];
+  passed: Node[];
 }
+
+const FUNCTION_TYPES: ReadonlySet<string> = new Set([
+  'FunctionDeclaration',
+  'FunctionExpression',
+  'ArrowFunctionExpression',
+]);
 
 /** TS のアサーションは使用を隠さない。実質の使用ノードとその親まで潜る */
 const ASSERTION_TYPES: ReadonlySet<string> = new Set([
@@ -55,31 +61,79 @@ function isTargetVariable(variable: Scope.Variable): boolean {
 
 function markUsage(usage: Usage, id: Node): void {
   const kind = classify(id);
-  if (kind !== null) usage[kind] = true;
+  if (kind !== null) usage[kind].push(id);
 }
 
 function collectUsage(variable: Scope.Variable): Usage {
-  const usage: Usage = { member: false, passed: false };
+  const usage: Usage = { member: [], passed: [] };
   for (const reference of variable.references) {
     markUsage(usage, reference.identifier);
   }
   return usage;
 }
 
-function usesBothWays(variable: Scope.Variable): boolean {
-  const usage = collectUsage(variable);
-  return usage.member && usage.passed;
+function parentOf(node: WithParent): WithParent | undefined {
+  return node.parent;
 }
 
-function bothWaysFinding(variable: Scope.Variable): Rule.ReportDescriptor {
-  const node = variable.defs[0].name as unknown as Rule.Node;
-  return { node, messageId: 'both', data: { name: variable.name } };
+function appendIfFunction(chain: WithParent[], node: WithParent): void {
+  const { type } = node;
+  if (FUNCTION_TYPES.has(type)) chain.push(node);
+}
+
+/** ノードを包む関数ノードを内側から外側の順で集める */
+function enclosingFunctions(id: Node): WithParent[] {
+  const chain: WithParent[] = [];
+  for (let node = (id as WithParent).parent; node; node = parentOf(node)) {
+    appendIfFunction(chain, node);
+  }
+  return chain;
+}
+
+function containsRange(outer: Node, inner: Node): boolean {
+  const [outerStart, outerEnd] = outer.range ?? [0, 0];
+  const [innerStart, innerEnd] = inner.range ?? [0, 0];
+  return outerStart <= innerStart && innerEnd <= outerEnd;
+}
+
+function unique<T>(items: readonly T[]): T[] {
+  return [...new Set(items)];
+}
+
+/** 候補のうち、内側に別の候補を含まない (最も内側の) ものだけを残す */
+function innermostOnly(candidates: readonly WithParent[]): WithParent[] {
+  return candidates.filter(
+    (fn) => !candidates.some((inner) => inner !== fn && containsRange(fn, inner)),
+  );
+}
+
+/** メンバーアクセスと引数渡しの両方を含む、最も内側の関数を求める */
+function mixedFunctions(member: readonly Node[], passed: readonly Node[]): WithParent[] {
+  const memberFns = new Set(member.flatMap(enclosingFunctions));
+  const candidates = passed.flatMap(enclosingFunctions).filter((fn) => memberFns.has(fn));
+  return innermostOnly(unique(candidates));
+}
+
+/** 赤線は関数のヘッダ (宣言から本体の開始まで) に出す */
+function findingAt(fn: WithParent, name: string): Rule.ReportDescriptor {
+  const { body, loc } = fn as WithParent & { body: WithParent };
+  const start = loc?.start ?? { line: 1, column: 0 };
+  const end = body.loc?.start ?? start;
+  return { loc: { start, end }, messageId: 'both', data: { name } };
+}
+
+function usageFindings(usage: Usage, name: string): Rule.ReportDescriptor[] {
+  const { member, passed } = usage;
+  const { length: memberCount } = member;
+  const { length: passedCount } = passed;
+  if (memberCount === 0 || passedCount === 0) return [];
+  return mixedFunctions(member, passed).map((fn) => findingAt(fn, name));
 }
 
 function variableFindings(variable: Scope.Variable): Rule.ReportDescriptor[] {
   if (!isTargetVariable(variable)) return [];
-  if (!usesBothWays(variable)) return [];
-  return [bothWaysFinding(variable)];
+  const { name } = variable;
+  return usageFindings(collectUsage(variable), name);
 }
 
 function collectFindings(sourceCode: SourceCode): Rule.ReportDescriptor[] {
@@ -95,7 +149,7 @@ export const callOrPass: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
     messages: {
-      both: '変数 {{name}} をメンバーアクセスと引数渡しの両方に使っている。どちらか一方に揃える (呼び出すか渡すか)',
+      both: 'この関数は変数 {{name}} をメンバーアクセスと引数渡しの両方に使っている。どちらか一方に揃える (呼び出すか渡すか)',
     },
     schema: [],
   },

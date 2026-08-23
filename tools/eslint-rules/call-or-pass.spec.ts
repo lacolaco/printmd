@@ -68,12 +68,12 @@ function f() {
   ],
   invalid: [
     {
-      name: '規律の禁止例: 渡し (sum(arr)) とアクセス (arr.length) の両方',
+      name: '規律の禁止例: 赤線は混在を含む関数のヘッダに出る',
       code: `declare function sum(a: number[]): number;
 function average(arr: number[]) {
   return sum(arr) / arr.length;
 }`,
-      errors: [{ messageId: 'both' }],
+      errors: [{ messageId: 'both', line: 2, column: 1, endLine: 2, endColumn: 33 }],
     },
     {
       name: 'メソッド呼び出しと引数渡しの両方',
@@ -94,12 +94,23 @@ function f(a: number[]) {
       errors: [{ messageId: 'both' }],
     },
     {
-      name: '入れ子のコールバック内の使用も同じ変数として数える',
+      name: '外側のアクセスと入れ子内の渡しの混在は、両方を含む外側の関数に出る',
       code: `declare function g(a: number[], x: number): void;
 function f(a: number[]) {
   return a.map((x: number) => g(a, x));
 }`,
-      errors: [{ messageId: 'both' }],
+      errors: [{ messageId: 'both', line: 2, column: 1 }],
+    },
+    {
+      name: '両方が入れ子の中にあるなら、混在を含む最も内側の関数 (コールバック) に出る',
+      code: `declare function g(a: number[]): void; declare function each(cb: () => void): void;
+function f(a: number[]) {
+  each(() => {
+    a.sort();
+    g(a);
+  });
+}`,
+      errors: [{ messageId: 'both', line: 3, column: 8 }],
     },
     {
       name: '非 null アサーション越しの使用も同じ変数として数える',
