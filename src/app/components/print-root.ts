@@ -1,7 +1,6 @@
 import { Component, ElementRef, effect, inject } from '@angular/core';
 import { applyForcedBreaks, type RenderedDocument } from '../markdown/block-extractor';
-import { BreakState } from '../state/break.state';
-import { DocumentState } from '../state/document.state';
+import { Paginator } from './paginator';
 
 /**
  * 印刷対象。印刷エンジンに渡される唯一の変換済み文書の実体をそのまま掲示する
@@ -16,15 +15,14 @@ import { DocumentState } from '../state/document.state';
   template: '',
 })
 export class PrintRoot {
-  private readonly documents = inject(DocumentState);
-  private readonly breaks = inject(BreakState);
+  private readonly paginator = inject(Paginator);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor() {
     effect(() => {
       const host = this.host.nativeElement;
       resetHost(host);
-      mountDocument(host, this.documents.renderedDocument(), this.breaks.ids());
+      mountDocument(host, this.paginator.document(), this.paginator.marked());
     });
   }
 }

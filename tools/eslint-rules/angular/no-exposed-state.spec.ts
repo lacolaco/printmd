@@ -18,15 +18,6 @@ const tester = new RuleTester({
 tester.run('no-exposed-state', noExposedState, {
   valid: [
     {
-      name: 'private でのグローバルステート注入は許可',
-      code: `import { Component, inject } from '@angular/core';
-import { DocumentState } from '../../state/document.state';
-@Component({ template: '' })
-export class Preview {
-  private readonly documents = inject(DocumentState);
-}`,
-    },
-    {
       name: 'ステート以外のサービスは protected でも許可',
       code: `import { Component, inject } from '@angular/core';
 import { Editor } from './editor';
@@ -55,6 +46,16 @@ export class Editor {
     },
   ],
   invalid: [
+    {
+      name: 'private でもグローバルステートの注入は禁止',
+      code: `import { Component, inject } from '@angular/core';
+import { DocumentState } from '../../state/document.state';
+@Component({ template: '' })
+export class Preview {
+  private readonly documents = inject(DocumentState);
+}`,
+      errors: [{ messageId: 'exposedState' }],
+    },
     {
       name: 'protected でのグローバルステート注入は禁止',
       code: `import { Component, inject } from '@angular/core';

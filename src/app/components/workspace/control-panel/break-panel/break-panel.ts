@@ -1,7 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { Editor } from '../../../editor';
-import { BreakState } from '../../../../state/break.state';
-import { DocumentState } from '../../../../state/document.state';
+import { Paginator } from '../../../paginator';
 import { BreakRowItem } from './break-row-item';
 
 /**
@@ -41,15 +40,14 @@ import { BreakRowItem } from './break-row-item';
   `,
 })
 export class BreakPanel {
-  private readonly documents = inject(DocumentState);
-  private readonly breaks = inject(BreakState);
+  private readonly paginator = inject(Paginator);
   protected readonly editor = inject(Editor);
 
-  protected readonly rowTotal = computed(() => this.documents.rowTotal());
-  protected readonly groups = computed(() => this.documents.blockGroups());
-  protected readonly multiSource = computed(() => this.documents.multiSource());
+  protected readonly rowTotal = computed(() => this.paginator.rowTotal());
+  protected readonly groups = computed(() => this.paginator.groups());
+  protected readonly multiSource = computed(() => this.paginator.multiSource());
 
   protected isBroken(id: string): boolean {
-    return this.breaks.ids().has(id);
+    return this.paginator.marked().has(id);
   }
 }

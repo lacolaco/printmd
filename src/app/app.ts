@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Footer } from './components/footer';
 import { Header } from './components/header/header';
 import { ImportScreen } from './components/import-screen/import-screen';
@@ -6,7 +6,6 @@ import { PrintRoot } from './components/print-root';
 import { Workspace } from './components/workspace/workspace';
 import { sourcesFrom } from './manuscript/manuscript';
 import { Editor } from './components/editor';
-import { ManuscriptState } from './state/manuscript.state';
 
 /** 画面骨格。ヘッダ / 画面の切替 / 印刷対象の配置と、ウィンドウ全体のドロップ受け */
 @Component({
@@ -18,8 +17,8 @@ import { ManuscriptState } from './state/manuscript.state';
       (dragover)="permitDrag($event)"
       (drop)="acceptDrop($event)"
     >
-      <app-header [active]="nonEmpty()" />
-      @if (nonEmpty()) {
+      <app-header [active]="editor.isNonEmpty()" />
+      @if (editor.isNonEmpty()) {
         <app-workspace class="min-h-0 flex-1" />
       } @else {
         <app-import-screen class="min-h-0 flex-1" />
@@ -32,10 +31,7 @@ import { ManuscriptState } from './state/manuscript.state';
   `,
 })
 export class App {
-  private readonly manuscripts = inject(ManuscriptState);
-  private readonly editor = inject(Editor);
-
-  protected readonly nonEmpty = computed(() => this.manuscripts.nonEmpty());
+  protected readonly editor = inject(Editor);
 
   /** ウィンドウ全体をドロップ先にする (誤ドロップでのページ遷移も防ぐ) */
   protected permitDrag(event: DragEvent): void {

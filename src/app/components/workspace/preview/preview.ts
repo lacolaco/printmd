@@ -7,9 +7,7 @@ import {
   viewChild,
   type ElementRef,
 } from '@angular/core';
-import { DocumentState } from '../../../state/document.state';
 import { Paginator } from '../../paginator';
-import { ZoomState } from '../../../state/zoom.state';
 import { SheetRenderer } from './sheet-renderer';
 
 /**
@@ -45,19 +43,17 @@ import { SheetRenderer } from './sheet-renderer';
   `,
 })
 export class Preview {
-  private readonly documents = inject(DocumentState);
   private readonly paginator = inject(Paginator);
-  private readonly zoom = inject(ZoomState);
 
-  protected readonly scale = computed(() => this.zoom.value());
-  protected readonly rendering = computed(() => this.documents.rendering());
+  protected readonly scale = computed(() => this.paginator.scale());
+  protected readonly rendering = computed(() => this.paginator.rendering());
 
   private readonly sheetsHost = viewChild.required<ElementRef<HTMLElement>>('sheetsHost');
   private renderer: SheetRenderer | null = null;
 
   /** ここは DOM 書き込みのみ (計測は pagination の computed が担う)。signal は先に読む (例外時も依存を登録する) */
   private readonly repaint = effect(() => {
-    const doc = this.documents.renderedDocument();
+    const doc = this.paginator.document();
     const pagination = this.paginator.pagination();
     this.renderer = renewRenderer(this.renderer, this.sheetsHost().nativeElement);
     this.renderer.render(doc, pagination);

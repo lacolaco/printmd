@@ -7,10 +7,6 @@ type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>
 
 type Services = ReturnType<typeof ESLintUtils.getParserServices>;
 
-function isHidden(member: TSESTree.PropertyDefinition): boolean {
-  return member.accessibility === 'private' || member.key.type === 'PrivateIdentifier';
-}
-
 function isCoreInject(services: Services, callee: TSESTree.Node): boolean {
   const symbol = resolvedSymbol(services, callee);
   const { name } = symbol ?? { name: '' };
@@ -44,7 +40,7 @@ function isGlobalPath(path: string | undefined): boolean {
 
 function audit(context: Context, services: Services, member: TSESTree.PropertyDefinition): void {
   const { sourceCode } = context;
-  const name = isHidden(member) ? undefined : injection(services, member);
+  const name = injection(services, member);
   const path = name === undefined ? undefined : importedFrom(name, sourceCode.ast);
   const banned = isGlobalPath(path) && isDecorated(services, enclosingClass(member), 'Component');
   condemn(context, member, banned);
@@ -57,15 +53,15 @@ function condemn(context: Context, node: TSESTree.Node, violated: boolean): void
 }
 
 /**
- * コンポーネントにグローバルステートを露出させない。注入フィールドは private に
- * 限り、テンプレートはコンポーネント自身の computed だけを参照する
+ * コンポーネントはグローバルステートを注入しない。読みは Paginator などの
+ * 導出サービス、書きは Editor、親子間は input を経由する
  */
 export const noExposedState = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
   meta: {
     type: 'suggestion',
     messages: {
       exposedState:
-        'グローバルステートの注入フィールドは private にする。テンプレートへはコンポーネント自身の computed で渡す',
+        'コンポーネントはグローバルステートを注入しない。導出サービス (読み) と Editor (操作) と input を経由する',
     },
     schema: [],
   },

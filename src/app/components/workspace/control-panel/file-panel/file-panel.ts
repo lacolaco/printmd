@@ -1,7 +1,6 @@
 import { CdkDrag, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, Injector, computed, inject } from '@angular/core';
 import { Editor } from '../../../editor';
-import { ManuscriptState } from '../../../../state/manuscript.state';
 import { FilePanelState } from './file-panel.state';
 import { FileAddInput } from './file-add-input';
 import { FileRowItem } from './file-row-item';
@@ -46,11 +45,10 @@ import { focusLater } from './move-focus';
   `,
 })
 export class FilePanel {
-  private readonly manuscripts = inject(ManuscriptState);
   protected readonly editor = inject(Editor);
 
-  protected readonly files = computed(() => this.manuscripts.files());
-  protected readonly warnings = computed(() => this.manuscripts.warnings());
+  protected readonly files = computed(() => this.editor.manuscriptList());
+  protected readonly warnings = computed(() => this.editor.importWarnings());
   protected readonly local = inject(FilePanelState);
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly injector = inject(Injector);

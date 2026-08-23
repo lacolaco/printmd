@@ -41,6 +41,19 @@ export class Editor {
   private readonly breaks = inject(BreakState);
   private readonly zoom = inject(ZoomState);
 
+  /** 取り込み済み原稿の一覧 (表示用の読み) */
+  manuscriptList(): readonly ManuscriptFile[] {
+    return this.manuscripts.files();
+  }
+
+  importWarnings(): readonly string[] {
+    return this.manuscripts.warnings();
+  }
+
+  isNonEmpty(): boolean {
+    return this.manuscripts.nonEmpty();
+  }
+
   async addFiles(sources: readonly ImportSource[]): Promise<void> {
     if (isNonEmpty(sources)) {
       const { files, warnings } = await this.importer.read(sources);

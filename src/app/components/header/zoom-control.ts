@@ -1,10 +1,10 @@
 import { Component, computed, inject } from '@angular/core';
 import { ToolbarWidget } from '@angular/aria/toolbar';
 import { Editor } from '../editor';
-import { ZoomState } from '../../state/zoom.state';
+import { Paginator } from '../paginator';
 
 /**
- * ズームの段送り操作。判断は Editor、現在段の表示は ZoomState から読む
+ * ズームの段送り操作。判断は Editor、現在段の表示は Paginator から読む
  */
 @Component({
   selector: 'app-zoom-control',
@@ -36,7 +36,7 @@ import { ZoomState } from '../../state/zoom.state';
 })
 export class ZoomControl {
   protected readonly editor = inject(Editor);
-  private readonly zoom = inject(ZoomState);
+  private readonly paginator = inject(Paginator);
 
-  protected readonly label = computed(() => this.zoom.label());
+  protected readonly label = computed(() => this.paginator.zoomLabel());
 }
