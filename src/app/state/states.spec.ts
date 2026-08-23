@@ -39,7 +39,7 @@ describe('stores', () => {
   let editor: Editor;
   let manuscripts: ManuscriptState;
   let documents: DocumentState;
-  let marks: BreakState;
+  let breaks: BreakState;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -48,7 +48,7 @@ describe('stores', () => {
     editor = TestBed.inject(Editor);
     manuscripts = TestBed.inject(ManuscriptState);
     documents = TestBed.inject(DocumentState);
-    marks = TestBed.inject(BreakState);
+    breaks = TestBed.inject(BreakState);
   });
 
   it('初期状態はファイルなし・ブロックなし', () => {
@@ -88,10 +88,10 @@ describe('stores', () => {
     await whenRendered();
     const id = documents.blocks()[0].id;
     editor.toggleBreak(id);
-    expect(marks.breaks().has(id)).toBe(true);
+    expect(breaks.ids().has(id)).toBe(true);
     editor.removeFile(manuscripts.files()[0].id);
     await whenRendered();
-    expect(marks.breaks().size).toBe(0);
+    expect(breaks.ids().size).toBe(0);
   });
 
   it('ファイルを並べ替えると改ページ指定がリセットされる', async () => {
@@ -100,7 +100,7 @@ describe('stores', () => {
     editor.toggleBreak(documents.blocks()[0].id);
     editor.nudge(manuscripts.files()[0].id, 1);
     await whenRendered();
-    expect(marks.breaks().size).toBe(0);
+    expect(breaks.ids().size).toBe(0);
     expect(manuscripts.files().map((f) => f.name)).toEqual(['b.md', 'a.md']);
   });
 
@@ -110,7 +110,7 @@ describe('stores', () => {
     editor.toggleBreak(documents.blocks()[0].id);
     await editor.addFiles([file('b.md', '# B')]);
     await whenRendered();
-    expect(marks.breaks().has('f0b0')).toBe(true);
+    expect(breaks.ids().has('f0b0')).toBe(true);
   });
 
   it('doc の読み取りは DOM を変異させない (クラス付与は消費者の描画時に行う)', async () => {
@@ -123,9 +123,9 @@ describe('stores', () => {
 
   it('toggleBreak は同じ ID の追加/削除を繰り返せる', () => {
     editor.toggleBreak('f0b0');
-    expect(marks.breaks().has('f0b0')).toBe(true);
+    expect(breaks.ids().has('f0b0')).toBe(true);
     editor.toggleBreak('f0b0');
-    expect(marks.breaks().has('f0b0')).toBe(false);
+    expect(breaks.ids().has('f0b0')).toBe(false);
   });
 
   it('存在しない ID の removeFile では改ページ指定を消さない', async () => {
@@ -134,7 +134,7 @@ describe('stores', () => {
     editor.toggleBreak(documents.blocks()[0].id);
     editor.removeFile(9999);
     await whenRendered();
-    expect(marks.breaks().size).toBe(1);
+    expect(breaks.ids().size).toBe(1);
     expect(manuscripts.files()).toHaveLength(1);
   });
 });

@@ -21,9 +21,9 @@ export class BreakState {
         : new Set<string>(),
   });
 
-  readonly breaks = this.marks.asReadonly();
+  readonly ids = this.marks.asReadonly();
 
-  replace(breaks: ReadonlySet<string>): void {
-    this.marks.set(breaks);
+  replace(ids: ReadonlySet<string>): void {
+    this.marks.set(ids);
   }
 }

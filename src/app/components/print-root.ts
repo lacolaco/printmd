@@ -17,14 +17,14 @@ import { DocumentState } from '../state/document-state';
 })
 export class PrintRoot {
   private readonly documents = inject(DocumentState);
-  private readonly marks = inject(BreakState);
+  private readonly breaks = inject(BreakState);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor() {
     effect(() => {
       const host = this.host.nativeElement;
       resetHost(host);
-      mountDocument(host, this.documents.renderedDocument(), this.marks.breaks());
+      mountDocument(host, this.documents.renderedDocument(), this.breaks.ids());
     });
   }
 }

@@ -37,10 +37,10 @@ describe('BreakPanel', () => {
     expect(checkbox).not.toBeNull();
     checkbox!.click();
     fixture.detectChanges();
-    expect(TestBed.inject(BreakState).breaks().size).toBe(1);
+    expect(TestBed.inject(BreakState).ids().size).toBe(1);
     checkbox!.click();
     fixture.detectChanges();
-    expect(TestBed.inject(BreakState).breaks().size).toBe(0);
+    expect(TestBed.inject(BreakState).ids().size).toBe(0);
   });
 
   it('段落を含む全ブロックの行を document 順に表示する', async () => {

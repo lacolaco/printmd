@@ -38,7 +38,7 @@ function removedFrom(current: readonly ManuscriptFile[], id: number): readonly M
 export class Editor {
   private readonly importer = inject(Importer);
   private readonly manuscripts = inject(ManuscriptState);
-  private readonly marks = inject(BreakState);
+  private readonly breaks = inject(BreakState);
   private readonly zoom = inject(ZoomState);
 
   async addFiles(sources: readonly ImportSource[]): Promise<void> {
@@ -89,7 +89,7 @@ export class Editor {
   }
 
   toggleBreak(blockId: string): void {
-    this.marks.replace(toggled(this.marks.breaks(), blockId));
+    this.breaks.replace(toggled(this.breaks.ids(), blockId));
   }
 
   zoomBy(delta: -1 | 1): void {

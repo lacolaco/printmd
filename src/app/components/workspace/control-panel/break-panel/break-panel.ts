@@ -31,7 +31,7 @@ import { BreakRowItem } from './break-row-item';
                 <li>
                   <app-break-row-item
                     [row]="row"
-                    [checked]="marks.breaks().has(row.block.id)"
+                    [checked]="breaks.ids().has(row.block.id)"
                     (toggled)="editor.toggleBreak(row.block.id)"
                   />
                 </li>
@@ -46,6 +46,6 @@ import { BreakRowItem } from './break-row-item';
 export class BreakPanel {
   protected readonly manuscripts = inject(ManuscriptState);
   protected readonly documents = inject(DocumentState);
-  protected readonly marks = inject(BreakState);
+  protected readonly breaks = inject(BreakState);
   protected readonly editor = inject(Editor);
 }

@@ -10,7 +10,7 @@ import { DocumentState } from './document-state';
 @Service()
 export class ViewerState {
   private readonly documents = inject(DocumentState);
-  private readonly marks = inject(BreakState);
+  private readonly breaks = inject(BreakState);
 
   /**
    * ページ組。(doc, breaks) を現在の CSS で組んだときのレイアウト結果の
@@ -18,7 +18,7 @@ export class ViewerState {
    */
   readonly pagination = computed(() => {
     const doc = this.documents.renderedDocument();
-    return doc === null ? null : measurePagination(doc, this.marks.breaks());
+    return doc === null ? null : measurePagination(doc, this.breaks.ids());
   });
 
   readonly pageCount = computed(() => this.pagination()?.total ?? 0);
