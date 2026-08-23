@@ -1,5 +1,5 @@
 import { Service, computed, inject, signal } from '@angular/core';
-import { A4_MM, MM_TO_PX } from '../page-geometry';
+import { A4, MM_TO_PX } from '../page-geometry';
 import { measurePagination } from '../page-count';
 import { EditorStore } from './editor-store';
 
@@ -10,7 +10,7 @@ const PANEL_WIDTH = 360;
 /** 紙面の左右に確保する余白ぶん (単位 px) */
 const GUTTERS = 48;
 
-function indexOfLargestZoomAtMost(fit: number): number {
+function largestFitting(fit: number): number {
   let index = 0;
   ZOOMS.forEach((zoom, i) => {
     if (zoom <= fit) {
@@ -26,8 +26,8 @@ function indexOfLargestZoomAtMost(fit: number): number {
  */
 export function defaultZoomIndex(viewportWidth: number, hasSideColumn: boolean): number {
   const available = viewportWidth - (hasSideColumn ? PANEL_WIDTH : 0) - GUTTERS;
-  const fit = Math.min(1, available / (A4_MM.page.width * MM_TO_PX));
-  return indexOfLargestZoomAtMost(fit);
+  const fit = Math.min(1, available / (A4.page.width * MM_TO_PX));
+  return largestFitting(fit);
 }
 
 /** matchMedia を持たない環境 (jsdom) では実寸を既定にする */

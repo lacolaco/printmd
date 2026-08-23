@@ -6,14 +6,14 @@ type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>
 
 type ClassNode = TSESTree.ClassDeclaration | TSESTree.ClassExpression;
 
-function flagSuperClass(context: Context, superClass: TSESTree.Node): void {
+function flagSuper(context: Context, superClass: TSESTree.Node): void {
   const { loc } = superClass;
   context.report({ loc, messageId: 'noExtends' });
 }
 
 function checkHeritage(context: Context, superClass: TSESTree.Node | null): void {
   if (superClass !== null) {
-    flagSuperClass(context, superClass);
+    flagSuper(context, superClass);
   }
 }
 

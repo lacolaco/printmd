@@ -1,23 +1,29 @@
 import { Component, inject } from '@angular/core';
 import { EditorStore, type ImportSource } from '../../state/editor-store';
 
-/** デモ原稿 (public/demo/ に同梱)。ガイド + 著作権消滅作品の長文 */
-const DEMO_FILES = ['printmd-guide.md', 'hashire-merosu.md'];
+/** デモ原稿 (public/demo/ に同梱)。ガイド + 著作権消滅作品の長文。取得と検証を閉じる */
+class Demo {
+  private readonly names = ['printmd-guide.md', 'hashire-merosu.md'];
 
-function assertDemoFetched(ok: boolean, name: string): void {
-  if (!ok) {
-    throw new Error(`demo fetch failed: ${name}`);
+  sources(): ImportSource[] {
+    return this.names.map((name) => this.entry(name));
   }
-}
 
-async function fetchDemoText(name: string): Promise<string> {
-  const response = await fetch(`/demo/${name}`);
-  assertDemoFetched(response.ok, name);
-  return response.text();
-}
+  private entry(name: string): ImportSource {
+    return { name, text: () => this.load(name) };
+  }
 
-function toDemoFileInput(name: string): ImportSource {
-  return { name, text: () => fetchDemoText(name) };
+  private async load(name: string): Promise<string> {
+    const response = await fetch(`/demo/${name}`);
+    this.assert(response.ok, name);
+    return response.text();
+  }
+
+  private assert(ok: boolean, name: string): void {
+    if (!ok) {
+      throw new Error(`demo fetch failed: ${name}`);
+    }
+  }
 }
 
 /**
@@ -81,6 +87,6 @@ export class ImportDropzone {
   protected loadDemo(event: Event): void {
     // label 内のボタンなので、既定動作 (ファイル選択ダイアログ) を抑止する
     event.preventDefault();
-    this.store.addFiles(DEMO_FILES.map(toDemoFileInput));
+    this.store.addFiles(new Demo().sources());
   }
 }

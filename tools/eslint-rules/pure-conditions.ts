@@ -52,7 +52,7 @@ function calleePath(callee: TSESTree.Node): string {
   return `${identifierText(named?.object)}.${identifierText(named?.property)}`;
 }
 
-function impureCallee(callee: TSESTree.Node): boolean {
+function dirtyCall(callee: TSESTree.Node): boolean {
   return (
     MUTATING_METHODS.has(propertyName(callee)) || NONDETERMINISTIC_CALLEES.has(calleePath(callee))
   );
@@ -64,10 +64,10 @@ function sideEffecting(node: TSESTree.Node): boolean {
   const impureKind =
     MUTATION_KINDS.has(node.type) ||
     (node.type === 'UnaryExpression' && node.operator === 'delete');
-  return impureKind || (node.type === 'CallExpression' && impureCallee(node.callee));
+  return impureKind || (node.type === 'CallExpression' && dirtyCall(node.callee));
 }
 
-function nodeLike(value: unknown): value is TSESTree.Node {
+function astLike(value: unknown): value is TSESTree.Node {
   const type = (value as { type?: unknown } | null)?.type;
   return typeof value === 'object' && value !== null && typeof type === 'string';
 }
@@ -76,7 +76,7 @@ function nodeLike(value: unknown): value is TSESTree.Node {
 function childNodesOf(node: TSESTree.Node): TSESTree.Node[] {
   const entries = Object.entries(node).filter(([key]) => key !== 'parent');
   const values = entries.flatMap(([, value]) => (Array.isArray(value) ? value : [value]));
-  return values.filter(nodeLike);
+  return values.filter(astLike);
 }
 
 /** 条件式の部分木 (コールバックの中身を含む) から不純な操作を集める */

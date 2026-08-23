@@ -16,9 +16,30 @@ export interface ManuscriptFile {
 
 const MARKDOWN_NAME_PATTERN = /\.(md|markdown|txt)$/i;
 
-/** prev が next の先頭部分か (要素は同一参照)。真なら「末尾への追記だけ」の変化 */
-function isPrefixOf(prev: readonly ManuscriptFile[], next: readonly ManuscriptFile[]): boolean {
-  return prev.length <= next.length && prev.every((file, index) => next[index] === file);
+/** 原稿ファイル列の純粋操作。並べ替えの検証・実行と、追記だけの変化の判定を閉じる */
+class FileOrder {
+  constructor(private readonly items: readonly ManuscriptFile[]) {}
+
+  /** 自身が next の先頭部分か (要素は同一参照)。真なら「末尾への追記だけ」の変化 */
+  prefixes(next: readonly ManuscriptFile[]): boolean {
+    const { items } = this;
+    return items.length <= next.length && items.every((file, index) => next[index] === file);
+  }
+
+  reordered(from: number, to: number): readonly ManuscriptFile[] {
+    return this.movable(from, to) ? this.spliced(from, to) : this.items;
+  }
+
+  private movable(from: number, to: number): boolean {
+    const { length } = this.items;
+    return from !== to && from >= 0 && to >= 0 && from < length && to < length;
+  }
+
+  private spliced(from: number, to: number): readonly ManuscriptFile[] {
+    const next = [...this.items];
+    next.splice(to, 0, ...next.splice(from, 1));
+    return next;
+  }
 }
 
 /**
@@ -26,19 +47,59 @@ function isPrefixOf(prev: readonly ManuscriptFile[], next: readonly ManuscriptFi
  * 原稿ファイル → markdown-it 変換 → mermaid SVG 化 → マスター HTML 構築 →
  * ブロック一覧。改ページ Set はタブ寿命のみで原稿を書き換えない。
  */
+/**
+ * ファイル内容 → mermaid 適用済み HTML のキャッシュ。世代管理と追い出しを閉じる。
+ * mermaid 待ちの間に params が変わると複数の loader が重なり、遅れて解決した
+ * 古い loader が古い keep 集合でキャッシュを追い出す競合がある (現行文書の
+ * エントリを消して結果を壊す)。追い出しは最新世代だけが行う
+ */
+class FragmentCache {
+  private readonly entries = new Map<string, string>();
+  private epoch = 0;
+
+  /** 新しい世代を開始し、その世代番号を返す */
+  begin(): number {
+    return ++this.epoch;
+  }
+
+  has(content: string): boolean {
+    return this.entries.has(content);
+  }
+
+  put(content: string, html: string): void {
+    this.entries.set(content, html);
+  }
+
+  htmlOf(content: string): string {
+    return this.entries.get(content) ?? '';
+  }
+
+  evict(epoch: number, keep: ReadonlySet<string>): void {
+    if (epoch === this.epoch) {
+      this.prune(keep);
+    }
+  }
+
+  private prune(keep: ReadonlySet<string>): void {
+    for (const key of this.entries.keys()) {
+      this.drop(keep, key);
+    }
+  }
+
+  private drop(keep: ReadonlySet<string>, key: string): void {
+    if (!keep.has(key)) {
+      this.entries.delete(key);
+    }
+  }
+}
+
 @Service()
 export class EditorStore {
   private readonly mermaidRenderer = inject(MermaidRenderer);
 
-  private nextFileId = 1;
-  /** ファイル内容 → mermaid 適用済み HTML のキャッシュ。並べ替え・削除では再変換しない */
-  private readonly cache = new Map<string, string>();
-  /**
-   * loader の世代。mermaid 待ちの間に params が変わると複数の loader が重なり、
-   * 遅れて解決した古い loader が古い keep 集合でキャッシュを追い出す競合がある
-   * (現行文書のエントリを消して結果を壊す)。追い出しは最新世代だけが行う
-   */
-  private epoch = 0;
+  private serial = 1;
+  /** 並べ替え・削除では再変換しない */
+  private readonly cache = new FragmentCache();
 
   private readonly manuscripts = signal<readonly ManuscriptFile[]>([]);
   /**
@@ -49,7 +110,7 @@ export class EditorStore {
   private readonly marks = linkedSignal<readonly ManuscriptFile[], ReadonlySet<string>>({
     source: this.manuscripts,
     computation: (files, previous) =>
-      previous !== undefined && isPrefixOf(previous.source, files)
+      previous !== undefined && new FileOrder(previous.source).prefixes(files)
         ? previous.value
         : new Set<string>(),
   });
@@ -65,7 +126,7 @@ export class EditorStore {
   });
 
   private async runPipeline(files: readonly ManuscriptFile[]): Promise<RenderedDocument> {
-    const epoch = ++this.epoch;
+    const epoch = this.cache.begin();
     await this.convertMissing(files);
     this.evictStale(epoch, files);
     return this.assembleFromCache(files);
@@ -83,26 +144,12 @@ export class EditorStore {
     results: ReadonlyMap<string, MermaidOutcome>,
   ): void {
     for (const r of rendered) {
-      this.cache.set(r.file.content, applyMermaidResults(r.html, results));
+      this.cache.put(r.file.content, applyMermaidResults(r.html, results));
     }
   }
 
   private evictStale(epoch: number, files: readonly ManuscriptFile[]): void {
-    if (epoch === this.epoch) {
-      this.pruneExcept(new Set(files.map((file) => file.content)));
-    }
-  }
-
-  private pruneExcept(keep: ReadonlySet<string>): void {
-    for (const key of this.cache.keys()) {
-      this.dropUnlessKept(keep, key);
-    }
-  }
-
-  private dropUnlessKept(keep: ReadonlySet<string>, key: string): void {
-    if (!keep.has(key)) {
-      this.cache.delete(key);
-    }
+    this.cache.evict(epoch, new Set(files.map((file) => file.content)));
   }
 
   private assembleFromCache(files: readonly ManuscriptFile[]): RenderedDocument {
@@ -111,7 +158,7 @@ export class EditorStore {
 
   /** 古い loader は最新世代の追い出しでエントリを失い得るが、その結果は resource が捨てる */
   private cachedFragment(file: ManuscriptFile, fileIndex: number): FileFragment {
-    return { fileIndex, fileName: file.name, html: this.cache.get(file.content) ?? '' };
+    return { fileIndex, fileName: file.name, html: this.cache.htmlOf(file.content) };
   }
 
   private readonly notices = signal<readonly string[]>([]);
@@ -162,7 +209,7 @@ export class EditorStore {
   }
 
   private async readOne(file: ImportSource): Promise<ManuscriptFile> {
-    return { id: this.nextFileId++, name: file.name, content: await file.text() };
+    return { id: this.serial++, name: file.name, content: await file.text() };
   }
 
   removeFile(id: number): void {
@@ -178,7 +225,7 @@ export class EditorStore {
   }
 
   reorder(from: number, to: number): boolean {
-    return this.applyStructuralChange((current) => reordered(current, from, to));
+    return this.applyStructuralChange((current) => new FileOrder(current).reordered(from, to));
   }
 
   /**
@@ -205,36 +252,13 @@ export interface ImportSource {
   text(): Promise<string>;
 }
 
-const NON_MARKDOWN_WARNING = 'Markdown (.md / .markdown / .txt) 以外のファイルは取り込めません';
+const UNSUPPORTED_WARNING = 'Markdown (.md / .markdown / .txt) 以外のファイルは取り込めません';
 
 function importWarnings(nonMarkdownCount: number, failedNames: readonly string[]): string[] {
-  const notice = nonMarkdownCount > 0 ? NON_MARKDOWN_WARNING : null;
+  const notice = nonMarkdownCount > 0 ? UNSUPPORTED_WARNING : null;
   const failed =
     failedNames.length > 0 ? `読み込めなかったファイル: ${failedNames.join(', ')}` : null;
   return [notice, failed].filter((warning): warning is string => warning !== null);
-}
-
-function reordered(
-  current: readonly ManuscriptFile[],
-  from: number,
-  to: number,
-): readonly ManuscriptFile[] {
-  const { length } = current;
-  return movable(length, from, to) ? spliced(current, from, to) : current;
-}
-
-function spliced(
-  current: readonly ManuscriptFile[],
-  from: number,
-  to: number,
-): readonly ManuscriptFile[] {
-  const next = [...current];
-  next.splice(to, 0, ...next.splice(from, 1));
-  return next;
-}
-
-function movable(length: number, from: number, to: number): boolean {
-  return from !== to && from >= 0 && to >= 0 && from < length && to < length;
 }
 
 function collectMermaidBlocks(

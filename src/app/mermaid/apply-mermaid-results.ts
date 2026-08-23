@@ -2,7 +2,7 @@ import DOMPurify from 'dompurify';
 import { ifDefined } from '../collections';
 import type { MermaidOutcome } from './mermaid-renderer';
 
-const MERMAID_FAILED_MESSAGE = 'mermaid の描画に失敗したため、元のコードを表示しています';
+const FAILURE_TEXT = 'mermaid の描画に失敗したため、元のコードを表示しています';
 
 /**
  * renderMarkdown が残した mermaid-placeholder を、SVG 化の結果で置き換える。
@@ -10,7 +10,7 @@ const MERMAID_FAILED_MESSAGE = 'mermaid の描画に失敗したため、元の�
  * ブロック + 警告文に落とす。結果に含まれない (未解決の) プレースホルダは
  * そのまま残す。
  */
-function needsMermaid(html: string): boolean {
+function unresolved(html: string): boolean {
   return html.includes('mermaid-placeholder');
 }
 
@@ -18,7 +18,7 @@ export function applyMermaidResults(
   html: string,
   results: ReadonlyMap<string, MermaidOutcome>,
 ): string {
-  return needsMermaid(html) ? replacePlaceholders(html, results) : html;
+  return unresolved(html) ? replacePlaceholders(html, results) : html;
 }
 
 function replacePlaceholders(html: string, results: ReadonlyMap<string, MermaidOutcome>): string {
@@ -33,7 +33,7 @@ function settleOne(placeholder: Element, results: ReadonlyMap<string, MermaidOut
 }
 
 function figureFor(outcome: MermaidOutcome): HTMLElement {
-  return 'svg' in outcome ? embedSvg(outcome.svg) : fallbackFigure(outcome.code);
+  return 'svg' in outcome ? embedSvg(outcome.svg) : degraded(outcome.code);
 }
 
 function embedSvg(svg: string): HTMLElement {
@@ -44,7 +44,7 @@ function embedSvg(svg: string): HTMLElement {
   return figure;
 }
 
-function fallbackFigure(code: string): HTMLElement {
+function degraded(code: string): HTMLElement {
   const figure = document.createElement('figure');
   figure.className = 'mermaid mermaid-failed';
   figure.append(sourcePre(code), warningNote());
@@ -66,6 +66,6 @@ function sourcePre(code: string): HTMLElement {
 function warningNote(): HTMLElement {
   const warning = document.createElement('p');
   warning.className = 'mermaid-warning';
-  warning.textContent = MERMAID_FAILED_MESSAGE;
+  warning.textContent = FAILURE_TEXT;
   return warning;
 }

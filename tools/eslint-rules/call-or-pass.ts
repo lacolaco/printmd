@@ -2,6 +2,7 @@ import { getFunctionHeadLocation } from '@eslint-community/eslint-utils';
 import { ESLintUtils, type TSESLint, type TSESTree } from '@typescript-eslint/utils';
 import {
   allScopes,
+  distinct,
   effectiveUse,
   enclosingFunctions,
   innermostOnly,
@@ -13,12 +14,9 @@ import {
 type MessageIds = 'both';
 type Finding = TSESLint.ReportDescriptor<MessageIds>;
 
-interface Usage {
-  member: TSESTree.Node[];
-  passed: TSESTree.Node[];
-}
+type Kind = 'member' | 'passed';
 
-function classify(id: TSESTree.Node): keyof Usage | null {
+function classify(id: TSESTree.Node): Kind | null {
   const { use, parent } = effectiveUse(id);
   const member = parent !== undefined && usedAsReceiver(parent, use);
   const passed = parent !== undefined && isCallArgument(parent, use);
@@ -37,26 +35,37 @@ function isTarget(variable: TSESLint.Scope.Variable): boolean {
   );
 }
 
-function append(usage: Usage, kind: keyof Usage | null, id: TSESTree.Node): void {
-  if (kind !== null) {
-    usage[kind].push(id);
-  }
-}
+/** 1 変数の全参照を、メンバーアクセスと引数渡しに分類して保持する */
+class Usage {
+  private readonly member: TSESTree.Node[] = [];
+  private readonly passed: TSESTree.Node[] = [];
 
-function record(usage: Usage, id: TSESTree.Node): void {
-  append(usage, classify(id), id);
+  record(id: TSESTree.Node): void {
+    this.append(classify(id), id);
+  }
+
+  private append(kind: Kind | null, id: TSESTree.Node): void {
+    if (kind !== null) {
+      this[kind].push(id);
+    }
+  }
+
+  findings(name: string, sourceCode: TSESLint.SourceCode): Finding[] {
+    return this.mixed().map((fn) => findingAt(fn, name, sourceCode));
+  }
+
+  private mixed(): FunctionNode[] {
+    const both = this.member.length > 0 && this.passed.length > 0;
+    return both ? mixedFunctions(this.member, this.passed) : [];
+  }
 }
 
 function usesOf(variable: TSESLint.Scope.Variable): Usage {
-  const usage: Usage = { member: [], passed: [] };
+  const usage = new Usage();
   for (const reference of variable.references) {
-    record(usage, reference.identifier);
+    usage.record(reference.identifier);
   }
   return usage;
-}
-
-function unique<T>(items: readonly T[]): T[] {
-  return [...new Set(items)];
 }
 
 /** メンバーアクセスと引数渡しの両方を含む、最も内側の関数を求める */
@@ -66,7 +75,7 @@ function mixedFunctions(
 ): FunctionNode[] {
   const memberFns = new Set(member.flatMap(enclosingFunctions));
   const candidates = passed.flatMap(enclosingFunctions).filter((fn) => memberFns.has(fn));
-  return innermostOnly(unique(candidates));
+  return innermostOnly(distinct(candidates));
 }
 
 /** 赤線は関数のヘッダに出す (位置の計算は公式ヘルパーに委ねる) */
@@ -75,22 +84,12 @@ function findingAt(fn: FunctionNode, name: string, sourceCode: TSESLint.SourceCo
   return { loc, messageId: 'both', data: { name } };
 }
 
-function hasBoth(member: readonly TSESTree.Node[], passed: readonly TSESTree.Node[]): boolean {
-  return member.length > 0 && passed.length > 0;
-}
-
-function auditUsage(usage: Usage, name: string, sourceCode: TSESLint.SourceCode): Finding[] {
-  const { member, passed } = usage;
-  const mixed = hasBoth(member, passed) ? mixedFunctions(member, passed) : [];
-  return mixed.map((fn) => findingAt(fn, name, sourceCode));
-}
-
 function checkVariable(
   variable: TSESLint.Scope.Variable,
   sourceCode: TSESLint.SourceCode,
 ): Finding[] {
   const { name } = variable;
-  return isTarget(variable) ? auditUsage(usesOf(variable), name, sourceCode) : [];
+  return isTarget(variable) ? usesOf(variable).findings(name, sourceCode) : [];
 }
 
 function allFindings(sourceCode: TSESLint.SourceCode): Finding[] {

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { A4_MM, applyGeometryStyles } from './page-geometry';
+import { A4, applyGeometryStyles } from './page-geometry';
 
 describe('page-geometry', () => {
   it('版面は紙寸法から余白を引いた導出値である', () => {
-    expect(A4_MM.content.width).toBe(A4_MM.page.width - A4_MM.page.margin * 2);
-    expect(A4_MM.content.height).toBe(A4_MM.page.height - A4_MM.page.margin * 2);
-    expect(A4_MM.column.step).toBe(194);
+    expect(A4.content.width).toBe(A4.page.width - A4.page.margin * 2);
+    expect(A4.content.height).toBe(A4.page.height - A4.page.margin * 2);
+    expect(A4.column.step).toBe(194);
   });
 
   it('CSS カスタムプロパティとして注入できる', () => {

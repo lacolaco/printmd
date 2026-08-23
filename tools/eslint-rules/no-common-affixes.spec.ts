@@ -75,6 +75,28 @@ export function second(): string {
       ],
     },
     {
+      name: '中間位置の語の共有もカプセル化不足として禁止',
+      code: `interface ImportSource {
+  readonly name: string;
+}
+export function assertDemoFetched(ok: boolean): void {
+  if (!ok) {
+    throw new Error('demo fetch failed');
+  }
+}
+export function fetchDemoText(name: string): string {
+  return name;
+}
+export function toDemoFileInput(name: string): ImportSource {
+  return { name };
+}`,
+      errors: [
+        { messageId: 'commonAffix', data: { affix: 'demo' } },
+        { messageId: 'commonAffix', data: { affix: 'demo' } },
+        { messageId: 'commonAffix', data: { affix: 'demo' } },
+      ],
+    },
+    {
       name: '同一クラスで接尾辞を共有するフィールドは禁止',
       code: `export class Layout {
   private readonly headerHeight = 1;

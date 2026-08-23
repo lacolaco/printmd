@@ -5,7 +5,7 @@ type MessageIds = 'singleImplementation';
 
 type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>[0]['create']>[0];
 
-const countsCache = new WeakMap<ts.Program, Map<ts.Symbol, number>>();
+const memo = new WeakMap<ts.Program, Map<ts.Symbol, number>>();
 
 function resolveAlias(checker: ts.TypeChecker, symbol: ts.Symbol): ts.Symbol {
   const { flags } = symbol;
@@ -32,13 +32,13 @@ function ownClauses(node: ts.Node): readonly ts.HeritageClause[] {
   return clauses.filter(implementsClause);
 }
 
-function heritageSymbols(checker: ts.TypeChecker, clause: ts.HeritageClause): ts.Symbol[] {
+function mentioned(checker: ts.TypeChecker, clause: ts.HeritageClause): ts.Symbol[] {
   return clause.types.flatMap((type) => symbolsAt(checker, type.expression));
 }
 
 /** 部分木から implements されたインタフェースのシンボルを集める */
 function collectImplemented(checker: ts.TypeChecker, node: ts.Node): ts.Symbol[] {
-  const own = ownClauses(node).flatMap((clause) => heritageSymbols(checker, clause));
+  const own = ownClauses(node).flatMap((clause) => mentioned(checker, clause));
   const nested: ts.Symbol[] = [];
   ts.forEachChild(node, (child) => {
     nested.push(...collectImplemented(checker, child));
@@ -59,12 +59,12 @@ function tallyImplementers(program: ts.Program): Map<ts.Symbol, number> {
 }
 
 function cachedCounts(program: ts.Program): Map<ts.Symbol, number> {
-  const cached = countsCache.get(program) ?? tallyImplementers(program);
-  countsCache.set(program, cached);
+  const cached = memo.get(program) ?? tallyImplementers(program);
+  memo.set(program, cached);
   return cached;
 }
 
-function isSingleImplementation(program: ts.Program, symbol: ts.Symbol): boolean {
+function soleImplementer(program: ts.Program, symbol: ts.Symbol): boolean {
   return cachedCounts(program).get(symbol) === 1;
 }
 
@@ -74,7 +74,7 @@ function checkerOf(program: ts.Program): ts.TypeChecker {
   return program.getTypeChecker();
 }
 
-function interfaceNameNode(
+function declarationName(
   esMap: Services['esTreeNodeToTSNodeMap'],
   node: TSESTree.TSInterfaceDeclaration,
 ): ts.Node {
@@ -82,7 +82,7 @@ function interfaceNameNode(
   return tsNode.name;
 }
 
-function reportIfSingle(
+function reportLonely(
   context: Context,
   program: ts.Program,
   checker: ts.TypeChecker,
@@ -90,8 +90,8 @@ function reportIfSingle(
   node: TSESTree.TSInterfaceDeclaration,
 ): void {
   const { id } = node;
-  const singles = symbolsAt(checker, interfaceNameNode(esMap, node)).filter((symbol) =>
-    isSingleImplementation(program, symbol),
+  const singles = symbolsAt(checker, declarationName(esMap, node)).filter((symbol) =>
+    soleImplementer(program, symbol),
   );
   singles.forEach(() => context.report({ node: id, messageId: 'singleImplementation' }));
 }
@@ -100,7 +100,7 @@ function makeListener(context: Context, services: Services) {
   const { program, esTreeNodeToTSNodeMap } = services;
   const checker = checkerOf(program);
   return (node: TSESTree.TSInterfaceDeclaration): void =>
-    reportIfSingle(context, program, checker, esTreeNodeToTSNodeMap, node);
+    reportLonely(context, program, checker, esTreeNodeToTSNodeMap, node);
 }
 
 /**
