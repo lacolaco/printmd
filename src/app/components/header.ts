@@ -3,7 +3,7 @@ import { Toolbar, ToolbarWidget } from '@angular/aria/toolbar';
 import { Editor } from './editor';
 import { DocumentState } from '../state/document.state';
 import { ManuscriptState } from '../state/manuscript.state';
-import { PaginationState } from '../state/pagination.state';
+import { Paginator } from './paginator';
 import { ZoomState } from '../state/zoom.state';
 
 /**
@@ -63,10 +63,10 @@ export class Header {
   protected readonly zoom = inject(ZoomState);
   protected readonly editor = inject(Editor);
   private readonly documents = inject(DocumentState);
-  private readonly pagination = inject(PaginationState);
+  private readonly paginator = inject(Paginator);
 
   protected readonly statusLabel = computed(() => {
-    const count = this.pagination.pageCount();
+    const count = this.paginator.pageCount();
     return this.documents.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
   });
 

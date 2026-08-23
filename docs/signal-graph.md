@@ -4,7 +4,7 @@
 
 - 逆流 (effect からの signal 書き込み)・循環: なし
 - `renderedDocument` は resource: ManuscriptState.files を params とする async 導出 (Converter サービスが markdown 変換 + mermaid SVG 化 + キャッシュを担う)。`rendering` はその isLoading
-- `PaginationState.value` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
+- `Paginator.pagination` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
 - `BreakState.ids` は linkedSignal: ManuscriptState.files に連動し、末尾への追記では維持・構造変更ではリセット
 - コンポーネント Xxx が状態を保有するときだけローカルステート XxxState (コンポーネントが providers で提供) を持つ。computed による導出だけならコンポーネント自身の computed (Header の statusLabel)。パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelState の message / WorkspaceState の sheetOpen) は省略
 - ズーム段の状態は `ZoomState` (index / value / label)。段送り・上限判定・初期段の決定は pagination/zoom.ts の純関数で、Editor が判断して replace で置き換える
@@ -36,9 +36,9 @@ flowchart LR
     C5[/multiSource/]
   end
 
-  subgraph Pagination["PaginationState"]
-    V3[/value<br/>計測つき computed<br/>セグメント分割 + 実測/]
-    V2[/pageCount<br/>= value.total/]
+  subgraph PaginatorS["Paginator (導出サービス)"]
+    V3[/pagination<br/>計測つき computed<br/>セグメント分割 + 実測/]
+    V2[/pageCount<br/>= pagination.total/]
   end
 
   subgraph ZoomS["ZoomState"]

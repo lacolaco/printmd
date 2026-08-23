@@ -5,7 +5,7 @@ import { DocumentState } from '../../../state/document.state';
 import { Editor } from '../../editor';
 import { stepped } from '../../../pagination/zoom';
 import { ZoomState } from '../../../state/zoom.state';
-import { PaginationState } from '../../../state/pagination.state';
+import { Paginator } from '../../paginator';
 import { Preview } from './preview';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -30,7 +30,7 @@ describe('Preview', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelectorAll('.sheet')).toHaveLength(0);
-    expect(TestBed.inject(PaginationState).pageCount()).toBe(0);
+    expect(TestBed.inject(Paginator).pageCount()).toBe(0);
   });
 
   it('原稿があればマスターを複製したシートを作る (jsdom はレイアウトを持たないため 1 枚)', async () => {
@@ -46,7 +46,7 @@ describe('Preview', () => {
     expect(sheets).toHaveLength(1);
     expect(sheets[0].querySelector('.clip > .mc.markdown-body')).not.toBeNull();
     expect(sheets[0].querySelector('h1')?.textContent).toBe('見出し');
-    expect(TestBed.inject(PaginationState).pageCount()).toBe(1);
+    expect(TestBed.inject(Paginator).pageCount()).toBe(1);
   });
 
   it('IntersectionObserver がある環境では、シートは可視になるまで実体化しない', async () => {

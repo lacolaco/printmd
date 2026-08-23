@@ -1,6 +1,6 @@
 import { Component, DestroyRef, effect, inject, viewChild, type ElementRef } from '@angular/core';
 import { DocumentState } from '../../../state/document.state';
-import { PaginationState } from '../../../state/pagination.state';
+import { Paginator } from '../../paginator';
 import { ZoomState } from '../../../state/zoom.state';
 import { SheetRenderer } from './sheet-renderer';
 
@@ -38,7 +38,7 @@ import { SheetRenderer } from './sheet-renderer';
 })
 export class Preview {
   protected readonly documents = inject(DocumentState);
-  protected readonly pagination = inject(PaginationState);
+  protected readonly paginator = inject(Paginator);
   protected readonly zoom = inject(ZoomState);
 
   private readonly sheetsHost = viewChild.required<ElementRef<HTMLElement>>('sheetsHost');
@@ -47,7 +47,7 @@ export class Preview {
   /** ここは DOM 書き込みのみ (計測は pagination の computed が担う)。signal は先に読む (例外時も依存を登録する) */
   private readonly repaint = effect(() => {
     const doc = this.documents.renderedDocument();
-    const pagination = this.pagination.value();
+    const pagination = this.paginator.pagination();
     this.renderer = renewRenderer(this.renderer, this.sheetsHost().nativeElement);
     this.renderer.render(doc, pagination);
   });
