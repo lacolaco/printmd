@@ -35,7 +35,7 @@ async function whenRendered(): Promise<void> {
   }
 }
 
-describe('stores', () => {
+describe('グローバルステート (Editor 経由の統合)', () => {
   let editor: Editor;
   let manuscripts: ManuscriptState;
   let documents: DocumentState;

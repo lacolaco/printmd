@@ -1,9 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Toolbar, ToolbarWidget } from '@angular/aria/toolbar';
 import { Editor } from './editor';
-import { HeaderState } from './header.state';
+import { DocumentState } from '../state/document.state';
 import { ManuscriptState } from '../state/manuscript.state';
-
+import { PaginationState } from '../state/pagination.state';
 import { ZoomState } from '../state/zoom.state';
 
 /**
@@ -12,7 +12,6 @@ import { ZoomState } from '../state/zoom.state';
 @Component({
   selector: 'app-header',
   imports: [Toolbar, ToolbarWidget],
-  providers: [HeaderState],
   template: `
     <header class="app-header flex h-12 shrink-0 items-center gap-3 border-b px-4">
       <h1 class="app-logo text-base font-bold tracking-tight">printmd</h1>
@@ -22,7 +21,7 @@ import { ZoomState } from '../state/zoom.state';
           ngToolbar
           aria-label="表示操作"
         >
-          <span role="status" aria-live="polite">{{ local.statusLabel() }}</span>
+          <span role="status" aria-live="polite">{{ statusLabel() }}</span>
           <span aria-hidden="true" class="opacity-40">|</span>
           <button
             class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
@@ -61,9 +60,15 @@ import { ZoomState } from '../state/zoom.state';
 })
 export class Header {
   protected readonly manuscripts = inject(ManuscriptState);
-  protected readonly local = inject(HeaderState);
   protected readonly zoom = inject(ZoomState);
   protected readonly editor = inject(Editor);
+  private readonly documents = inject(DocumentState);
+  private readonly pagination = inject(PaginationState);
+
+  protected readonly statusLabel = computed(() => {
+    const count = this.pagination.pageCount();
+    return this.documents.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
+  });
 
   protected print(): void {
     window.print();
