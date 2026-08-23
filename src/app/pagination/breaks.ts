@@ -1,12 +1,18 @@
 import { Service, inject, linkedSignal } from '@angular/core';
 import { isPrefixOf } from '../collections';
+import { Manuscripts } from '../manuscript/manuscripts';
 import type { ManuscriptFile } from '../manuscript/manuscript';
-import { ManuscriptState } from './manuscript.state';
 
-/** 改ページ指定。タブ寿命のみで原稿を書き換えない */
+function toggled(current: ReadonlySet<string>, blockId: string): ReadonlySet<string> {
+  const next = new Set(current);
+  const removed = next.delete(blockId);
+  return removed ? next : next.add(blockId);
+}
+
+/** 改ページ指定。指定の保有とトグルを担う。タブ寿命のみで原稿を書き換えない */
 @Service()
-export class BreakState {
-  private readonly manuscripts = inject(ManuscriptState);
+export class Breaks {
+  private readonly manuscripts = inject(Manuscripts);
 
   /**
    * ID は位置由来 (f{n}b{m}) のため、ファイルの削除・並べ替えでは同じ ID が
@@ -23,7 +29,7 @@ export class BreakState {
 
   readonly ids = this.marks.asReadonly();
 
-  replace(ids: ReadonlySet<string>): void {
-    this.marks.set(ids);
+  toggle(blockId: string): void {
+    this.marks.set(toggled(this.ids(), blockId));
   }
 }

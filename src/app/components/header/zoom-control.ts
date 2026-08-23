@@ -1,9 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { ToolbarWidget } from '@angular/aria/toolbar';
-import { Editor } from '../editor';
+import { Zoom } from '../../pagination/zoom';
 
 /**
- * ズームの段送り操作。判断も現在段の表示も Editor に問い合わせる
+ * ズームの段送り操作。段の保有と判断は Zoom が担う
  */
 @Component({
   selector: 'app-zoom-control',
@@ -14,25 +14,25 @@ import { Editor } from '../editor';
       class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
       ngToolbarWidget
       value="zoom-out"
-      [disabled]="!editor.isZoomable(-1)"
+      [disabled]="!zoom.isSteppable(-1)"
       aria-label="縮小"
-      (click)="editor.zoomBy(-1)"
+      (click)="zoom.stepBy(-1)"
     >
       −
     </button>
-    <span class="w-10 text-center">{{ editor.stepLabel() }}</span>
+    <span class="w-10 text-center">{{ zoom.label() }}</span>
     <button
       class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
       ngToolbarWidget
       value="zoom-in"
-      [disabled]="!editor.isZoomable(1)"
+      [disabled]="!zoom.isSteppable(1)"
       aria-label="拡大"
-      (click)="editor.zoomBy(1)"
+      (click)="zoom.stepBy(1)"
     >
       ＋
     </button>
   `,
 })
 export class ZoomControl {
-  protected readonly editor = inject(Editor);
+  protected readonly zoom = inject(Zoom);
 }

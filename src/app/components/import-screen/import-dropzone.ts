@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { sourcesFrom } from '../../manuscript/manuscript';
-import { Editor } from '../editor';
+import { Manuscripts } from '../../manuscript/manuscripts';
 import { Demo } from './demo';
 
 /**
@@ -37,12 +37,12 @@ import { Demo } from './demo';
   host: { class: 'block h-full' },
 })
 export class ImportDropzone {
-  private readonly editor = inject(Editor);
+  private readonly manuscripts = inject(Manuscripts);
   private readonly demo = inject(Demo);
 
   protected readSelection(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.editor.addFiles(sourcesFrom(input.files));
+    this.manuscripts.add(sourcesFrom(input.files));
     input.value = '';
   }
 
@@ -52,7 +52,7 @@ export class ImportDropzone {
 
   protected acceptDrop(event: DragEvent): void {
     event.preventDefault();
-    this.editor.addFiles(sourcesFrom(event.dataTransfer?.files));
+    this.manuscripts.add(sourcesFrom(event.dataTransfer?.files));
   }
 
   protected loadDemo(event: Event): void {

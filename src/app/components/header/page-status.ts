@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { Editor } from '../editor';
+import { Document } from '../../document';
 
 /**
  * 頁数の表示。変換中・空文書・頁数の 3 状態を 1 つの読み上げ対象文言に畳む
@@ -10,10 +10,10 @@ import { Editor } from '../editor';
   template: `<span role="status" aria-live="polite">{{ label() }}</span>`,
 })
 export class PageStatus {
-  private readonly editor = inject(Editor);
+  private readonly document = inject(Document);
 
   protected readonly label = computed(() => {
-    const count = this.editor.pageCount();
-    return this.editor.isRendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
+    const count = this.document.pageCount();
+    return this.document.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
   });
 }

@@ -3,11 +3,11 @@
 アプリ全体のリアクティブ構造。**構造 (signal / computed / effect / コンポーネント構成) を変えるコミットでは、この図も同じコミットで更新すること。**
 
 - 逆流 (effect からの signal 書き込み)・循環: なし
-- `renderedDocument` は resource: ManuscriptState.files を params とする async 導出 (Converter サービスが markdown 変換 + mermaid SVG 化 + キャッシュを担う)。`rendering` はその isLoading
-- `DocumentState.pagination` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
-- `BreakState.ids` は linkedSignal: ManuscriptState.files に連動し、末尾への追記では維持・構造変更ではリセット
+- `renderedDocument` は resource: Manuscripts.files を params とする async 導出 (Converter サービスが markdown 変換 + mermaid SVG 化 + キャッシュを担う)。`rendering` はその isLoading
+- `Document.pagination` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
+- `Breaks.ids` は linkedSignal: Manuscripts.files に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelState の message / WorkspaceState の sheetOpen) は省略
-- ズーム段の状態は `ZoomState` (index / value / label)。段送り・上限判定・初期段の決定は pagination/zoom.ts の純関数で、Editor が判断して replace で置き換える
+- 表示倍率は `Zoom` (index / value / label / stepBy / isSteppable)。初期段の決定と段送りの算術は同居する純関数が担う
 
 ```mermaid
 flowchart LR
@@ -17,17 +17,17 @@ flowchart LR
     A3([ズーム − / ＋])
   end
 
-  subgraph Manuscripts["ManuscriptState"]
+  subgraph ManuscriptsS["Manuscripts"]
     S1((manuscripts))
     S5((notices))
     C1[/nonEmpty/]
   end
 
-  subgraph Breaks["BreakState"]
+  subgraph BreaksS["Breaks"]
     S2((ids<br/>linkedSignal))
   end
 
-  subgraph Documents["DocumentState"]
+  subgraph DocumentS["Document"]
     S4[["renderedDocument<br/>resource (async 導出)"]]
     S3[/rendering<br/>= isLoading/]
     C2[/blocks/]
@@ -38,7 +38,7 @@ flowchart LR
     V2[/pageCount<br/>= pagination.total/]
   end
 
-  subgraph ZoomS["ZoomState"]
+  subgraph ZoomS["Zoom"]
     V1((index))
     VC1[/value/]
     VC2[/label/]
@@ -73,14 +73,14 @@ flowchart LR
     D2[(sheets<br/>クローン群)]
   end
 
-  A1 -- "addFiles / removeFile /<br/>nudge / reorder" --> S1
+  A1 -- "add / remove /<br/>nudge / reorder" --> S1
   S1 -- "source 連動:<br/>追記=維持 / 構造変更=リセット" --> S2
-  A2 -- toggleBreak --> S2
-  A3 -- "Editor: stepped → replace" --> V1
+  A2 -- toggle --> S2
+  A3 -- stepBy --> V1
 
   S1 -- "params → loader<br/>(Converter: markdown 変換 +<br/>mermaid SVG 化 + キャッシュ)" --> S4
   S4 --> S3
-  A1 -. "addFiles が警告を設定" .-> S5
+  A1 -. "add が警告を設定" .-> S5
 
   S1 --> C1
   S4 --> C2

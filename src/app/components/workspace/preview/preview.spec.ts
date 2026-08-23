@@ -1,10 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../../mermaid/mermaid-renderer';
-import { DocumentState } from '../../../state/document.state';
-import { Editor } from '../../editor';
-import { stepped } from '../../../pagination/zoom';
-import { ZoomState } from '../../../state/zoom.state';
+import { Document } from '../../../document';
+import { Manuscripts } from '../../../manuscript/manuscripts';
+import { Zoom } from '../../../pagination/zoom';
 import { Preview } from './preview';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -29,12 +28,12 @@ describe('Preview', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelectorAll('.sheet')).toHaveLength(0);
-    expect(TestBed.inject(DocumentState).pageCount()).toBe(0);
+    expect(TestBed.inject(Document).pageCount()).toBe(0);
   });
 
   it('原稿があればマスターを複製したシートを作る (jsdom はレイアウトを持たないため 1 枚)', async () => {
-    const editor = TestBed.inject(Editor);
-    await editor.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文') }]);
+    const manuscripts = TestBed.inject(Manuscripts);
+    await manuscripts.add([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文') }]);
 
     const fixture = TestBed.createComponent(Preview);
     fixture.detectChanges();
@@ -45,7 +44,7 @@ describe('Preview', () => {
     expect(sheets).toHaveLength(1);
     expect(sheets[0].querySelector('.clip > .mc.markdown-body')).not.toBeNull();
     expect(sheets[0].querySelector('h1')?.textContent).toBe('見出し');
-    expect(TestBed.inject(DocumentState).pageCount()).toBe(1);
+    expect(TestBed.inject(Document).pageCount()).toBe(1);
   });
 
   it('IntersectionObserver がある環境では、シートは可視になるまで実体化しない', async () => {
@@ -63,8 +62,8 @@ describe('Preview', () => {
     }
     vi.stubGlobal('IntersectionObserver', StubIntersectionObserver);
     try {
-      const editor = TestBed.inject(Editor);
-      await editor.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文') }]);
+      const manuscripts = TestBed.inject(Manuscripts);
+      await manuscripts.add([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文') }]);
 
       const fixture = TestBed.createComponent(Preview);
       fixture.detectChanges();
@@ -84,8 +83,8 @@ describe('Preview', () => {
   });
 
   it('ファイル境界でシートが分かれ、各シートは自セグメントのブロックだけを持つ', async () => {
-    const editor = TestBed.inject(Editor);
-    await editor.addFiles([
+    const manuscripts = TestBed.inject(Manuscripts);
+    await manuscripts.add([
       { name: 'a.md', text: () => Promise.resolve('# A\n\n本文a') },
       { name: 'b.md', text: () => Promise.resolve('# B\n\n本文b') },
     ]);
@@ -106,28 +105,28 @@ describe('Preview', () => {
   });
 
   it('変換中はプレビュー面に進行表示を出し、完了したら消す', async () => {
-    const editor = TestBed.inject(Editor);
+    const manuscripts = TestBed.inject(Manuscripts);
     const fixture = TestBed.createComponent(Preview);
     fixture.detectChanges();
-    await editor.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文') }]);
+    await manuscripts.add([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文') }]);
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(TestBed.inject(DocumentState).rendering()).toBe(true);
+    expect(TestBed.inject(Document).rendering()).toBe(true);
     expect(el.querySelector('.app-rendering-indicator')).not.toBeNull();
 
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(TestBed.inject(DocumentState).rendering()).toBe(false);
+    expect(TestBed.inject(Document).rendering()).toBe(false);
     expect(el.querySelector('.app-rendering-indicator')).toBeNull();
   });
 
-  it('ズーム状態 (ZoomState) が紙面の表示倍率に反映される', async () => {
+  it('ズーム状態 (Zoom) が紙面の表示倍率に反映される', async () => {
     const fixture = TestBed.createComponent(Preview);
     fixture.detectChanges();
     await fixture.whenStable();
-    const zoomState = TestBed.inject(ZoomState);
-    zoomState.replace(stepped(zoomState.index(), -1));
+    const zoomState = TestBed.inject(Zoom);
+    zoomState.stepBy(-1);
     fixture.detectChanges();
     const host = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[style]');
     expect(zoomState.label()).toBe('75%');
@@ -145,8 +144,8 @@ describe('Preview', () => {
     }
     vi.stubGlobal('IntersectionObserver', StubIntersectionObserver);
     try {
-      const editor = TestBed.inject(Editor);
-      await editor.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し') }]);
+      const manuscripts = TestBed.inject(Manuscripts);
+      await manuscripts.add([{ name: 'a.md', text: () => Promise.resolve('# 見出し') }]);
       const fixture = TestBed.createComponent(Preview);
       fixture.detectChanges();
       await fixture.whenStable();

@@ -2,9 +2,8 @@ import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../../../mermaid/mermaid-renderer';
-import { DocumentState } from '../../../../state/document.state';
-import { Editor } from '../../../editor';
-import { ManuscriptState } from '../../../../state/manuscript.state';
+import { Document } from '../../../../document';
+import { Manuscripts } from '../../../../manuscript/manuscripts';
 import { FilePanel } from './file-panel';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -18,7 +17,7 @@ class FakeMermaidRenderer extends MermaidRenderer {
 
 async function whenRendered(): Promise<void> {
   const appRef = TestBed.inject(ApplicationRef);
-  const documents = TestBed.inject(DocumentState);
+  const documents = TestBed.inject(Document);
   for (let i = 0; i < 50; i++) {
     TestBed.tick();
     await appRef.whenStable();
@@ -34,8 +33,8 @@ describe('FilePanel', () => {
   });
 
   it('ファイル行と追加チップを表示する', async () => {
-    const editor = TestBed.inject(Editor);
-    await editor.addFiles([
+    const editor = TestBed.inject(Manuscripts);
+    await editor.add([
       { name: 'a.md', text: () => Promise.resolve('# A') },
       { name: 'b.md', text: () => Promise.resolve('# B') },
     ]);
@@ -51,9 +50,9 @@ describe('FilePanel', () => {
   });
 
   it('キーボード移動後、同じファイルの移動ボタンへフォーカスを戻す', async () => {
-    const manuscripts = TestBed.inject(ManuscriptState);
-    const editor = TestBed.inject(Editor);
-    await editor.addFiles([
+    const manuscripts = TestBed.inject(Manuscripts);
+    const editor = TestBed.inject(Manuscripts);
+    await editor.add([
       { name: 'a.md', text: () => Promise.resolve('# A') },
       { name: 'b.md', text: () => Promise.resolve('# B') },
     ]);
@@ -84,9 +83,9 @@ describe('FilePanel 取り込みと並べ替えの経路', () => {
   });
 
   it('ファイル選択 (input change) で取り込み、入力をリセットする', async () => {
-    const manuscripts = TestBed.inject(ManuscriptState);
-    const editor = TestBed.inject(Editor);
-    await editor.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
+    const manuscripts = TestBed.inject(Manuscripts);
+    const editor = TestBed.inject(Manuscripts);
+    await editor.add([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
     const fixture = TestBed.createComponent(FilePanel);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -105,9 +104,9 @@ describe('FilePanel 取り込みと並べ替えの経路', () => {
   });
 
   it('追加ラベルへのドロップで取り込み、既定動作を抑止する', async () => {
-    const manuscripts = TestBed.inject(ManuscriptState);
-    const editor = TestBed.inject(Editor);
-    await editor.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
+    const manuscripts = TestBed.inject(Manuscripts);
+    const editor = TestBed.inject(Manuscripts);
+    await editor.add([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
     const fixture = TestBed.createComponent(FilePanel);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -126,9 +125,9 @@ describe('FilePanel 取り込みと並べ替えの経路', () => {
   });
 
   it('リストのドラッグドロップで並べ替え、読み上げ文を更新する', async () => {
-    const manuscripts = TestBed.inject(ManuscriptState);
-    const editor = TestBed.inject(Editor);
-    await editor.addFiles([
+    const manuscripts = TestBed.inject(Manuscripts);
+    const editor = TestBed.inject(Manuscripts);
+    await editor.add([
       { name: 'a.md', text: () => Promise.resolve('# A') },
       { name: 'b.md', text: () => Promise.resolve('# B') },
     ]);
@@ -148,8 +147,8 @@ describe('FilePanel 取り込みと並べ替えの経路', () => {
   });
 
   it('同じ位置へのドロップでは読み上げ文を出さない', async () => {
-    const editor = TestBed.inject(Editor);
-    await editor.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
+    const editor = TestBed.inject(Manuscripts);
+    await editor.add([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
     const fixture = TestBed.createComponent(FilePanel);
     fixture.detectChanges();
     await fixture.whenStable();

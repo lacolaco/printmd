@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../../../mermaid/mermaid-renderer';
-import { BreakState } from '../../../../state/break.state';
-import { Editor } from '../../../editor';
+import { Breaks } from '../../../../pagination/breaks';
+import { Manuscripts } from '../../../../manuscript/manuscripts';
 import { BreakPanel } from './break-panel';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -15,17 +15,17 @@ class FakeMermaidRenderer extends MermaidRenderer {
 }
 
 describe('BreakPanel', () => {
-  let editor: Editor;
+  let manuscripts: Manuscripts;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [{ provide: MermaidRenderer, useClass: FakeMermaidRenderer }],
     });
-    editor = TestBed.inject(Editor);
+    manuscripts = TestBed.inject(Manuscripts);
   });
 
   it('主要ブロックのチェック行を表示し、チェックで改ページを指定する', async () => {
-    await editor.addFiles([
+    await manuscripts.add([
       { name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文の段落') },
     ]);
     const fixture = TestBed.createComponent(BreakPanel);
@@ -37,14 +37,14 @@ describe('BreakPanel', () => {
     expect(checkbox).not.toBeNull();
     checkbox!.click();
     fixture.detectChanges();
-    expect(TestBed.inject(BreakState).ids().size).toBe(1);
+    expect(TestBed.inject(Breaks).ids().size).toBe(1);
     checkbox!.click();
     fixture.detectChanges();
-    expect(TestBed.inject(BreakState).ids().size).toBe(0);
+    expect(TestBed.inject(Breaks).ids().size).toBe(0);
   });
 
   it('段落を含む全ブロックの行を document 順に表示する', async () => {
-    await editor.addFiles([
+    await manuscripts.add([
       { name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文の段落') },
     ]);
     const fixture = TestBed.createComponent(BreakPanel);

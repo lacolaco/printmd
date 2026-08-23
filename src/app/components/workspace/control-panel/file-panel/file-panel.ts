@@ -1,6 +1,6 @@
 import { CdkDrag, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, Injector, inject } from '@angular/core';
-import { Editor } from '../../../editor';
+import { Manuscripts } from '../../../../manuscript/manuscripts';
 import { FilePanelState } from './file-panel.state';
 import { FileAddInput } from './file-add-input';
 import { FileRowItem } from './file-row-item';
@@ -18,7 +18,7 @@ import { focusLater } from './move-focus';
   template: `
     <section aria-label="原稿ファイル">
       <ul class="space-y-1" role="list" cdkDropList (cdkDropListDropped)="onListDrop($event)">
-        @for (file of editor.manuscriptList(); track file.id; let i = $index; let last = $last) {
+        @for (file of manuscripts.files(); track file.id; let i = $index; let last = $last) {
           <li>
             <app-file-row-item
               cdkDrag
@@ -26,16 +26,16 @@ import { focusLater } from './move-focus';
               [first]="i === 0"
               [last]="last"
               (moved)="move(file.id, file.name, $event)"
-              (removed)="editor.removeFile(file.id)"
+              (removed)="manuscripts.remove(file.id)"
             />
           </li>
         }
       </ul>
-      <app-file-add-input (selected)="editor.addFiles($event)" />
+      <app-file-add-input (selected)="manuscripts.add($event)" />
 
-      @if (editor.importWarnings().length > 0) {
+      @if (manuscripts.warnings().length > 0) {
         <ul class="mt-2 space-y-1" role="status">
-          @for (warning of editor.importWarnings(); track warning) {
+          @for (warning of manuscripts.warnings(); track warning) {
             <li class="rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-700">{{ warning }}</li>
           }
         </ul>
@@ -45,22 +45,22 @@ import { focusLater } from './move-focus';
   `,
 })
 export class FilePanel {
-  protected readonly editor = inject(Editor);
+  protected readonly manuscripts = inject(Manuscripts);
   protected readonly local = inject(FilePanelState);
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly injector = inject(Injector);
 
   protected onListDrop(event: CdkDragDrop<unknown>): void {
-    if (this.editor.isReorderable(event.previousIndex, event.currentIndex)) {
-      this.editor.reorder(event.previousIndex, event.currentIndex);
-      this.local.moved(this.editor.manuscriptList()[event.currentIndex].name, event.currentIndex);
+    if (this.manuscripts.isReorderable(event.previousIndex, event.currentIndex)) {
+      this.manuscripts.reorder(event.previousIndex, event.currentIndex);
+      this.local.moved(this.manuscripts.files()[event.currentIndex].name, event.currentIndex);
     }
   }
 
   protected move(id: number, name: string, delta: -1 | 1): void {
-    if (this.editor.isMovable(id, delta)) {
-      this.editor.nudge(id, delta);
-      const index = this.editor.manuscriptList().findIndex((file) => file.id === id);
+    if (this.manuscripts.isMovable(id, delta)) {
+      this.manuscripts.nudge(id, delta);
+      const index = this.manuscripts.files().findIndex((file) => file.id === id);
       this.local.moved(name, index);
       focusLater(this.injector, this.elementRef.nativeElement, id, delta);
     }

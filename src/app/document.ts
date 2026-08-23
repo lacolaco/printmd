@@ -1,17 +1,17 @@
 import { Service, computed, inject, resource } from '@angular/core';
-import { isNonEmpty } from '../collections';
-import { Converter } from '../manuscript/converter';
-import { measurePagination } from '../pagination/page-count';
-import type { Block, RenderedDocument } from '../markdown/block-extractor';
-import { groupBlocks } from '../markdown/block-groups';
-import { BreakState } from './break.state';
-import { ManuscriptState } from './manuscript.state';
+import { isNonEmpty } from './collections';
+import { Converter } from './manuscript/converter';
+import { Manuscripts } from './manuscript/manuscripts';
+import type { Block, RenderedDocument } from './markdown/block-extractor';
+import { groupBlocks } from './markdown/block-groups';
+import { measurePagination } from './pagination/page-count';
+import { Breaks } from './pagination/breaks';
 
-/** 変換済み文書とその導出。原稿列から一方向に流れる */
+/** 変換済み文書。変換パイプラインと、文書の導出・ページ組を担う */
 @Service()
-export class DocumentState {
-  private readonly manuscripts = inject(ManuscriptState);
-  private readonly breaks = inject(BreakState);
+export class Document {
+  private readonly manuscripts = inject(Manuscripts);
+  private readonly breaks = inject(Breaks);
   private readonly converter = inject(Converter);
 
   /**
@@ -28,7 +28,7 @@ export class DocumentState {
   readonly rendering = this.pipeline.isLoading;
 
   /**
-   * container は唯一の DOM 実体で、印刷対象 (PrintRoot) がそのまま掲示し、
+   * container は唯一の DOM 実体で、印刷対象 (Printer) がそのまま掲示し、
    * プレビューは複製して使う。強制改ページのクラス付与はここでは行わない
    * (消費者が描画時に applyForcedBreaks を適用する)
    */
