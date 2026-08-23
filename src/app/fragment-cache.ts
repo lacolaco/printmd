@@ -1,5 +1,5 @@
-import type { FileFragment } from '../markdown/block-extractor';
-import type { ManuscriptFile } from './editor-store';
+import type { FileFragment } from './markdown/block-extractor';
+import type { ManuscriptFile } from './manuscript';
 
 /**
  * ファイル内容 → mermaid 適用済み HTML のキャッシュ。世代管理と追い出しを閉じる。

@@ -12,6 +12,7 @@ import { noCommonAffixes } from './tools/eslint-rules/no-common-affixes';
 import { noDataClump } from './tools/eslint-rules/no-data-clump';
 import { noElse } from './tools/eslint-rules/no-else';
 import { noGetterSetter } from './tools/eslint-rules/no-getter-setter';
+import { noPrivateComponentMethods } from './tools/eslint-rules/no-private-component-methods';
 import { noSingleImplementationInterface } from './tools/eslint-rules/no-single-implementation-interface';
 import { noSwitch } from './tools/eslint-rules/no-switch';
 import { pureConditions } from './tools/eslint-rules/pure-conditions';
@@ -40,6 +41,7 @@ export default defineConfig([
           'no-data-clump': noDataClump,
           'no-else': noElse,
           'no-getter-setter': noGetterSetter,
+          'no-private-component-methods': noPrivateComponentMethods,
           'no-single-implementation-interface': noSingleImplementationInterface,
           'no-switch': noSwitch,
           'pure-conditions': pureConditions,
@@ -68,6 +70,7 @@ export default defineConfig([
       'printmd/no-data-clump': 'error',
       'printmd/no-else': 'error',
       'printmd/no-getter-setter': 'error',
+      'printmd/no-private-component-methods': 'error',
       'printmd/no-single-implementation-interface': 'error',
       'printmd/no-switch': 'error',
       'printmd/pure-conditions': 'error',
@@ -76,6 +79,78 @@ export default defineConfig([
       '@typescript-eslint/switch-exhaustiveness-check': [
         'error',
         { allowDefaultCaseForExhaustiveSwitch: false, requireDefaultForNonUnion: true },
+      ],
+    },
+  },
+  // 依存方向の規律: components → state → ドメイン (src/app 直下) → markdown / mermaid。
+  // 逆向きの import を層ごとに禁止する (型 import も含む)
+  {
+    files: ['src/app/state/**/*.ts'],
+    ignores: ['**/*.spec.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: ['**/components/**'], message: 'state は components に依存しない' },
+            {
+              group: ['**/mermaid/**'],
+              message: 'state は変換の実装に依存しない。Converter を経由する',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/app/markdown/**/*.ts'],
+    ignores: ['**/*.spec.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/state/**', '**/components/**', '**/mermaid/**'],
+              message: 'markdown 層は上位層と mermaid に依存しない',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/app/mermaid/**/*.ts'],
+    ignores: ['**/*.spec.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/state/**', '**/components/**'],
+              message: 'mermaid 層は上位層に依存しない',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // src/app 直下のドメインモジュール。app.ts だけは画面骨格なので除外する
+    files: ['src/app/*.ts'],
+    ignores: ['src/app/app.ts', 'src/app/app.config.ts', '**/*.spec.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/state/**', '**/components/**'],
+              message: 'ドメインモジュールは上位層に依存しない',
+            },
+          ],
+        },
       ],
     },
   },

@@ -1,5 +1,6 @@
-import { Component, output } from '@angular/core';
+import { Component, output, type OutputEmitterRef } from '@angular/core';
 import { isNonEmpty } from '../../../../collections';
+import { fromFileList } from '../../../../manuscript';
 
 /** 追加取り込みの入力面。ファイル選択とドロップを受けて選ばれたファイルを通知する */
 @Component({
@@ -30,18 +31,19 @@ export class FileAddInput {
 
   protected acceptDrop(event: DragEvent): void {
     event.preventDefault();
-    this.emitIfSelected([...(event.dataTransfer?.files ?? [])]);
+    emitSelection(this.selected, fromFileList(event.dataTransfer?.files));
   }
 
   protected readSelection(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.emitIfSelected([...(input.files ?? [])]);
+    emitSelection(this.selected, fromFileList(input.files));
     input.value = '';
   }
+}
 
-  private emitIfSelected(files: readonly File[]): void {
-    if (isNonEmpty(files)) {
-      this.selected.emit(files);
-    }
+/** 空の選択は通知しない (仕様: ファイルの無いドロップは無視する) */
+function emitSelection(selected: OutputEmitterRef<readonly File[]>, files: readonly File[]): void {
+  if (isNonEmpty(files)) {
+    selected.emit(files);
   }
 }

@@ -3,7 +3,7 @@
 アプリ全体のリアクティブ構造。**構造 (signal / computed / effect / コンポーネント構成) を変えるコミットでは、この図も同じコミットで更新すること。**
 
 - 逆流 (effect からの signal 書き込み)・循環: なし
-- `renderedDocument` は resource: manuscripts を params とする async 導出 (markdown 変換 + mermaid SVG 化 + cache)。`rendering` はその isLoading
+- `renderedDocument` は resource: manuscripts を params とする async 導出 (Converter サービスが markdown 変換 + mermaid SVG 化 + キャッシュを担う)。`rendering` はその isLoading
 - `pagination` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
 - `marks` は linkedSignal: manuscripts に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / announcement) は省略
@@ -71,7 +71,7 @@ flowchart LR
   A2 -- toggleBreak --> S2
   A3 -- zoom.by --> V1
 
-  S1 -- "params → loader<br/>(markdown 変換 + mermaid SVG 化<br/>+ cache)" --> S4
+  S1 -- "params → loader<br/>(Converter: markdown 変換 +<br/>mermaid SVG 化 + キャッシュ)" --> S4
   S4 --> S3
   A1 -. "addFiles が警告を設定" .-> S5
 

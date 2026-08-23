@@ -1,4 +1,4 @@
-import type { ManuscriptFile } from './editor-store';
+import type { ManuscriptFile } from '../manuscript';
 
 /** 原稿ファイル列の純粋操作。並べ替えの検証・実行と、追記だけの変化の判定を閉じる */
 export class FileOrder {

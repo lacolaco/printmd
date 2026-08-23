@@ -4,6 +4,7 @@ import { Header } from './components/header';
 import { ImportScreen } from './components/import-screen/import-screen';
 import { PrintRoot } from './components/print-root';
 import { Workspace } from './components/workspace/workspace';
+import { fromFileList } from './manuscript';
 import { EditorStore } from './state/editor-store';
 
 /** 画面骨格。ヘッダ / 画面の切替 / 印刷対象の配置と、ウィンドウ全体のドロップ受け */
@@ -39,12 +40,6 @@ export class App {
 
   protected acceptDrop(event: DragEvent): void {
     event.preventDefault();
-    this.importDroppedFiles(event.dataTransfer?.files);
-  }
-
-  private importDroppedFiles(files: FileList | undefined): void {
-    if (files !== undefined && files.length > 0) {
-      this.store.addFiles([...files]);
-    }
+    this.store.addFiles(fromFileList(event.dataTransfer?.files));
   }
 }

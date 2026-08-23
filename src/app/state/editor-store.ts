@@ -1,35 +1,23 @@
 import { Service, computed, inject, linkedSignal, resource, signal } from '@angular/core';
 import type { Block, RenderedDocument } from '../markdown/block-extractor';
-import { buildRenderedDocument } from '../markdown/block-extractor';
-import { applyMermaidResults } from '../mermaid/apply-mermaid-results';
 import { isNonEmpty } from '../collections';
+import { Converter } from '../converter';
+import type { ImportSource, ManuscriptFile } from '../manuscript';
 import { groupBlocks } from './block-groups';
-import { MermaidRenderer, type MermaidOutcome } from '../mermaid/mermaid-renderer';
-import { renderMarkdown, type MermaidBlock } from '../markdown/render-markdown';
 import { FileOrder } from './file-order';
-import { FragmentCache } from './fragment-cache';
-
-/** 取り込んだ原稿ファイル。content は不変 (原稿は書き換えない) */
-export interface ManuscriptFile {
-  readonly id: number;
-  readonly name: string;
-  readonly content: string;
-}
 
 const MARKDOWN_NAME_PATTERN = /\.(md|markdown|txt)$/i;
 
 /**
  * アプリの状態。signals の一方向伝播:
- * 原稿ファイル → markdown-it 変換 → mermaid SVG 化 → マスター HTML 構築 →
- * ブロック一覧。改ページ Set はタブ寿命のみで原稿を書き換えない。
+ * 原稿ファイル → 変換 (Converter) → ブロック一覧。
+ * 改ページ Set はタブ寿命のみで原稿を書き換えない。
  */
 @Service()
 export class EditorStore {
-  private readonly mermaidRenderer = inject(MermaidRenderer);
+  private readonly converter = inject(Converter);
 
   private serial = 1;
-  /** 並べ替え・削除では再変換しない */
-  private readonly cache = new FragmentCache();
 
   private readonly manuscripts = signal<readonly ManuscriptFile[]>([]);
   /**
@@ -52,39 +40,8 @@ export class EditorStore {
    */
   private readonly pipeline = resource({
     params: () => this.manuscripts(),
-    loader: async ({ params: files }) => (isNonEmpty(files) ? this.runPipeline(files) : null),
+    loader: async ({ params: files }) => (isNonEmpty(files) ? this.converter.render(files) : null),
   });
-
-  private async runPipeline(files: readonly ManuscriptFile[]): Promise<RenderedDocument> {
-    const epoch = this.cache.begin();
-    await this.convertMissing(files);
-    this.evictStale(epoch, files);
-    return this.assembleFromCache(files);
-  }
-
-  private async convertMissing(files: readonly ManuscriptFile[]): Promise<void> {
-    const toRender = files.filter((file) => !this.cache.isCached(file.content));
-    const rendered = toRender.map((file) => ({ file, ...renderMarkdown(file.content) }));
-    const results = await this.mermaidRenderer.render(collectMermaidBlocks(rendered));
-    this.storeFragments(rendered, results);
-  }
-
-  private storeFragments(
-    rendered: readonly { file: ManuscriptFile; html: string }[],
-    results: ReadonlyMap<string, MermaidOutcome>,
-  ): void {
-    for (const r of rendered) {
-      this.cache.put(r.file.content, applyMermaidResults(r.html, results));
-    }
-  }
-
-  private evictStale(epoch: number, files: readonly ManuscriptFile[]): void {
-    this.cache.evict(epoch, new Set(files.map((file) => file.content)));
-  }
-
-  private assembleFromCache(files: readonly ManuscriptFile[]): RenderedDocument {
-    return buildRenderedDocument(files.map((file, index) => this.cache.fragmentFor(file, index)));
-  }
 
   private readonly notices = signal<readonly string[]>([]);
 
@@ -111,6 +68,12 @@ export class EditorStore {
   );
 
   async addFiles(files: readonly ImportSource[]): Promise<void> {
+    if (isNonEmpty(files)) {
+      await this.ingest(files);
+    }
+  }
+
+  private async ingest(files: readonly ImportSource[]): Promise<void> {
     const { loaded, failedNames } = await this.gatherContents(files);
     const markdownOnly = loaded.filter((f) => MARKDOWN_NAME_PATTERN.test(f.name));
     const { length: accepted } = markdownOnly;
@@ -178,12 +141,6 @@ export class EditorStore {
   }
 }
 
-/** 取り込み入力。File と同じ形の最小面 (名前と本文の遅延読み出し) */
-export interface ImportSource {
-  readonly name: string;
-  text(): Promise<string>;
-}
-
 const UNSUPPORTED_WARNING = 'Markdown (.md / .markdown / .txt) 以外のファイルは取り込めません';
 
 function importWarnings(nonMarkdownCount: number, failedNames: readonly string[]): string[] {
@@ -191,12 +148,6 @@ function importWarnings(nonMarkdownCount: number, failedNames: readonly string[]
   const failed =
     failedNames.length > 0 ? `読み込めなかったファイル: ${failedNames.join(', ')}` : null;
   return [notice, failed].filter((warning): warning is string => warning !== null);
-}
-
-function collectMermaidBlocks(
-  rendered: readonly { mermaidBlocks: readonly MermaidBlock[] }[],
-): readonly MermaidBlock[] {
-  return rendered.flatMap((r) => r.mermaidBlocks);
 }
 
 function isMarked(breaks: ReadonlySet<string>, blockId: string): boolean {

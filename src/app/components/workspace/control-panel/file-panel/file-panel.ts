@@ -1,8 +1,10 @@
 import { CdkDrag, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, Injector, afterNextRender, inject, signal } from '@angular/core';
+import { Component, ElementRef, Injector, inject } from '@angular/core';
 import { EditorStore } from '../../../../state/editor-store';
+import { Announcer } from './announcer';
 import { FileAddInput } from './file-add-input';
 import { FileRowItem } from './file-row-item';
+import { focusLater } from './move-focus';
 
 /**
  * 原稿ファイルの取り込みと並べ替え。並べ替えはドラッグとキーボード
@@ -37,20 +39,20 @@ import { FileRowItem } from './file-row-item';
           }
         </ul>
       }
-      <p class="sr-only" role="status" aria-live="polite">{{ announcement() }}</p>
+      <p class="sr-only" role="status" aria-live="polite">{{ announcer.message() }}</p>
     </section>
   `,
 })
 export class FilePanel {
   protected readonly store = inject(EditorStore);
-  protected readonly announcement = signal('');
+  protected readonly announcer = new Announcer();
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly injector = inject(Injector);
 
   protected onListDrop(event: CdkDragDrop<unknown>): void {
     if (this.store.isReorderable(event.previousIndex, event.currentIndex)) {
       this.store.reorder(event.previousIndex, event.currentIndex);
-      this.announceOrder(this.store.files()[event.currentIndex].name, event.currentIndex);
+      this.announcer.moved(this.store.files()[event.currentIndex].name, event.currentIndex);
     }
   }
 
@@ -58,26 +60,8 @@ export class FilePanel {
     if (this.store.isMovable(id, delta)) {
       this.store.nudge(id, delta);
       const index = this.store.files().findIndex((file) => file.id === id);
-      this.announceOrder(name, index);
-      afterNextRender(() => this.focusMovedFileButton(id, delta), { injector: this.injector });
+      this.announcer.moved(name, index);
+      focusLater(this.injector, this.elementRef.nativeElement, id, delta);
     }
-  }
-
-  /**
-   * 移動でボタンが disabled になるとフォーカスが body へ落ちる。同じファイルの
-   * 操作ボタンへ戻す (押した方向が無効なら反対方向のボタンへ)
-   */
-  private focusMovedFileButton(id: number, delta: -1 | 1): void {
-    const host = this.elementRef.nativeElement;
-    const selector = (dir: number) => `button[data-move-file="${id}"][data-move-dir="${dir}"]`;
-    const preferred = host.querySelector<HTMLButtonElement>(selector(delta));
-    const fallback = host.querySelector<HTMLButtonElement>(selector(-delta));
-    (preferred?.disabled === false ? preferred : fallback)?.focus();
-  }
-
-  private announceOrder(name: string, index: number): void {
-    this.announcement.set(
-      `${name}を${index + 1}番目に移動しました。改ページ指定はリセットされます`,
-    );
   }
 }
