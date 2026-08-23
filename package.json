@@ -15,8 +15,8 @@
     "test": "ng test && vitest run --config tools/vitest.config.ts",
     "e2e": "playwright test",
     "lint": "ng lint",
-    "format:check": "prettier --check 'src/**/*.ts' 'tools/**/*.ts' 'e2e/**/*.ts' eslint.config.ts",
-    "format": "prettier --write 'src/**/*.ts' 'tools/**/*.ts' 'e2e/**/*.ts' eslint.config.ts",
+    "format:check": "prettier --check .",
+    "format": "prettier --write .",
     "prepare": "husky"
   },
   "private": true,
