@@ -7,6 +7,7 @@ import { callOrPass } from './tools/eslint-rules/call-or-pass';
 import { ifOnlyAtStart } from './tools/eslint-rules/if-only-at-start';
 import { inlineShortTemplates } from './tools/eslint-rules/inline-short-templates';
 import { maxFunctionLines } from './tools/eslint-rules/max-function-lines';
+import { noElse } from './tools/eslint-rules/no-else';
 
 export default defineConfig([
   {
@@ -19,6 +20,7 @@ export default defineConfig([
           'if-only-at-start': ifOnlyAtStart,
           'inline-short-templates': inlineShortTemplates,
           'max-function-lines': maxFunctionLines,
+          'no-else': noElse,
         },
       },
     },
@@ -37,6 +39,7 @@ export default defineConfig([
       'printmd/call-or-pass': 'error',
       'printmd/if-only-at-start': 'error',
       'printmd/max-function-lines': ['error', { maxLines: 5 }],
+      'printmd/no-else': 'error',
     },
   },
   {
