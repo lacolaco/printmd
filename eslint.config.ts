@@ -32,6 +32,7 @@ export default defineConfig([
     ignores: ['**/*.spec.ts'],
     rules: {
       curly: ['error', 'all'],
+      'no-sequences': ['error', { allowInParentheses: false }],
       '@stylistic/max-statements-per-line': ['error', { max: 1 }],
       'printmd/call-or-pass': 'error',
       'printmd/if-only-at-start': 'error',
