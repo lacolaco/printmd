@@ -1,21 +1,12 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
 import * as ts from 'typescript';
+import { lookupSymbol, resolveAlias } from '../support/ts-utils';
 
 type MessageIds = 'singleImplementation';
 
 type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>[0]['create']>[0];
 
 const memo = new WeakMap<ts.Program, Map<ts.Symbol, number>>();
-
-function resolveAlias(checker: ts.TypeChecker, symbol: ts.Symbol): ts.Symbol {
-  const { flags } = symbol;
-  const isAlias = (flags & ts.SymbolFlags.Alias) !== 0;
-  return isAlias ? checker.getAliasedSymbol(symbol) : symbol;
-}
-
-function lookupSymbol(checker: ts.TypeChecker, node: ts.Node): ts.Symbol | undefined {
-  return checker.getSymbolAtLocation(node);
-}
 
 function symbolsAt(checker: ts.TypeChecker, node: ts.Node): ts.Symbol[] {
   const symbol = lookupSymbol(checker, node);

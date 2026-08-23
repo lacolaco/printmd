@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { ESLintUtils, type TSESLint, type TSESTree } from '@typescript-eslint/utils';
-import { maxLinesOption } from './options';
+import { maxLinesOption } from '../support/options';
 
 type MessageIds = 'inline';
 type Options = [{ maxLines?: number }?];

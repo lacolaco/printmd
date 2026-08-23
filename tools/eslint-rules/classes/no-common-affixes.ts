@@ -1,5 +1,5 @@
 import { ESLintUtils, type TSESLint, type TSESTree } from '@typescript-eslint/utils';
-import { allScopes, distinct } from './ast-utils';
+import { allScopes, distinct } from '../support/ast-utils';
 
 type MessageIds = 'commonAffix';
 
@@ -10,7 +10,6 @@ interface NamedEntry {
   node: TSESTree.Node;
 }
 
-/** 名前を構成する語を 1 回だけ計算した検査単位 */
 interface TaggedName {
   node: TSESTree.Node;
   words: readonly string[];

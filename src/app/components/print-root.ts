@@ -19,26 +19,22 @@ export class PrintRoot {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor() {
-    effect(() => this.sync());
+    effect(() => {
+      const host = this.host.nativeElement;
+      resetHost(host);
+      mountDocument(host, this.store.renderedDocument(), this.store.breaks());
+    });
   }
+}
 
-  private sync(): void {
-    const doc = this.store.renderedDocument();
-    const breaks = this.store.breaks();
-    const host = this.host.nativeElement;
-    resetHost(host);
-    this.mountDocument(host, doc, breaks);
-  }
-
-  private mountDocument(
-    host: HTMLElement,
-    doc: RenderedDocument | null,
-    breaks: ReadonlySet<string>,
-  ): void {
-    if (doc !== null) {
-      applyForcedBreaks(doc.container, doc.blocks, breaks);
-      host.append(doc.container);
-    }
+function mountDocument(
+  host: HTMLElement,
+  doc: RenderedDocument | null,
+  breaks: ReadonlySet<string>,
+): void {
+  if (doc !== null) {
+    applyForcedBreaks(doc.container, doc.blocks, breaks);
+    host.append(doc.container);
   }
 }
 

@@ -1,6 +1,6 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
 import * as ts from 'typescript';
-import { distinct } from './ast-utils';
+import { distinct } from '../support/ast-utils';
 
 type MessageIds = 'dataClump';
 

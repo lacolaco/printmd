@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { buildRenderedDocument } from './markdown/block-extractor';
-import { buildSegmentClone, measurePagination, splitAtForcedBreaks } from './page-count';
+import { buildRenderedDocument } from '../markdown/block-extractor';
+import { measurePagination, splitAtForcedBreaks } from './page-count';
+import { buildSegmentClone } from './segment-clone';
 
 const doc = () =>
   buildRenderedDocument([

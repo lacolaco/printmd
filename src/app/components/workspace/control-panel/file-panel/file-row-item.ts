@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { CdkDragHandle } from '@angular/cdk/drag-drop';
-import type { ManuscriptFile } from '../../../../state/editor-store';
+import type { ManuscriptFile } from '../../../../manuscript/manuscript';
 
 /** 原稿ファイルの 1 行。ドラッグハンドル・上下移動・削除の操作面 */
 @Component({

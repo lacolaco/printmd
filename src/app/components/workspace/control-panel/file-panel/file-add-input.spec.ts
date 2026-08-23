@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
+import type { ImportSource } from '../../../../manuscript/manuscript';
 import { FileAddInput } from './file-add-input';
 
 @Component({
@@ -8,7 +9,7 @@ import { FileAddInput } from './file-add-input';
   template: `<app-file-add-input (selected)="selections.push($event)" />`,
 })
 class Host {
-  readonly selections: (readonly File[])[] = [];
+  readonly selections: (readonly ImportSource[])[] = [];
 }
 
 describe('FileAddInput', () => {
@@ -21,7 +22,9 @@ describe('FileAddInput', () => {
     const file = new File(['# A'], 'a.md');
     Object.defineProperty(input, 'files', { value: [file], configurable: true });
     input.dispatchEvent(new Event('change'));
-    expect(fixture.componentInstance.selections).toEqual([[file]]);
+    expect(fixture.componentInstance.selections.map((s) => s.map((f) => f.name))).toEqual([
+      ['a.md'],
+    ]);
     expect(input.value).toBe('');
   });
 
@@ -38,7 +41,9 @@ describe('FileAddInput', () => {
     Object.defineProperty(drop, 'dataTransfer', { value: { files: [file] } });
     label.dispatchEvent(drop);
     expect(drop.defaultPrevented).toBe(true);
-    expect(fixture.componentInstance.selections).toEqual([[file]]);
+    expect(fixture.componentInstance.selections.map((s) => s.map((f) => f.name))).toEqual([
+      ['a.md'],
+    ]);
   });
 
   it('ファイルの無いドロップでは通知しない', () => {

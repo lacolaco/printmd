@@ -105,7 +105,6 @@ class Assembler {
     children.forEach((el, position) => this.blocks.push(this.toBlock(fragment, el, position)));
   }
 
-  /** 断片の HTML を要素化して container へ移し、トップレベル要素の一覧を返す */
   private spill(fragment: FileFragment): Element[] {
     const temp = document.createElement('div');
     temp.innerHTML = fragment.html;
@@ -114,7 +113,6 @@ class Assembler {
     return children;
   }
 
-  /** トップレベル要素 1 つぶんの Block を組み立て、data-block-id を付与する */
   private toBlock(fragment: FileFragment, el: Element, position: number): Block {
     const { fileIndex } = fragment;
     const id = `f${fileIndex}b${position}`;

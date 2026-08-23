@@ -1,5 +1,6 @@
-import { Component, output } from '@angular/core';
+import { Component, output, type OutputEmitterRef } from '@angular/core';
 import { isNonEmpty } from '../../../../collections';
+import { sourcesFrom, type ImportSource } from '../../../../manuscript/manuscript';
 
 /** 追加取り込みの入力面。ファイル選択とドロップを受けて選ばれたファイルを通知する */
 @Component({
@@ -22,7 +23,7 @@ import { isNonEmpty } from '../../../../collections';
   `,
 })
 export class FileAddInput {
-  readonly selected = output<readonly File[]>();
+  readonly selected = output<readonly ImportSource[]>();
 
   protected permitDrag(event: DragEvent): void {
     event.preventDefault();
@@ -30,18 +31,22 @@ export class FileAddInput {
 
   protected acceptDrop(event: DragEvent): void {
     event.preventDefault();
-    this.emitIfSelected([...(event.dataTransfer?.files ?? [])]);
+    emitSelection(this.selected, sourcesFrom(event.dataTransfer?.files));
   }
 
   protected readSelection(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.emitIfSelected([...(input.files ?? [])]);
+    emitSelection(this.selected, sourcesFrom(input.files));
     input.value = '';
   }
+}
 
-  private emitIfSelected(files: readonly File[]): void {
-    if (isNonEmpty(files)) {
-      this.selected.emit(files);
-    }
+/** ファイルの無いドロップは無視する */
+function emitSelection(
+  selected: OutputEmitterRef<readonly ImportSource[]>,
+  files: readonly ImportSource[],
+): void {
+  if (isNonEmpty(files)) {
+    selected.emit(files);
   }
 }

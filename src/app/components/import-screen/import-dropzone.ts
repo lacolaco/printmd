@@ -1,30 +1,7 @@
 import { Component, inject } from '@angular/core';
-import { EditorStore, type ImportSource } from '../../state/editor-store';
-
-/** デモ原稿 (public/demo/ に同梱)。ガイド + 著作権消滅作品の長文。取得と検証を閉じる */
-class Demo {
-  private readonly names = ['printmd-guide.md', 'hashire-merosu.md'];
-
-  sources(): ImportSource[] {
-    return this.names.map((name) => this.entry(name));
-  }
-
-  private entry(name: string): ImportSource {
-    return { name, text: () => this.load(name) };
-  }
-
-  private async load(name: string): Promise<string> {
-    const response = await fetch(`/demo/${name}`);
-    this.assert(response.ok, name);
-    return response.text();
-  }
-
-  private assert(ok: boolean, name: string): void {
-    if (!ok) {
-      throw new Error(`demo fetch failed: ${name}`);
-    }
-  }
-}
+import { sourcesFrom } from '../../manuscript/manuscript';
+import { EditorStore } from '../../state/editor-store';
+import { Demo } from './demo';
 
 /**
  * 空状態の取り込み面。最初の一手 (ドロップ / クリック選択) とアプリの用途を
@@ -61,10 +38,11 @@ class Demo {
 })
 export class ImportDropzone {
   private readonly store = inject(EditorStore);
+  private readonly demo = inject(Demo);
 
   protected readSelection(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.importFiles(input.files);
+    this.store.addFiles(sourcesFrom(input.files));
     input.value = '';
   }
 
@@ -74,19 +52,12 @@ export class ImportDropzone {
 
   protected acceptDrop(event: DragEvent): void {
     event.preventDefault();
-    this.importFiles(event.dataTransfer?.files);
+    this.store.addFiles(sourcesFrom(event.dataTransfer?.files));
   }
 
-  private importFiles(files: FileList | null | undefined): void {
-    if (files !== null && files !== undefined && files.length > 0) {
-      this.store.addFiles([...files]);
-    }
-  }
-
-  /** 同梱のデモ原稿を通常の取り込み経路で読み込む */
   protected loadDemo(event: Event): void {
     // label 内のボタンなので、既定動作 (ファイル選択ダイアログ) を抑止する
     event.preventDefault();
-    this.store.addFiles(new Demo().sources());
+    this.demo.load();
   }
 }

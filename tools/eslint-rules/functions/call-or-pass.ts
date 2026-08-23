@@ -9,7 +9,7 @@ import {
   isCallArgument,
   isReceiver,
   type FunctionNode,
-} from './ast-utils';
+} from '../support/ast-utils';
 
 type MessageIds = 'both';
 type Finding = TSESLint.ReportDescriptor<MessageIds>;
@@ -78,7 +78,7 @@ function mixedFunctions(
   return innermostOnly(distinct(candidates));
 }
 
-/** 赤線は関数のヘッダに出す (位置の計算は公式ヘルパーに委ねる) */
+/** 報告は関数のヘッダに出す */
 function findingAt(fn: FunctionNode, name: string, sourceCode: TSESLint.SourceCode): Finding {
   const loc = getFunctionHeadLocation(fn, sourceCode);
   return { loc, messageId: 'both', data: { name } };
