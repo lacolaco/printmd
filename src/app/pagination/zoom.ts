@@ -1,4 +1,3 @@
-import { Service, computed, signal } from '@angular/core';
 import { A4, MM_TO_PX } from './page-geometry';
 
 export const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
@@ -29,24 +28,17 @@ export function defaultZoomIndex(viewportWidth: number, hasSideColumn: boolean):
 }
 
 /** matchMedia を持たない環境 (jsdom) では実寸を既定にする */
-function startupStep(): number {
+export function startupStep(): number {
   return typeof window.matchMedia !== 'function'
     ? ZOOMS.indexOf(1)
     : defaultZoomIndex(window.innerWidth, window.matchMedia('(min-width: 768px)').matches);
 }
 
-/** ズーム段。100% = A4 実寸 */
-@Service()
-export class Zoom {
-  private readonly index = signal(startupStep());
-  readonly value = computed(() => ZOOMS[this.index()]);
-  readonly label = computed(() => `${Math.round(this.value() * 100)}%`);
+/** 段を delta ぶん送る (両端で頭打ち) */
+export function stepped(step: number, delta: -1 | 1): number {
+  return Math.min(ZOOMS.length - 1, Math.max(0, step + delta));
+}
 
-  by(delta: -1 | 1): void {
-    this.index.update((i) => Math.min(ZOOMS.length - 1, Math.max(0, i + delta)));
-  }
-
-  isAtLimit(delta: -1 | 1): boolean {
-    return delta === -1 ? this.index() === 0 : this.index() === ZOOMS.length - 1;
-  }
+export function isAtLimit(step: number, delta: -1 | 1): boolean {
+  return delta === -1 ? step === 0 : step === ZOOMS.length - 1;
 }

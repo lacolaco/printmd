@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { Editor } from '../../../editor';
 import { BreakState } from '../../../../state/break-state';
 import { DocumentState } from '../../../../state/document-state';
 import { ManuscriptState } from '../../../../state/manuscript-state';
@@ -31,7 +32,7 @@ import { BreakRowItem } from './break-row-item';
                   <app-break-row-item
                     [row]="row"
                     [checked]="marks.breaks().has(row.block.id)"
-                    (toggled)="marks.toggleBreak(row.block.id)"
+                    (toggled)="editor.toggleBreak(row.block.id)"
                   />
                 </li>
               }
@@ -46,4 +47,5 @@ export class BreakPanel {
   protected readonly store = inject(ManuscriptState);
   protected readonly documents = inject(DocumentState);
   protected readonly marks = inject(BreakState);
+  protected readonly editor = inject(Editor);
 }

@@ -1,5 +1,6 @@
 import { CdkDrag, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, Injector, inject } from '@angular/core';
+import { Editor } from '../../../editor';
 import { ManuscriptState } from '../../../../state/manuscript-state';
 import { Announcer } from './announcer';
 import { FileAddInput } from './file-add-input';
@@ -26,12 +27,12 @@ import { focusLater } from './move-focus';
               [first]="i === 0"
               [last]="last"
               (moved)="move(file.id, file.name, $event)"
-              (removed)="store.removeFile(file.id)"
+              (removed)="editor.removeFile(file.id)"
             />
           </li>
         }
       </ul>
-      <app-file-add-input (selected)="store.addFiles($event)" />
+      <app-file-add-input (selected)="editor.addFiles($event)" />
 
       @if (store.warnings().length > 0) {
         <ul class="mt-2 space-y-1" role="status">
@@ -46,20 +47,21 @@ import { focusLater } from './move-focus';
 })
 export class FilePanel {
   protected readonly store = inject(ManuscriptState);
+  protected readonly editor = inject(Editor);
   protected readonly announcer = inject(Announcer);
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly injector = inject(Injector);
 
   protected onListDrop(event: CdkDragDrop<unknown>): void {
-    if (this.store.isReorderable(event.previousIndex, event.currentIndex)) {
-      this.store.reorder(event.previousIndex, event.currentIndex);
+    if (this.editor.isReorderable(event.previousIndex, event.currentIndex)) {
+      this.editor.reorder(event.previousIndex, event.currentIndex);
       this.announcer.moved(this.store.files()[event.currentIndex].name, event.currentIndex);
     }
   }
 
   protected move(id: number, name: string, delta: -1 | 1): void {
-    if (this.store.isMovable(id, delta)) {
-      this.store.nudge(id, delta);
+    if (this.editor.isMovable(id, delta)) {
+      this.editor.nudge(id, delta);
       const index = this.store.files().findIndex((file) => file.id === id);
       this.announcer.moved(name, index);
       focusLater(this.injector, this.elementRef.nativeElement, id, delta);

@@ -1,26 +1,10 @@
 import { Service, inject, linkedSignal } from '@angular/core';
-import { FileOrder } from '../manuscript/file-order';
 import type { ManuscriptFile } from '../manuscript/manuscript';
 import { ManuscriptState } from './manuscript-state';
 
-function isMarked(breaks: ReadonlySet<string>, blockId: string): boolean {
-  return breaks.has(blockId);
-}
-
-function without(current: ReadonlySet<string>, blockId: string): ReadonlySet<string> {
-  const next = new Set(current);
-  next.delete(blockId);
-  return next;
-}
-
-function withAdded(current: ReadonlySet<string>, blockId: string): ReadonlySet<string> {
-  const next = new Set(current);
-  next.add(blockId);
-  return next;
-}
-
-function toggled(current: ReadonlySet<string>, blockId: string): ReadonlySet<string> {
-  return isMarked(current, blockId) ? without(current, blockId) : withAdded(current, blockId);
+/** prev が next の先頭部分か (要素は同一参照)。真なら「末尾への追記だけ」の変化 */
+function isPrefixOf(prev: readonly ManuscriptFile[], next: readonly ManuscriptFile[]): boolean {
+  return prev.length <= next.length && prev.every((file, index) => next[index] === file);
 }
 
 /** 改ページ指定。タブ寿命のみで原稿を書き換えない */
@@ -36,14 +20,14 @@ export class BreakState {
   private readonly marks = linkedSignal<readonly ManuscriptFile[], ReadonlySet<string>>({
     source: this.manuscripts.files,
     computation: (files, previous) =>
-      previous !== undefined && new FileOrder(previous.source).isPrefixOf(files)
+      previous !== undefined && isPrefixOf(previous.source, files)
         ? previous.value
         : new Set<string>(),
   });
 
   readonly breaks = this.marks.asReadonly();
 
-  toggleBreak(blockId: string): void {
-    this.marks.update((current) => toggled(current, blockId));
+  replace(breaks: ReadonlySet<string>): void {
+    this.marks.set(breaks);
   }
 }

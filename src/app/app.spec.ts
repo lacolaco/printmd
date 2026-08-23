@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './app';
 import { MermaidRenderer, type MermaidLike } from './mermaid/mermaid-renderer';
+import { Editor } from './components/editor';
 import { ManuscriptState } from './state/manuscript-state';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -35,8 +36,8 @@ describe('App', () => {
 
   it('原稿があれば印刷ボタンが window.print を呼ぶ', async () => {
     const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {});
-    const store = TestBed.inject(ManuscriptState);
-    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
+    const editor = TestBed.inject(Editor);
+    await editor.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -55,10 +56,10 @@ describe('App', () => {
   });
 
   it('原稿を取り込むとプレビューと印刷用マスターを表示する', async () => {
-    const store = TestBed.inject(ManuscriptState);
+    const editor = TestBed.inject(Editor);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
-    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し') }]);
+    await editor.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し') }]);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -69,8 +70,8 @@ describe('App', () => {
   });
 
   it('原稿があればファイルチップ列とプレビューを表示する', async () => {
-    const store = TestBed.inject(ManuscriptState);
-    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
+    const editor = TestBed.inject(Editor);
+    await editor.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await fixture.whenStable();

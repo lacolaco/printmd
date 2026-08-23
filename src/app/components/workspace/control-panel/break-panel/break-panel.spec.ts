@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../../../mermaid/mermaid-renderer';
 import { BreakState } from '../../../../state/break-state';
-import { ManuscriptState } from '../../../../state/manuscript-state';
+import { Editor } from '../../../editor';
 import { BreakPanel } from './break-panel';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -15,17 +15,19 @@ class FakeMermaidRenderer extends MermaidRenderer {
 }
 
 describe('BreakPanel', () => {
-  let store: ManuscriptState;
+  let editor: Editor;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [{ provide: MermaidRenderer, useClass: FakeMermaidRenderer }],
     });
-    store = TestBed.inject(ManuscriptState);
+    editor = TestBed.inject(Editor);
   });
 
   it('主要ブロックのチェック行を表示し、チェックで改ページを指定する', async () => {
-    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文の段落') }]);
+    await editor.addFiles([
+      { name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文の段落') },
+    ]);
     const fixture = TestBed.createComponent(BreakPanel);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -42,7 +44,9 @@ describe('BreakPanel', () => {
   });
 
   it('段落を含む全ブロックの行を document 順に表示する', async () => {
-    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文の段落') }]);
+    await editor.addFiles([
+      { name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文の段落') },
+    ]);
     const fixture = TestBed.createComponent(BreakPanel);
     fixture.detectChanges();
     await fixture.whenStable();

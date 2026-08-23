@@ -2,6 +2,7 @@ import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../mermaid/mermaid-renderer';
+import { Editor } from '../components/editor';
 import { BreakState } from './break-state';
 import { DocumentState } from './document-state';
 import { ManuscriptState } from './manuscript-state';
@@ -35,6 +36,7 @@ async function whenRendered(): Promise<void> {
 }
 
 describe('stores', () => {
+  let editor: Editor;
   let manuscripts: ManuscriptState;
   let documents: DocumentState;
   let marks: BreakState;
@@ -43,6 +45,7 @@ describe('stores', () => {
     TestBed.configureTestingModule({
       providers: [{ provide: MermaidRenderer, useClass: FakeMermaidRenderer }],
     });
+    editor = TestBed.inject(Editor);
     manuscripts = TestBed.inject(ManuscriptState);
     documents = TestBed.inject(DocumentState);
     marks = TestBed.inject(BreakState);
@@ -55,81 +58,81 @@ describe('stores', () => {
   });
 
   it('Markdown ファイルを取り込みブロックを構築する', async () => {
-    await manuscripts.addFiles([file('a.md', '# 見出し\n\n本文')]);
+    await editor.addFiles([file('a.md', '# 見出し\n\n本文')]);
     await whenRendered();
     expect(manuscripts.files().map((f) => f.name)).toEqual(['a.md']);
     expect(documents.blocks().map((b) => b.kind)).toEqual(['heading', 'paragraph']);
   });
 
   it('Markdown 以外の拡張子は取り込まず警告を出す', async () => {
-    await manuscripts.addFiles([file('image.png', 'dummy')]);
+    await editor.addFiles([file('image.png', 'dummy')]);
     await whenRendered();
     expect(manuscripts.files()).toEqual([]);
     expect(manuscripts.warnings().length).toBeGreaterThan(0);
   });
 
   it('複数ファイルを取り込むとファイル境界のブロックが isFileBoundary になる', async () => {
-    await manuscripts.addFiles([file('a.md', '# A'), file('b.md', '# B')]);
+    await editor.addFiles([file('a.md', '# A'), file('b.md', '# B')]);
     await whenRendered();
     expect(documents.blocks().map((b) => b.isFileBoundary)).toEqual([false, true]);
   });
 
   it('mermaid フェンスを SVG 化してブロック種別を mermaid にする', async () => {
-    await manuscripts.addFiles([file('a.md', '```mermaid\ngraph TD; A-->B;\n```')]);
+    await editor.addFiles([file('a.md', '```mermaid\ngraph TD; A-->B;\n```')]);
     await whenRendered();
     expect(documents.blocks().map((b) => b.kind)).toEqual(['mermaid']);
   });
 
   it('ファイルを削除すると改ページ指定がリセットされる', async () => {
-    await manuscripts.addFiles([file('a.md', '# A'), file('b.md', '# B')]);
+    await editor.addFiles([file('a.md', '# A'), file('b.md', '# B')]);
     await whenRendered();
     const id = documents.blocks()[0].id;
-    marks.toggleBreak(id);
+    editor.toggleBreak(id);
     expect(marks.breaks().has(id)).toBe(true);
-    manuscripts.removeFile(manuscripts.files()[0].id);
+    editor.removeFile(manuscripts.files()[0].id);
     await whenRendered();
     expect(marks.breaks().size).toBe(0);
   });
 
   it('ファイルを並べ替えると改ページ指定がリセットされる', async () => {
-    await manuscripts.addFiles([file('a.md', '# A'), file('b.md', '# B')]);
+    await editor.addFiles([file('a.md', '# A'), file('b.md', '# B')]);
     await whenRendered();
-    marks.toggleBreak(documents.blocks()[0].id);
-    manuscripts.nudge(manuscripts.files()[0].id, 1);
+    editor.toggleBreak(documents.blocks()[0].id);
+    editor.nudge(manuscripts.files()[0].id, 1);
     await whenRendered();
     expect(marks.breaks().size).toBe(0);
     expect(manuscripts.files().map((f) => f.name)).toEqual(['b.md', 'a.md']);
   });
 
   it('ファイル追加だけでは改ページ指定を維持する', async () => {
-    await manuscripts.addFiles([file('a.md', '# A')]);
+    await editor.addFiles([file('a.md', '# A')]);
     await whenRendered();
-    marks.toggleBreak(documents.blocks()[0].id);
-    await manuscripts.addFiles([file('b.md', '# B')]);
+    editor.toggleBreak(documents.blocks()[0].id);
+    await editor.addFiles([file('b.md', '# B')]);
     await whenRendered();
     expect(marks.breaks().has('f0b0')).toBe(true);
   });
 
   it('doc の読み取りは DOM を変異させない (クラス付与は消費者の描画時に行う)', async () => {
-    await manuscripts.addFiles([file('a.md', '# A\n\n本文')]);
+    await editor.addFiles([file('a.md', '# A\n\n本文')]);
     await whenRendered();
-    marks.toggleBreak(documents.blocks()[1].id);
+    editor.toggleBreak(documents.blocks()[1].id);
     const container = documents.renderedDocument()!.container;
     expect([...container.children].some((el) => el.classList.contains('forced-break'))).toBe(false);
   });
 
   it('toggleBreak は同じ ID の追加/削除を繰り返せる', () => {
-    marks.toggleBreak('f0b0');
+    editor.toggleBreak('f0b0');
     expect(marks.breaks().has('f0b0')).toBe(true);
-    marks.toggleBreak('f0b0');
+    editor.toggleBreak('f0b0');
     expect(marks.breaks().has('f0b0')).toBe(false);
   });
 
   it('存在しない ID の removeFile では改ページ指定を消さない', async () => {
-    await manuscripts.addFiles([file('a.md', '# A')]);
+    await editor.addFiles([file('a.md', '# A')]);
     await whenRendered();
-    marks.toggleBreak(documents.blocks()[0].id);
-    manuscripts.removeFile(9999);
+    editor.toggleBreak(documents.blocks()[0].id);
+    editor.removeFile(9999);
     await whenRendered();
     expect(marks.breaks().size).toBe(1);
     expect(manuscripts.files()).toHaveLength(1);
@@ -164,15 +167,15 @@ describe('変換の競合', () => {
   }
 
   it('遅延して解決した古い変換が、現行文書のキャッシュを追い出して壊さない', async () => {
-    const manuscripts = TestBed.inject(ManuscriptState);
+    const editor = TestBed.inject(Editor);
     const documents = TestBed.inject(DocumentState);
     const mermaid = '```mermaid\ngraph LR\nX-->Y\n```';
 
     // loader1: [A] を開始、A の mermaid が保留のまま (pending[0])
-    await manuscripts.addFiles([file('a.md', `# A\n\n${mermaid}`)]);
+    await editor.addFiles([file('a.md', `# A\n\n${mermaid}`)]);
     await settle();
     // loader2: [A, B] を開始。A 未キャッシュのため A から再変換 (pending[1])
-    await manuscripts.addFiles([file('b.md', `# B\n\n${mermaid}`)]);
+    await editor.addFiles([file('b.md', `# B\n\n${mermaid}`)]);
     await settle();
     expect(pending.length).toBe(2);
     // loader2 の A → B を順に解決し、loader2 を完走させる (A, B がキャッシュされる)
@@ -181,7 +184,7 @@ describe('変換の競合', () => {
     pending[2]({ svg: '<svg>B2</svg>' });
     await settle();
     // loader3: [A, B, C] を開始。A, B はキャッシュ済みで C だけ保留 (pending[3])
-    await manuscripts.addFiles([file('c.md', `# C\n\n${mermaid}`)]);
+    await editor.addFiles([file('c.md', `# C\n\n${mermaid}`)]);
     await settle();
     expect(pending.length).toBe(4);
     // 古い loader1 がいま解決する。keep={A} の追い出しで B を消してはならない

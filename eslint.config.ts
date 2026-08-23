@@ -28,6 +28,10 @@ const LAYERS = [
     patterns: [
       { group: ['**/components/**'], message: 'state は components に依存しない' },
       { group: ['**/mermaid/**'], message: 'state は変換の実装に依存しない。Converter を経由する' },
+      {
+        group: ['**/manuscript/**', '!**/manuscript/converter', '!**/manuscript/manuscript'],
+        message: 'state は操作ロジックに依存しない。判断は Editor が担い、状態は結果を受けるだけ',
+      },
     ],
     rules: { 'printmd/require-state': 'error' },
   },

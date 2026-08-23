@@ -2,7 +2,6 @@ import { Service, computed, inject } from '@angular/core';
 import { measurePagination } from '../pagination/page-count';
 import { BreakState } from './break-state';
 import { DocumentState } from './document-state';
-import { Zoom } from '../pagination/zoom';
 
 /**
  * 紙面ビューの表示状態。操作 UI (ヘッダ) と描画 (プレビュー) が離れているため
@@ -12,8 +11,6 @@ import { Zoom } from '../pagination/zoom';
 export class ViewerState {
   private readonly documents = inject(DocumentState);
   private readonly marks = inject(BreakState);
-
-  readonly zoom = inject(Zoom);
 
   /**
    * ページ組。(doc, breaks) を現在の CSS で組んだときのレイアウト結果の
