@@ -1,5 +1,7 @@
+import type { ImportSource } from '../../manuscript';
+
 /** デモ原稿 1 冊。それ自体が取り込み入力 (ImportSource) として振る舞う */
-export class DemoManuscript {
+export class DemoManuscript implements ImportSource {
   constructor(readonly name: string) {}
 
   async text(): Promise<string> {

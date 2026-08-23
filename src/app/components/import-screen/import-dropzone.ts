@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { fromFileList } from '../../collections';
+import { sourcesFrom } from '../../manuscript';
 import { EditorStore } from '../../state/editor-store';
 import { Demo } from './demo';
 
@@ -42,7 +42,7 @@ export class ImportDropzone {
 
   protected readSelection(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.store.addFiles(fromFileList(input.files));
+    this.store.addFiles(sourcesFrom(input.files));
     input.value = '';
   }
 
@@ -52,7 +52,7 @@ export class ImportDropzone {
 
   protected acceptDrop(event: DragEvent): void {
     event.preventDefault();
-    this.store.addFiles(fromFileList(event.dataTransfer?.files));
+    this.store.addFiles(sourcesFrom(event.dataTransfer?.files));
   }
 
   protected loadDemo(event: Event): void {

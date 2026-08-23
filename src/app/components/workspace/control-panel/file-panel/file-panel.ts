@@ -14,6 +14,7 @@ import { focusLater } from './move-focus';
 @Component({
   selector: 'app-file-panel',
   imports: [CdkDrag, CdkDropList, FileAddInput, FileRowItem],
+  providers: [Announcer],
   template: `
     <section aria-label="原稿ファイル">
       <ul class="space-y-1" role="list" cdkDropList (cdkDropListDropped)="onListDrop($event)">
@@ -45,7 +46,7 @@ import { focusLater } from './move-focus';
 })
 export class FilePanel {
   protected readonly store = inject(EditorStore);
-  protected readonly announcer = new Announcer();
+  protected readonly announcer = inject(Announcer);
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly injector = inject(Injector);
 

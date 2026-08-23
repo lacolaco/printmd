@@ -9,8 +9,3 @@ export function ifDefined<T>(value: T | undefined, use: (value: T) => void): voi
     use(value);
   }
 }
-
-/** ドロップやファイル選択の FileList を、null / undefined を吸収して配列へそろえる */
-export function fromFileList(files: FileList | null | undefined): readonly File[] {
-  return files === null || files === undefined ? [] : [...files];
-}

@@ -12,6 +12,7 @@ import { noCommonAffixes } from './tools/eslint-rules/no-common-affixes';
 import { noDataClump } from './tools/eslint-rules/no-data-clump';
 import { noElse } from './tools/eslint-rules/no-else';
 import { noGetterSetter } from './tools/eslint-rules/no-getter-setter';
+import { noNewInComponentProps } from './tools/eslint-rules/no-new-in-component-props';
 import { noPrivateComponentMethods } from './tools/eslint-rules/no-private-component-methods';
 import { noSingleImplementationInterface } from './tools/eslint-rules/no-single-implementation-interface';
 import { noSwitch } from './tools/eslint-rules/no-switch';
@@ -78,6 +79,7 @@ export default defineConfig([
           'no-data-clump': noDataClump,
           'no-else': noElse,
           'no-getter-setter': noGetterSetter,
+          'no-new-in-component-props': noNewInComponentProps,
           'no-private-component-methods': noPrivateComponentMethods,
           'no-single-implementation-interface': noSingleImplementationInterface,
           'no-switch': noSwitch,
@@ -107,6 +109,7 @@ export default defineConfig([
       'printmd/no-data-clump': 'error',
       'printmd/no-else': 'error',
       'printmd/no-getter-setter': 'error',
+      'printmd/no-new-in-component-props': 'error',
       'printmd/no-private-component-methods': 'error',
       'printmd/no-single-implementation-interface': 'error',
       'printmd/no-switch': 'error',
