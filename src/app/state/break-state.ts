@@ -1,11 +1,7 @@
 import { Service, inject, linkedSignal } from '@angular/core';
+import { isPrefixOf } from '../collections';
 import type { ManuscriptFile } from '../manuscript/manuscript';
 import { ManuscriptState } from './manuscript-state';
-
-/** prev が next の先頭部分か (要素は同一参照)。真なら「末尾への追記だけ」の変化 */
-function isPrefixOf(prev: readonly ManuscriptFile[], next: readonly ManuscriptFile[]): boolean {
-  return prev.length <= next.length && prev.every((file, index) => next[index] === file);
-}
 
 /** 改ページ指定。タブ寿命のみで原稿を書き換えない */
 @Service()

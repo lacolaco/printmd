@@ -7,7 +7,7 @@
 - `pagination` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
 - `marks` は linkedSignal: ManuscriptState.files に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / Announcer の message) は省略
-- ズーム段の状態は `ZoomState` (index / value / label)。段送り・上限判定・初期段の決定は pagination/zoom.ts の純関数で、Header が判断して replace で置き換える
+- ズーム段の状態は `ZoomState` (index / value / label)。段送り・上限判定・初期段の決定は pagination/zoom.ts の純関数で、Editor が判断して replace で置き換える
 
 ```mermaid
 flowchart LR
@@ -79,7 +79,7 @@ flowchart LR
   A1 -- "addFiles / removeFile /<br/>nudge / reorder" --> S1
   S1 -- "source 連動:<br/>追記=維持 / 構造変更=リセット" --> S2
   A2 -- toggleBreak --> S2
-  A3 -- "Header: stepped → replace" --> V1
+  A3 -- "Editor: stepped → replace" --> V1
 
   S1 -- "params → loader<br/>(Converter: markdown 変換 +<br/>mermaid SVG 化 + キャッシュ)" --> S4
   S4 --> S3

@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { Toolbar, ToolbarWidget } from '@angular/aria/toolbar';
-import { isAtLimit, stepped } from '../pagination/zoom';
+import { Editor } from './editor';
 import { DocumentState } from '../state/document-state';
 import { ManuscriptState } from '../state/manuscript-state';
 import { ViewerState } from '../state/viewer-state';
@@ -27,9 +27,9 @@ import { ZoomState } from '../state/zoom-state';
             class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
             ngToolbarWidget
             value="zoom-out"
-            [disabled]="isLimited(-1)"
+            [disabled]="!editor.isZoomable(-1)"
             aria-label="縮小"
-            (click)="shift(-1)"
+            (click)="editor.zoomBy(-1)"
           >
             −
           </button>
@@ -38,9 +38,9 @@ import { ZoomState } from '../state/zoom-state';
             class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
             ngToolbarWidget
             value="zoom-in"
-            [disabled]="isLimited(1)"
+            [disabled]="!editor.isZoomable(1)"
             aria-label="拡大"
-            (click)="shift(1)"
+            (click)="editor.zoomBy(1)"
           >
             ＋
           </button>
@@ -63,19 +63,12 @@ export class Header {
   protected readonly documents = inject(DocumentState);
   protected readonly viewer = inject(ViewerState);
   protected readonly zoom = inject(ZoomState);
+  protected readonly editor = inject(Editor);
 
   protected readonly statusLabel = computed(() => {
     const count = this.viewer.pageCount();
     return this.documents.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
   });
-
-  protected shift(delta: -1 | 1): void {
-    this.zoom.replace(stepped(this.zoom.index(), delta));
-  }
-
-  protected isLimited(delta: -1 | 1): boolean {
-    return isAtLimit(this.zoom.index(), delta);
-  }
 
   protected print(): void {
     window.print();
