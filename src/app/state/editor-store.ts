@@ -1,11 +1,13 @@
 import { Service, computed, inject, linkedSignal, resource, signal } from '@angular/core';
-import type { Block, FileFragment, RenderedDocument } from '../markdown/block-extractor';
+import type { Block, RenderedDocument } from '../markdown/block-extractor';
 import { buildRenderedDocument } from '../markdown/block-extractor';
 import { applyMermaidResults } from '../mermaid/apply-mermaid-results';
 import { isNonEmpty } from '../collections';
 import { groupBlocks } from './block-groups';
 import { MermaidRenderer, type MermaidOutcome } from '../mermaid/mermaid-renderer';
 import { renderMarkdown, type MermaidBlock } from '../markdown/render-markdown';
+import { FileOrder } from './file-order';
+import { FragmentCache } from './fragment-cache';
 
 /** 取り込んだ原稿ファイル。content は不変 (原稿は書き換えない) */
 export interface ManuscriptFile {
@@ -16,90 +18,11 @@ export interface ManuscriptFile {
 
 const MARKDOWN_NAME_PATTERN = /\.(md|markdown|txt)$/i;
 
-/** 原稿ファイル列の純粋操作。並べ替えの検証・実行と、追記だけの変化の判定を閉じる */
-class FileOrder {
-  constructor(private readonly items: readonly ManuscriptFile[]) {}
-
-  /** 自身が next の先頭部分か (要素は同一参照)。真なら「末尾への追記だけ」の変化 */
-  isPrefixOf(next: readonly ManuscriptFile[]): boolean {
-    const { items } = this;
-    return items.length <= next.length && items.every((file, index) => next[index] === file);
-  }
-
-  reordered(from: number, to: number): readonly ManuscriptFile[] {
-    return this.isMovable(from, to) ? this.spliced(from, to) : this.items;
-  }
-
-  isMovable(from: number, to: number): boolean {
-    const { length } = this.items;
-    return from !== to && from >= 0 && to >= 0 && from < length && to < length;
-  }
-
-  /** id のファイルを delta 方向へ動かせるか */
-  isNudgeable(id: number, delta: -1 | 1): boolean {
-    const index = this.items.findIndex((file) => file.id === id);
-    return this.isMovable(index, index + delta);
-  }
-
-  private spliced(from: number, to: number): readonly ManuscriptFile[] {
-    const next = [...this.items];
-    next.splice(to, 0, ...next.splice(from, 1));
-    return next;
-  }
-}
-
 /**
  * アプリの状態。signals の一方向伝播:
  * 原稿ファイル → markdown-it 変換 → mermaid SVG 化 → マスター HTML 構築 →
  * ブロック一覧。改ページ Set はタブ寿命のみで原稿を書き換えない。
  */
-/**
- * ファイル内容 → mermaid 適用済み HTML のキャッシュ。世代管理と追い出しを閉じる。
- * mermaid 待ちの間に params が変わると複数の loader が重なり、遅れて解決した
- * 古い loader が古い keep 集合でキャッシュを追い出す競合がある (現行文書の
- * エントリを消して結果を壊す)。追い出しは最新世代だけが行う
- */
-class FragmentCache {
-  private readonly entries = new Map<string, string>();
-  private epoch = 0;
-
-  /** 新しい世代を開始し、その世代番号を返す */
-  begin(): number {
-    return ++this.epoch;
-  }
-
-  isCached(content: string): boolean {
-    return this.entries.has(content);
-  }
-
-  put(content: string, html: string): void {
-    this.entries.set(content, html);
-  }
-
-  /** 古い loader は最新世代の追い出しでエントリを失い得るが、その結果は resource が捨てる */
-  fragmentFor(file: ManuscriptFile, fileIndex: number): FileFragment {
-    return { fileIndex, fileName: file.name, html: this.entries.get(file.content) ?? '' };
-  }
-
-  evict(epoch: number, keep: ReadonlySet<string>): void {
-    if (epoch === this.epoch) {
-      this.prune(keep);
-    }
-  }
-
-  private prune(keep: ReadonlySet<string>): void {
-    for (const key of this.entries.keys()) {
-      this.drop(keep, key);
-    }
-  }
-
-  private drop(keep: ReadonlySet<string>, key: string): void {
-    if (!keep.has(key)) {
-      this.entries.delete(key);
-    }
-  }
-}
-
 @Service()
 export class EditorStore {
   private readonly mermaidRenderer = inject(MermaidRenderer);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ZOOMS, defaultZoomIndex } from './viewer-state';
+import { ZOOMS, defaultZoomIndex } from './zoom';
 
 describe('defaultZoomIndex', () => {
   it('広い画面では 100% (実寸) を上限とする', () => {

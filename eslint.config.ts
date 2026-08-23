@@ -57,6 +57,7 @@ export default defineConfig([
     rules: {
       complexity: ['error', { max: 5 }],
       curly: ['error', 'all'],
+      'max-classes-per-file': ['error', 1],
       'no-sequences': ['error', { allowInParentheses: false }],
       '@stylistic/max-statements-per-line': ['error', { max: 1 }],
       'printmd/call-or-pass': 'error',

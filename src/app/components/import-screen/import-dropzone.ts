@@ -1,27 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { EditorStore, type ImportSource } from '../../state/editor-store';
-
-/** デモ原稿 1 冊。それ自体が取り込み入力 (ImportSource) として振る舞う */
-class DemoManuscript {
-  constructor(readonly name: string) {}
-
-  async text(): Promise<string> {
-    const response = await fetch(`/demo/${this.name}`);
-    this.assert(response.ok);
-    return response.text();
-  }
-
-  private assert(ok: boolean): void {
-    if (!ok) {
-      throw new Error(`demo fetch failed: ${this.name}`);
-    }
-  }
-}
-
-/** public/demo/ に同梱。ガイド + 著作権消滅作品の長文 */
-const DEMOS: readonly ImportSource[] = ['printmd-guide.md', 'hashire-merosu.md'].map(
-  (name) => new DemoManuscript(name),
-);
+import { EditorStore } from '../../state/editor-store';
+import { Demo } from './demo';
 
 /**
  * 空状態の取り込み面。最初の一手 (ドロップ / クリック選択) とアプリの用途を
@@ -58,6 +37,7 @@ const DEMOS: readonly ImportSource[] = ['printmd-guide.md', 'hashire-merosu.md']
 })
 export class ImportDropzone {
   private readonly store = inject(EditorStore);
+  private readonly demo = inject(Demo);
 
   protected readSelection(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -80,10 +60,9 @@ export class ImportDropzone {
     }
   }
 
-  /** 同梱のデモ原稿を通常の取り込み経路で読み込む */
   protected loadDemo(event: Event): void {
     // label 内のボタンなので、既定動作 (ファイル選択ダイアログ) を抑止する
     event.preventDefault();
-    this.store.addFiles(DEMOS);
+    this.demo.load();
   }
 }
