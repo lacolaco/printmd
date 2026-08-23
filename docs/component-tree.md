@@ -16,7 +16,7 @@ flowchart TB
   BREAKROW["BreakRowItem<br/><small>一覧の 1 行 (ラベル・インデント・強調)</small>"]
   FILEROW["FileRowItem<br/><small>ファイル行の操作面 (移動・削除)</small>"]
   FILEADD["FileAddInput<br/><small>追加取り込みの入力面</small>"]
-  FOOTER["Footer<br/><small>下端の帯: 著作権表記とライセンス導線<br/>(ヘッダと対)</small>"]
+  FOOTER["Footer<br/><small>下端の帯: 著作権表記・ライセンス導線・Angular バージョン<br/>(ヘッダと対)</small>"]
   DROP["ImportDropzone<br/><small>取り込み面</small>"]
   PRINT["PrintRoot<br/><small>印刷対象 (変換済み文書の掲示)</small>"]
 
