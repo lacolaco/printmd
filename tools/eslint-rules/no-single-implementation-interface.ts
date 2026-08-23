@@ -13,23 +13,23 @@ function resolveAlias(checker: ts.TypeChecker, symbol: ts.Symbol): ts.Symbol {
   return isAlias ? checker.getAliasedSymbol(symbol) : symbol;
 }
 
-function rawSymbolAt(checker: ts.TypeChecker, node: ts.Node): ts.Symbol | undefined {
+function lookupSymbol(checker: ts.TypeChecker, node: ts.Node): ts.Symbol | undefined {
   return checker.getSymbolAtLocation(node);
 }
 
 function symbolsAt(checker: ts.TypeChecker, node: ts.Node): ts.Symbol[] {
-  const symbol = rawSymbolAt(checker, node);
+  const symbol = lookupSymbol(checker, node);
   return symbol === undefined ? [] : [resolveAlias(checker, symbol)];
 }
 
-function isImplementsClause(clause: ts.HeritageClause): boolean {
+function implementsClause(clause: ts.HeritageClause): boolean {
   return clause.token === ts.SyntaxKind.ImplementsKeyword;
 }
 
-function implementsClausesOf(node: ts.Node): readonly ts.HeritageClause[] {
+function ownClauses(node: ts.Node): readonly ts.HeritageClause[] {
   const cls = ts.isClassDeclaration(node) || ts.isClassExpression(node) ? node : undefined;
   const clauses = cls?.heritageClauses ?? [];
-  return clauses.filter(isImplementsClause);
+  return clauses.filter(implementsClause);
 }
 
 function heritageSymbols(checker: ts.TypeChecker, clause: ts.HeritageClause): ts.Symbol[] {
@@ -38,7 +38,7 @@ function heritageSymbols(checker: ts.TypeChecker, clause: ts.HeritageClause): ts
 
 /** 部分木から implements されたインタフェースのシンボルを集める */
 function collectImplemented(checker: ts.TypeChecker, node: ts.Node): ts.Symbol[] {
-  const own = implementsClausesOf(node).flatMap((clause) => heritageSymbols(checker, clause));
+  const own = ownClauses(node).flatMap((clause) => heritageSymbols(checker, clause));
   const nested: ts.Symbol[] = [];
   ts.forEachChild(node, (child) => {
     nested.push(...collectImplemented(checker, child));
@@ -52,14 +52,14 @@ function countBy(symbols: readonly ts.Symbol[]): Map<ts.Symbol, number> {
   return counts;
 }
 
-function implementerCounts(program: ts.Program): Map<ts.Symbol, number> {
+function tallyImplementers(program: ts.Program): Map<ts.Symbol, number> {
   const checker = program.getTypeChecker();
   const files = program.getSourceFiles().filter((file) => !file.isDeclarationFile);
   return countBy(files.flatMap((file) => collectImplemented(checker, file)));
 }
 
 function cachedCounts(program: ts.Program): Map<ts.Symbol, number> {
-  const cached = countsCache.get(program) ?? implementerCounts(program);
+  const cached = countsCache.get(program) ?? tallyImplementers(program);
   countsCache.set(program, cached);
   return cached;
 }

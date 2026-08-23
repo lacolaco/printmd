@@ -5,31 +5,30 @@
  * リテラルで書かれている (値を変えるときはそちらも追随させること)
  */
 
-/** A4 の紙寸法 */
-export const PAGE_WIDTH_MM = 210;
-export const PAGE_HEIGHT_MM = 297;
-/** 四辺の余白 */
-export const PAGE_MARGIN_MM = 16;
+/** A4 の紙寸法と四辺の余白 */
+const page = { width: 210, height: 297, margin: 16 } as const;
 /** 版面 (余白を除いた印字領域) */
-export const CONTENT_WIDTH_MM = PAGE_WIDTH_MM - PAGE_MARGIN_MM * 2;
-export const CONTENT_HEIGHT_MM = PAGE_HEIGHT_MM - PAGE_MARGIN_MM * 2;
-/** 多段組プレビューの段間 */
-export const COLUMN_GAP_MM = 16;
-/** 段 i の水平オフセット単位 (版面幅 + 段間) */
-export const COLUMN_STEP_MM = CONTENT_WIDTH_MM + COLUMN_GAP_MM;
+const content = { width: page.width - page.margin * 2, height: page.height - page.margin * 2 };
+/** 多段組プレビューの段間と、段 i の水平オフセット単位 (版面幅 + 段間) */
+const gap = 16;
+const column = { gap, step: content.width + gap };
+
+/** 紙面の全寸法 (単位 mm) */
+export const A4_MM = { page, content, column } as const;
+
 /** 1mm を CSS px に換算する係数 (96dpi 基準) */
 export const MM_TO_PX = 96 / 25.4;
 
 const CSS_VARIABLES: readonly (readonly [name: string, valueMm: number])[] = [
-  ['--page-width', PAGE_WIDTH_MM],
-  ['--page-height', PAGE_HEIGHT_MM],
-  ['--page-margin', PAGE_MARGIN_MM],
-  ['--content-width', CONTENT_WIDTH_MM],
-  ['--content-height', CONTENT_HEIGHT_MM],
-  ['--column-gap', COLUMN_GAP_MM],
+  ['--page-width', page.width],
+  ['--page-height', page.height],
+  ['--page-margin', page.margin],
+  ['--content-width', content.width],
+  ['--content-height', content.height],
+  ['--column-gap', column.gap],
 ];
 
 /** 画面 CSS が参照するカスタムプロパティとして定義値を注入する */
-export function applyPageGeometryCssVariables(root: HTMLElement): void {
+export function applyGeometryStyles(root: HTMLElement): void {
   CSS_VARIABLES.forEach(([name, valueMm]) => root.style.setProperty(name, `${valueMm}mm`));
 }

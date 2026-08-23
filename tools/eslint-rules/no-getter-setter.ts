@@ -9,19 +9,19 @@ type Services = ReturnType<typeof ESLintUtils.getParserServices>;
 
 const ACCESSOR_NAME_PATTERN = /^(get|set)[A-Z_$]/;
 
-function methodNameOf(node: TSESTree.MethodDefinition): string {
+function declaredName(node: TSESTree.MethodDefinition): string {
   const { key } = node;
   return key.type === 'Identifier' ? key.name : '';
 }
 
 /** 構文の get/set アクセサ、または getXxx / setXxx 命名のメソッドか */
-function isAccessorLike(node: TSESTree.MethodDefinition): boolean {
+function looksAccessor(node: TSESTree.MethodDefinition): boolean {
   const { kind } = node;
   const isSyntaxAccessor = kind === 'get' || kind === 'set';
-  return isSyntaxAccessor || ACCESSOR_NAME_PATTERN.test(methodNameOf(node));
+  return isSyntaxAccessor || ACCESSOR_NAME_PATTERN.test(declaredName(node));
 }
 
-function isBooleanType(type: ts.Type): boolean {
+function booleanFlagged(type: ts.Type): boolean {
   const { flags } = type;
   return (flags & (ts.TypeFlags.BooleanLike | ts.TypeFlags.Boolean)) !== 0;
 }
@@ -40,7 +40,7 @@ function firstParameterType(
 }
 
 /** ブール型フィールドの例外: getter は返り値、setter は第 1 引数がブール型なら許す */
-function isBooleanAccessor(
+function exemptedBoolean(
   checker: ts.TypeChecker,
   declaration: ts.SignatureDeclaration,
   isSetter: boolean,
@@ -48,15 +48,15 @@ function isBooleanAccessor(
   const type = isSetter
     ? firstParameterType(checker, declaration)
     : returnTypeOf(checker, declaration);
-  return isBooleanType(type);
+  return booleanFlagged(type);
 }
 
-function isSetterLike(node: TSESTree.MethodDefinition): boolean {
+function writesValue(node: TSESTree.MethodDefinition): boolean {
   const { kind } = node;
-  return kind === 'set' || methodNameOf(node).startsWith('set');
+  return kind === 'set' || declaredName(node).startsWith('set');
 }
 
-function reportAccessor(context: Context, node: TSESTree.MethodDefinition): void {
+function flagViolation(context: Context, node: TSESTree.MethodDefinition): void {
   const { key } = node;
   context.report({ node: key, messageId: 'noGetterSetter' });
 }
@@ -67,9 +67,9 @@ function checkMethod(
   esMap: Services['esTreeNodeToTSNodeMap'],
   node: TSESTree.MethodDefinition,
 ): void {
-  const accessorLike = isAccessorLike(node);
+  const accessorLike = looksAccessor(node);
   const declaration = esMap.get(node) as ts.SignatureDeclaration;
-  const excepted = accessorLike && isBooleanAccessor(checker, declaration, isSetterLike(node));
+  const excepted = accessorLike && exemptedBoolean(checker, declaration, writesValue(node));
   reportUnlessExcepted(context, node, accessorLike && !excepted);
 }
 
@@ -79,17 +79,13 @@ function reportUnlessExcepted(
   violated: boolean,
 ): void {
   if (violated) {
-    reportAccessor(context, node);
+    flagViolation(context, node);
   }
-}
-
-function checkerOf(program: ts.Program): ts.TypeChecker {
-  return program.getTypeChecker();
 }
 
 function makeListener(context: Context, services: Services) {
   const { program, esTreeNodeToTSNodeMap } = services;
-  const checker = checkerOf(program);
+  const checker = program.getTypeChecker();
   return (node: TSESTree.MethodDefinition): void =>
     checkMethod(context, checker, esTreeNodeToTSNodeMap, node);
 }

@@ -10,7 +10,7 @@ const MERMAID_FAILED_MESSAGE = 'mermaid の描画に失敗したため、元の�
  * ブロック + 警告文に落とす。結果に含まれない (未解決の) プレースホルダは
  * そのまま残す。
  */
-function containsPlaceholder(html: string): boolean {
+function needsMermaid(html: string): boolean {
   return html.includes('mermaid-placeholder');
 }
 
@@ -18,30 +18,25 @@ export function applyMermaidResults(
   html: string,
   results: ReadonlyMap<string, MermaidOutcome>,
 ): string {
-  return containsPlaceholder(html) ? replacePlaceholders(html, results) : html;
+  return needsMermaid(html) ? replacePlaceholders(html, results) : html;
 }
 
 function replacePlaceholders(html: string, results: ReadonlyMap<string, MermaidOutcome>): string {
   const temp = document.createElement('div');
   temp.innerHTML = html;
-  temp.querySelectorAll('.mermaid-placeholder').forEach((el) => replacePlaceholder(el, results));
+  temp.querySelectorAll('.mermaid-placeholder').forEach((el) => settleOne(el, results));
   return temp.innerHTML;
 }
 
-function replacePlaceholder(
-  placeholder: Element,
-  results: ReadonlyMap<string, MermaidOutcome>,
-): void {
-  ifDefined(results.get(placeholder.id), (outcome) =>
-    placeholder.replaceWith(buildMermaidFigure(outcome)),
-  );
+function settleOne(placeholder: Element, results: ReadonlyMap<string, MermaidOutcome>): void {
+  ifDefined(results.get(placeholder.id), (outcome) => placeholder.replaceWith(figureFor(outcome)));
 }
 
-function buildMermaidFigure(outcome: MermaidOutcome): HTMLElement {
-  return 'svg' in outcome ? buildSuccessFigure(outcome.svg) : buildFailedFigure(outcome.code);
+function figureFor(outcome: MermaidOutcome): HTMLElement {
+  return 'svg' in outcome ? embedSvg(outcome.svg) : fallbackFigure(outcome.code);
 }
 
-function buildSuccessFigure(svg: string): HTMLElement {
+function embedSvg(svg: string): HTMLElement {
   const figure = document.createElement('figure');
   figure.className = 'mermaid';
   // mermaid 自身のサニタイズに単独で頼らず、DOMPurify を通す (アプリ唯一の無害化境界)
@@ -49,26 +44,26 @@ function buildSuccessFigure(svg: string): HTMLElement {
   return figure;
 }
 
-function buildFailedFigure(code: string): HTMLElement {
+function fallbackFigure(code: string): HTMLElement {
   const figure = document.createElement('figure');
   figure.className = 'mermaid mermaid-failed';
-  figure.append(buildFailedCodeBlock(code), buildFailedWarning());
+  figure.append(sourcePre(code), warningNote());
   return figure;
 }
 
-function createCodeElement(code: string): HTMLElement {
+function codeNode(code: string): HTMLElement {
   const el = document.createElement('code');
   el.textContent = code;
   return el;
 }
 
-function buildFailedCodeBlock(code: string): HTMLElement {
+function sourcePre(code: string): HTMLElement {
   const pre = document.createElement('pre');
-  pre.append(createCodeElement(code));
+  pre.append(codeNode(code));
   return pre;
 }
 
-function buildFailedWarning(): HTMLElement {
+function warningNote(): HTMLElement {
   const warning = document.createElement('p');
   warning.className = 'mermaid-warning';
   warning.textContent = MERMAID_FAILED_MESSAGE;

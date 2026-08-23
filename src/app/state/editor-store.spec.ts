@@ -45,7 +45,7 @@ describe('EditorStore', () => {
   it('初期状態はファイルなし・ブロックなし', () => {
     expect(store.files()).toEqual([]);
     expect(store.blocks()).toEqual([]);
-    expect(store.hasFiles()).toBe(false);
+    expect(store.nonEmpty()).toBe(false);
   });
 
   it('Markdown ファイルを取り込みブロックを構築する', async () => {
@@ -89,7 +89,7 @@ describe('EditorStore', () => {
     await store.addFiles([file('a.md', '# A'), file('b.md', '# B')]);
     await whenRendered();
     store.toggleBreak(store.blocks()[0].id);
-    store.moveFile(store.files()[0].id, 1);
+    store.nudge(store.files()[0].id, 1);
     await whenRendered();
     expect(store.breaks().size).toBe(0);
     expect(store.files().map((f) => f.name)).toEqual(['b.md', 'a.md']);

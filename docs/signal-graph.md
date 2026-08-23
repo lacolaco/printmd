@@ -3,9 +3,9 @@
 アプリ全体のリアクティブ構造。**構造 (signal / computed / effect / コンポーネント構成) を変えるコミットでは、この図も同じコミットで更新すること。**
 
 - 逆流 (effect からの signal 書き込み)・循環: なし
-- `renderedDocument` は resource: filesSignal を params とする async 導出 (markdown 変換 + mermaid SVG 化 + fragmentCache)。`rendering` はその isLoading
+- `renderedDocument` は resource: manuscripts を params とする async 導出 (markdown 変換 + mermaid SVG 化 + cache)。`rendering` はその isLoading
 - `pagination` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
-- `breaksSignal` は linkedSignal: filesSignal に連動し、末尾への追記では維持・構造変更ではリセット
+- `marks` は linkedSignal: manuscripts に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / announcement) は省略
 
 ```mermaid
@@ -17,24 +17,24 @@ flowchart LR
   end
 
   subgraph Store["EditorStore"]
-    S1((filesSignal))
-    S2((breaksSignal<br/>linkedSignal))
+    S1((manuscripts))
+    S2((marks<br/>linkedSignal))
     S4[["renderedDocument<br/>resource (async 導出)"]]
     S3[/rendering<br/>= isLoading/]
-    S5((importWarningsSignal))
-    C1[/hasFiles/]
+    S5((notices))
+    C1[/nonEmpty/]
     C2[/blocks/]
     C3[/blockGroups/]
-    C4[/blockRowCount/]
-    C5[/multiFile/]
+    C4[/rowTotal/]
+    C5[/multiSource/]
   end
 
   subgraph Viewer["ViewerState"]
-    V1((zoomIndex))
+    V1((Zoom.index))
     V3[/pagination<br/>計測つき computed<br/>セグメント分割 + 実測/]
     V2[/pageCount<br/>= pagination.total/]
-    VC1[/zoom/]
-    VC2[/zoomLabel/]
+    VC1[/Zoom.value/]
+    VC2[/Zoom.label/]
   end
 
   subgraph HeaderC["Header"]
@@ -66,12 +66,12 @@ flowchart LR
     D2[(sheets<br/>クローン群)]
   end
 
-  A1 -- "addFiles / removeFile /<br/>moveFile / reorderFile" --> S1
+  A1 -- "addFiles / removeFile /<br/>nudge / reorder" --> S1
   S1 -- "source 連動:<br/>追記=維持 / 構造変更=リセット" --> S2
   A2 -- toggleBreak --> S2
-  A3 -- setZoom --> V1
+  A3 -- zoom.by --> V1
 
-  S1 -- "params → loader<br/>(markdown 変換 + mermaid SVG 化<br/>+ fragmentCache)" --> S4
+  S1 -- "params → loader<br/>(markdown 変換 + mermaid SVG 化<br/>+ cache)" --> S4
   S4 --> S3
   A1 -. "addFiles が警告を設定" .-> S5
 

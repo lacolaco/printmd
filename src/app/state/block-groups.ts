@@ -20,12 +20,8 @@ interface MutableFileGroup {
   headingLevel: number;
 }
 
-function createGroup(block: Block): MutableFileGroup {
-  return { fileIndex: block.fileIndex, fileName: block.fileName, rows: [], headingLevel: 0 };
-}
-
 function pushNewGroup(groups: MutableFileGroup[], block: Block): MutableFileGroup {
-  const next = createGroup(block);
+  const next = { fileIndex: block.fileIndex, fileName: block.fileName, rows: [], headingLevel: 0 };
   groups.push(next);
   return next;
 }
@@ -39,12 +35,12 @@ function lastGroupMatching(
 }
 
 /** ブロックの属するグループを返す。ファイル境界では新しいグループを開始する */
-function groupFor(groups: MutableFileGroup[], block: Block): MutableFileGroup {
+function destinationFor(groups: MutableFileGroup[], block: Block): MutableFileGroup {
   return lastGroupMatching(groups, block) ?? pushNewGroup(groups, block);
 }
 
 function appendBlock(groups: MutableFileGroup[], block: Block): void {
-  const group = groupFor(groups, block);
+  const group = destinationFor(groups, block);
   const { kind, level } = block;
   group.headingLevel = kind === 'heading' ? (level ?? 1) : group.headingLevel;
   const depth = kind === 'heading' ? (level ?? 1) : group.headingLevel + 1;

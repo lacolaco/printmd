@@ -39,7 +39,7 @@ const CONDITION_NODE_TYPES = [
   'ForStatement',
 ] as const;
 
-function methodNameOf(callee: TSESTree.Node): string {
+function propertyName(callee: TSESTree.Node): string {
   const property = callee.type === 'MemberExpression' ? callee.property : undefined;
   return property?.type === 'Identifier' ? property.name : '';
 }
@@ -51,9 +51,9 @@ function calleePath(callee: TSESTree.Node): string {
   return `${object}.${property}`;
 }
 
-function isImpureCallee(callee: TSESTree.Node): boolean {
+function impureCallee(callee: TSESTree.Node): boolean {
   return (
-    MUTATING_METHODS.has(methodNameOf(callee)) || NONDETERMINISTIC_CALLEES.has(calleePath(callee))
+    MUTATING_METHODS.has(propertyName(callee)) || NONDETERMINISTIC_CALLEES.has(calleePath(callee))
   );
 }
 
@@ -62,10 +62,10 @@ function isImpureNode(node: TSESTree.Node): boolean {
     node.type === 'AssignmentExpression' ||
     node.type === 'UpdateExpression' ||
     (node.type === 'UnaryExpression' && node.operator === 'delete');
-  return impureKind || (node.type === 'CallExpression' && isImpureCallee(node.callee));
+  return impureKind || (node.type === 'CallExpression' && impureCallee(node.callee));
 }
 
-function isNodeLike(value: unknown): value is TSESTree.Node {
+function nodeLike(value: unknown): value is TSESTree.Node {
   const type = (value as { type?: unknown } | null)?.type;
   return typeof value === 'object' && value !== null && typeof type === 'string';
 }
@@ -74,7 +74,7 @@ function isNodeLike(value: unknown): value is TSESTree.Node {
 function childNodesOf(node: TSESTree.Node): TSESTree.Node[] {
   const entries = Object.entries(node).filter(([key]) => key !== 'parent');
   const values = entries.flatMap(([, value]) => (Array.isArray(value) ? value : [value]));
-  return values.filter(isNodeLike);
+  return values.filter(nodeLike);
 }
 
 /** 条件式の部分木 (コールバックの中身を含む) から不純な操作を集める */
@@ -84,12 +84,12 @@ function collectImpure(node: TSESTree.Node): TSESTree.Node[] {
   return [...own, ...children.flatMap(collectImpure)];
 }
 
-function reportImpure(context: Context, test: TSESTree.Node | null): void {
+function auditTest(context: Context, test: TSESTree.Node | null): void {
   const targets = test === null ? [] : collectImpure(test);
   targets.forEach((node) => context.report({ loc: node.loc, messageId: 'impureCondition' }));
 }
 
-function conditionVisitor(check: (test: TSESTree.Node | null) => void): TSESLint.RuleListener {
+function makeVisitor(check: (test: TSESTree.Node | null) => void): TSESLint.RuleListener {
   const listener = (node: { test: TSESTree.Node | null }): void => check(node.test);
   return Object.fromEntries(CONDITION_NODE_TYPES.map((type) => [type, listener]));
 }
@@ -109,6 +109,6 @@ export const pureConditions = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds
   },
   defaultOptions: [],
   create(context) {
-    return conditionVisitor((test) => reportImpure(context, test));
+    return makeVisitor((test) => auditTest(context, test));
   },
 });

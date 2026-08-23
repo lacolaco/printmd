@@ -29,15 +29,15 @@ function toDemoFileInput(name: string): ImportSource {
   template: `
     <label
       class="app-empty-drop flex h-full cursor-pointer flex-col items-center justify-center gap-3 text-sm"
-      (dragover)="onDragOver($event)"
-      (drop)="onDrop($event)"
+      (dragover)="permitDrag($event)"
+      (drop)="acceptDrop($event)"
     >
       <input
         type="file"
         class="sr-only"
         multiple
         accept=".md,.markdown,.txt"
-        (change)="onFileInput($event)"
+        (change)="readSelection($event)"
       />
       <span class="max-w-sm text-center">
         Markdownファイルをここへドロップ、またはクリックして選択すると、A4の紙面プレビューが表示されます
@@ -56,29 +56,23 @@ function toDemoFileInput(name: string): ImportSource {
 export class ImportDropzone {
   private readonly store = inject(EditorStore);
 
-  protected onFileInput(event: Event): void {
+  protected readSelection(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.importFiles(input.files);
     input.value = '';
   }
 
-  protected onDragOver(event: DragEvent): void {
+  protected permitDrag(event: DragEvent): void {
     event.preventDefault();
   }
 
-  protected onDrop(event: DragEvent): void {
+  protected acceptDrop(event: DragEvent): void {
     event.preventDefault();
-    this.importDroppedFiles(event.dataTransfer?.files);
+    this.importFiles(event.dataTransfer?.files);
   }
 
-  private importFiles(files: FileList | null): void {
-    if (files !== null) {
-      this.store.addFiles([...files]);
-    }
-  }
-
-  private importDroppedFiles(files: FileList | undefined): void {
-    if (files !== undefined && files.length > 0) {
+  private importFiles(files: FileList | null | undefined): void {
+    if (files !== null && files !== undefined && files.length > 0) {
       this.store.addFiles([...files]);
     }
   }

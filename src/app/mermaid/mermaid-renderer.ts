@@ -11,7 +11,7 @@ export interface MermaidLike {
   render(id: string, code: string): Promise<{ svg: string }>;
 }
 
-const MERMAID_INIT_CONFIG = {
+const INIT_CONFIG = {
   startOnLoad: false,
   // 既定値だが、安全性が既定に依存していることを明示する
   securityLevel: 'strict',
@@ -20,7 +20,7 @@ const MERMAID_INIT_CONFIG = {
 } as const;
 
 function initializeMermaid(mermaid: MermaidLike): MermaidLike {
-  mermaid.initialize(MERMAID_INIT_CONFIG);
+  mermaid.initialize(INIT_CONFIG);
   return mermaid;
 }
 
@@ -33,7 +33,7 @@ function initializeMermaid(mermaid: MermaidLike): MermaidLike {
 @Service()
 export class MermaidRenderer {
   private module: Promise<MermaidLike> | null = null;
-  private renderSeq = 0;
+  private sequence = 0;
 
   protected loadModule(): Promise<MermaidLike> {
     return import('mermaid').then((mod) => initializeMermaid(mod.default));
@@ -45,44 +45,44 @@ export class MermaidRenderer {
   }
 
   async render(blocks: readonly MermaidBlock[]): Promise<ReadonlyMap<string, MermaidOutcome>> {
-    return hasItems(blocks) ? this.renderNonEmpty(blocks) : new Map();
+    return hasItems(blocks) ? this.produceOutcomes(blocks) : new Map();
   }
 
-  private async renderNonEmpty(
+  private async produceOutcomes(
     blocks: readonly MermaidBlock[],
   ): Promise<ReadonlyMap<string, MermaidOutcome>> {
     const mermaid = await this.load();
-    const runId = this.renderSeq++;
-    return this.renderAll(mermaid, runId, blocks);
+    const run = this.sequence++;
+    return this.collectAll(mermaid, run, blocks);
   }
 
-  private async renderAll(
+  private async collectAll(
     mermaid: MermaidLike,
-    runId: number,
+    run: number,
     blocks: readonly MermaidBlock[],
   ): Promise<ReadonlyMap<string, MermaidOutcome>> {
     const results = new Map<string, MermaidOutcome>();
     for (let i = 0; i < blocks.length; i++) {
-      await this.renderOne(mermaid, runId, i, blocks[i], results);
+      await this.settleOne(mermaid, run, i, blocks[i], results);
     }
     return results;
   }
 
   /** mermaid は render 失敗時に一時要素を body へ残す (エラー図が画面に出る)。必ず掃除する */
-  private async renderOne(
+  private async settleOne(
     mermaid: MermaidLike,
-    runId: number,
+    run: number,
     index: number,
     block: MermaidBlock,
     results: Map<string, MermaidOutcome>,
   ): Promise<void> {
-    const elementId = `printmd-mermaid-render-${runId}-${index}`;
-    results.set(block.id, await this.renderMermaidBlock(mermaid, elementId, block.code));
+    const elementId = `printmd-mermaid-render-${run}-${index}`;
+    results.set(block.id, await this.tryRender(mermaid, elementId, block.code));
     document.getElementById(elementId)?.remove();
     document.getElementById(`d${elementId}`)?.remove();
   }
 
-  private async renderMermaidBlock(
+  private async tryRender(
     mermaid: MermaidLike,
     elementId: string,
     code: string,

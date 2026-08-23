@@ -4,12 +4,12 @@ import { maxLinesOption } from './options';
 type MessageIds = 'tooLong';
 type Options = [{ maxLines?: number }?];
 
-const DEFAULT_MAX_LINES = 5;
+const LINE_LIMIT = 5;
 
 /** ロジックの無い行 (空行、および { } ( ) [ ] ; , だけの行) は数えない */
 const PUNCTUATION_ONLY = /^[{}()[\];,]*$/;
 
-function countLogicLines(sourceCode: TSESLint.SourceCode, body: TSESTree.Node): number {
+function logicLineCount(sourceCode: TSESLint.SourceCode, body: TSESTree.Node): number {
   const lines = sourceCode.getText(body).split('\n');
   return lines.filter((line) => !PUNCTUATION_ONLY.test(line.trim())).length;
 }
@@ -37,11 +37,11 @@ function reportIfTooLong(
 function makeListener(context: Context, maxLines: number, sourceCode: TSESLint.SourceCode) {
   return (node: FunctionNode): void => {
     const { body } = node;
-    reportIfTooLong(context, maxLines, node, countLogicLines(sourceCode, body));
+    reportIfTooLong(context, maxLines, node, logicLineCount(sourceCode, body));
   };
 }
 
-function makeVisitor(listener: (node: FunctionNode) => void): TSESLint.RuleListener {
+function functionVisitor(listener: (node: FunctionNode) => void): TSESLint.RuleListener {
   return {
     FunctionDeclaration: listener,
     FunctionExpression: listener,
@@ -68,7 +68,7 @@ export const maxFunctionLines = ESLintUtils.RuleCreator.withoutDocs<Options, Mes
   defaultOptions: [{}],
   create(context) {
     const { sourceCode } = context;
-    const maxLines = maxLinesOption(context, DEFAULT_MAX_LINES);
-    return makeVisitor(makeListener(context, maxLines, sourceCode));
+    const maxLines = maxLinesOption(context, LINE_LIMIT);
+    return functionVisitor(makeListener(context, maxLines, sourceCode));
   },
 });

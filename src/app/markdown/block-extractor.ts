@@ -60,27 +60,27 @@ function isMermaidFigure(el: Element): boolean {
   return el.tagName === 'FIGURE' && el.classList.contains('mermaid');
 }
 
-function toKind(el: Element): BlockKind {
+function classify(el: Element): BlockKind {
   const { tagName } = el;
   return isMermaidFigure(el) ? 'mermaid' : (KIND_BY_TAG[tagName] ?? 'other');
 }
 
-function toLevel(el: Element): number | null {
+function headingLevel(el: Element): number | null {
   const match = /^H([1-6])$/.exec(el.tagName);
   return match ? Number(match[1]) : null;
 }
 
-function toLabel(el: Element): string {
-  return isMermaidFigure(el) ? 'mermaid 図' : textLabel(el);
+function captionFor(el: Element): string {
+  return isMermaidFigure(el) ? 'mermaid 図' : plainCaption(el);
 }
 
-function truncateLabel(text: string): string {
+function clip(text: string): string {
   return text.length > LABEL_MAX_LENGTH ? text.slice(0, LABEL_MAX_LENGTH) : text;
 }
 
-function textLabel(el: Element): string {
+function plainCaption(el: Element): string {
   const text = (el.textContent ?? '').trim().replaceAll(/\s+/g, ' ');
-  return el.tagName === 'HR' ? '———' : truncateLabel(text);
+  return el.tagName === 'HR' ? '———' : clip(text);
 }
 
 /**
@@ -119,20 +119,20 @@ function markBlockId(el: Element, id: string): void {
 }
 
 /** トップレベル要素 1 つぶんの Block を組み立て、data-block-id を付与する */
-function toBlock(fragment: FileFragment, el: Element, blockIndex: number): Block {
+function toBlock(fragment: FileFragment, el: Element, position: number): Block {
   const { fileIndex } = fragment;
-  const id = `f${fileIndex}b${blockIndex}`;
+  const id = `f${fileIndex}b${position}`;
   markBlockId(el, id);
-  const meta = { kind: toKind(el), label: toLabel(el), level: toLevel(el) };
-  return { id, ...meta, ...toBlockOrigin(fragment, blockIndex) };
+  const meta = { kind: classify(el), label: captionFor(el), level: headingLevel(el) };
+  return { id, ...meta, ...originOf(fragment, position) };
 }
 
-function toBlockOrigin(
+function originOf(
   fragment: FileFragment,
-  blockIndex: number,
+  position: number,
 ): Pick<Block, 'fileIndex' | 'fileName' | 'isFileBoundary'> {
-  const { fileIndex, fileName } = fragment;
-  return { fileIndex, fileName, isFileBoundary: fileIndex > 0 && blockIndex === 0 };
+  const { fileIndex: origin, fileName: name } = fragment;
+  return { fileIndex: origin, fileName: name, isFileBoundary: origin > 0 && position === 0 };
 }
 
 /**

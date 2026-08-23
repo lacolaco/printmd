@@ -42,7 +42,7 @@ describe('Header', () => {
     expect(el.querySelector('[role="status"]')?.textContent).toContain('ページ');
     el.querySelector<HTMLButtonElement>('[aria-label="縮小"]')!.click();
     fixture.detectChanges();
-    expect(TestBed.inject(ViewerState).zoomLabel()).toBe('75%');
+    expect(TestBed.inject(ViewerState).zoom.label()).toBe('75%');
     expect(el.textContent).toContain('75%');
   });
 });

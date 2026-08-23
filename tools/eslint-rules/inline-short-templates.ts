@@ -13,7 +13,7 @@ const DEFAULT_MAX_LINES = 20;
 const TEMPLATE_URL_SELECTOR =
   'Decorator > CallExpression[callee.name="Component"] > ObjectExpression > Property[key.name="templateUrl"]';
 
-function tryReadFile(file: string): string | null {
+function safeRead(file: string): string | null {
   try {
     return fs.readFileSync(file, 'utf-8').replace(/\n$/, '');
   } catch {
@@ -23,7 +23,7 @@ function tryReadFile(file: string): string | null {
 
 function readTemplateFile(context: Context, templateUrl: string): string | null {
   const file = path.resolve(path.dirname(context.filename), templateUrl);
-  return tryReadFile(file);
+  return safeRead(file);
 }
 
 function escapeForTemplateLiteral(content: string): string {
@@ -37,7 +37,7 @@ function buildInlineTemplateBody(content: string, escaped: string, column: numbe
   return content.trim() === '' ? '' : body;
 }
 
-function indentColumnOf(node: TSESTree.Node): number {
+function indentColumn(node: TSESTree.Node): number {
   return node.loc.start.column;
 }
 
@@ -46,13 +46,13 @@ function toInlineTemplateFix(
   node: TSESTree.Node,
   content: string,
 ): TSESLint.RuleFix {
-  const column = indentColumnOf(node);
+  const column = indentColumn(node);
   const escaped = escapeForTemplateLiteral(content);
   const body = buildInlineTemplateBody(content, escaped, column);
   return fixer.replaceText(node, `template: \`${body}\``);
 }
 
-function lineCountOf(content: string): number {
+function lineTotal(content: string): number {
   return content.split('\n').length;
 }
 
@@ -62,36 +62,36 @@ function reportInline(
   node: TSESTree.Node,
   content: string,
 ): void {
-  const lines = lineCountOf(content);
+  const lines = lineTotal(content);
   const data = { lines: String(lines), max: String(maxLines) };
   const fix: TSESLint.ReportFixFunction = (fixer) => toInlineTemplateFix(fixer, node, content);
   context.report({ node, messageId: 'inline', data, fix });
 }
 
-function reportIfShortEnough(
+function flagShortEnough(
   context: Context,
   maxLines: number,
   node: TSESTree.Node,
   content: string | null,
 ): void {
-  if (content !== null && lineCountOf(content) <= maxLines) {
+  if (content !== null && lineTotal(content) <= maxLines) {
     reportInline(context, maxLines, node, content);
   }
 }
 
-function templateUrlOf(node: TSESTree.Node): string | null {
+function urlOf(node: TSESTree.Node): string | null {
   const value = node.type === 'Property' ? node.value : undefined;
   const literal = value?.type === 'Literal' ? value.value : undefined;
   return typeof literal === 'string' ? literal : null;
 }
 
 function resolveTemplate(context: Context, node: TSESTree.Node): string | null {
-  const templateUrl = templateUrlOf(node);
+  const templateUrl = urlOf(node);
   return templateUrl === null ? null : readTemplateFile(context, templateUrl);
 }
 
 function checkTemplateUrl(context: Context, maxLines: number, node: TSESTree.Node): void {
-  reportIfShortEnough(context, maxLines, node, resolveTemplate(context, node));
+  flagShortEnough(context, maxLines, node, resolveTemplate(context, node));
 }
 
 /**
