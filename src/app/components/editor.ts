@@ -3,8 +3,12 @@ import { isNonEmpty } from '../collections';
 import { FileOrder } from '../manuscript/file-order';
 import { Importer } from '../manuscript/importer';
 import { isAtLimit, stepped } from '../pagination/zoom';
+import type { FileGroup } from '../markdown/block-groups';
+import type { RenderedDocument } from '../markdown/block-extractor';
+import type { Pagination } from '../pagination/pagination';
 import type { ImportSource, ManuscriptFile } from '../manuscript/manuscript';
 import { BreakState } from '../state/break.state';
+import { DocumentState } from '../state/document.state';
 import { ManuscriptState } from '../state/manuscript.state';
 import { ZoomState } from '../state/zoom.state';
 
@@ -38,16 +42,60 @@ function removedFrom(current: readonly ManuscriptFile[], id: number): readonly M
 export class Editor {
   private readonly importer = inject(Importer);
   private readonly manuscripts = inject(ManuscriptState);
+  private readonly documents = inject(DocumentState);
   private readonly breaks = inject(BreakState);
   private readonly zoom = inject(ZoomState);
 
-  /** 取り込み済み原稿の一覧 (表示用の読み) */
   manuscriptList(): readonly ManuscriptFile[] {
     return this.manuscripts.files();
   }
 
   importWarnings(): readonly string[] {
     return this.manuscripts.warnings();
+  }
+
+  renderedDocument(): RenderedDocument | null {
+    return this.documents.renderedDocument();
+  }
+
+  isRendering(): boolean {
+    return this.documents.rendering();
+  }
+
+  pagination(): Pagination | null {
+    return this.documents.pagination();
+  }
+
+  pageCount(): number {
+    return this.documents.pageCount();
+  }
+
+  blockGroups(): readonly FileGroup[] {
+    return this.documents.blockGroups();
+  }
+
+  rowTotal(): number {
+    return this.documents.rowTotal();
+  }
+
+  isMultiSource(): boolean {
+    return this.documents.multiSource();
+  }
+
+  marked(): ReadonlySet<string> {
+    return this.breaks.ids();
+  }
+
+  isBroken(blockId: string): boolean {
+    return this.breaks.ids().has(blockId);
+  }
+
+  stepLabel(): string {
+    return this.zoom.label();
+  }
+
+  scale(): number {
+    return this.zoom.value();
   }
 
   isNonEmpty(): boolean {

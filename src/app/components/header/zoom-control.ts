@@ -1,10 +1,9 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ToolbarWidget } from '@angular/aria/toolbar';
 import { Editor } from '../editor';
-import { Paginator } from '../paginator';
 
 /**
- * ズームの段送り操作。判断は Editor、現在段の表示は Paginator から読む
+ * ズームの段送り操作。判断も現在段の表示も Editor に問い合わせる
  */
 @Component({
   selector: 'app-zoom-control',
@@ -21,7 +20,7 @@ import { Paginator } from '../paginator';
     >
       −
     </button>
-    <span class="w-10 text-center">{{ label() }}</span>
+    <span class="w-10 text-center">{{ editor.stepLabel() }}</span>
     <button
       class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
       ngToolbarWidget
@@ -36,7 +35,4 @@ import { Paginator } from '../paginator';
 })
 export class ZoomControl {
   protected readonly editor = inject(Editor);
-  private readonly paginator = inject(Paginator);
-
-  protected readonly label = computed(() => this.paginator.zoomLabel());
 }

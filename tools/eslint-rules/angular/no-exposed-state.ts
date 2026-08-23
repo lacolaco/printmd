@@ -53,15 +53,15 @@ function condemn(context: Context, node: TSESTree.Node, violated: boolean): void
 }
 
 /**
- * コンポーネントはグローバルステートを注入しない。読みは Paginator などの
- * 導出サービス、書きは Editor、親子間は input を経由する
+ * コンポーネントはグローバルステートを注入しない。読み書きとも Editor への
+ * 問い合わせと命令で行い、親子間は input を経由する
  */
 export const noExposedState = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
   meta: {
     type: 'suggestion',
     messages: {
       exposedState:
-        'コンポーネントはグローバルステートを注入しない。導出サービス (読み) と Editor (操作) と input を経由する',
+        'コンポーネントはグローバルステートを注入しない。Editor への問い合わせか input を経由する',
     },
     schema: [],
   },

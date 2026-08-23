@@ -1,14 +1,17 @@
 import { Service, computed, inject, resource } from '@angular/core';
 import { isNonEmpty } from '../collections';
 import { Converter } from '../manuscript/converter';
+import { measurePagination } from '../pagination/page-count';
 import type { Block, RenderedDocument } from '../markdown/block-extractor';
 import { groupBlocks } from '../markdown/block-groups';
+import { BreakState } from './break.state';
 import { ManuscriptState } from './manuscript.state';
 
 /** 変換済み文書とその導出。原稿列から一方向に流れる */
 @Service()
 export class DocumentState {
   private readonly manuscripts = inject(ManuscriptState);
+  private readonly breaks = inject(BreakState);
   private readonly converter = inject(Converter);
 
   /**
@@ -40,4 +43,15 @@ export class DocumentState {
     this.blockGroups().reduce((sum, group) => sum + group.rows.length, 0),
   );
   readonly multiSource = computed(() => new Set(this.blocks().map((b) => b.fileIndex)).size > 1);
+
+  /**
+   * ページ組。(doc, breaks) を現在の CSS で組んだときのレイアウト結果の
+   * メモ化された導出値 (実測はプローブで行うが観測可能な状態を残さない)
+   */
+  readonly pagination = computed(() => {
+    const doc = this.renderedDocument();
+    return doc === null ? null : measurePagination(doc, this.breaks.ids());
+  });
+
+  readonly pageCount = computed(() => this.pagination()?.total ?? 0);
 }

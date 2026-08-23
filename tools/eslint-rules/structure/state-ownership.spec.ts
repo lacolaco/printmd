@@ -66,12 +66,22 @@ export class Paginator {
   ],
   invalid: [
     {
-      name: 'computed だけのクラスは State と名乗れない',
+      name: '導出だけのローカルステートも State と名乗れない',
       filename: 'src/app/components/b.state.ts',
       code: `import { Injectable, computed } from '@angular/core';
 @Injectable()
 export class HeaderState {
   readonly label = computed(() => '');
+}`,
+      errors: [{ messageId: 'derivedState' }],
+    },
+    {
+      name: '導出だけのグローバルなクラスは State と名乗れない',
+      filename: 'src/app/state/a.state.ts',
+      code: `import { Service, computed } from '@angular/core';
+@Service()
+export class PaginationState {
+  readonly total = computed(() => 0);
 }`,
       errors: [{ messageId: 'derivedState' }],
     },

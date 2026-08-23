@@ -53,13 +53,30 @@ function isColocated(filename: string): boolean {
   return filename.endsWith('.state.ts');
 }
 
-function isWellPlaced(global: boolean, filename: string): boolean {
-  return global ? isInGlobalHome(filename) : isColocated(filename);
+function isAnchored(titled: boolean, filename: string): boolean {
+  return titled && isInGlobalHome(filename);
 }
 
-function strayed(global: boolean, filename: string, titled: boolean): MessageIds | undefined {
-  const settled = titled && isWellPlaced(global, filename);
-  return settled ? undefined : global ? 'globalMisplaced' : 'localMisplaced';
+/** グローバル (@Service): 状態を保有するなら state/ の *.state.ts に置く */
+function onGlobal(owning: boolean, titled: boolean, filename: string): MessageIds | undefined {
+  const strayed = owning && !isAnchored(titled, filename);
+  return strayed ? 'globalMisplaced' : undefined;
+}
+
+/** ローカル (@Injectable): XxxState はコンポーネント同居の *.state.ts に置く */
+function onLocal(owning: boolean, titled: boolean, filename: string): MessageIds | undefined {
+  const adrift = titled && !isColocated(filename);
+  const nameless = owning && !titled;
+  return adrift || nameless ? 'localMisplaced' : undefined;
+}
+
+function placed(
+  global: boolean,
+  owning: boolean,
+  filename: string,
+  titled: boolean,
+): MessageIds | undefined {
+  return global ? onGlobal(owning, titled, filename) : onLocal(owning, titled, filename);
 }
 
 function faultOf(
@@ -69,7 +86,7 @@ function faultOf(
   titled: boolean,
 ): MessageIds | undefined {
   const posing = titled && !owning;
-  return posing ? 'derivedState' : owning ? strayed(global, filename, titled) : undefined;
+  return posing ? 'derivedState' : placed(global, owning, filename, titled);
 }
 
 function verdict(
@@ -95,16 +112,16 @@ function condemn(context: Context, node: TSESTree.Node, id: MessageIds | undefin
 }
 
 /**
- * 状態クラスの資格と置き場を強制する。State と名乗れるのは writable な状態
- * (signal / linkedSignal / resource) を保有するクラスだけで、@Service なら
- * src/app/state/ の *.state.ts、@Injectable ならコンポーネント同居の *.state.ts に置く
+ * 状態クラスの資格と置き場を強制する。グローバル (@Service) の State は
+ * writable な状態 (signal / linkedSignal / resource) を保有し state/ の *.state.ts に
+ * 置く。ローカル (@Injectable) の XxxState はコンポーネント同居の *.state.ts に置く
  */
 export const stateOwnership = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
   meta: {
     type: 'suggestion',
     messages: {
       derivedState:
-        '状態を保有しないクラスは State と名乗らない。導出だけなら導出サービスかコンポーネントの computed にする',
+        '状態を保有しないクラスは State と名乗らない。導出はグローバルステートの computed かコンポーネントの computed に置く',
       globalMisplaced:
         '状態を保有する @Service は src/app/state/ の *.state.ts に XxxState として置く',
       localMisplaced:

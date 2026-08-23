@@ -1,5 +1,5 @@
 import { CdkDrag, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, Injector, computed, inject } from '@angular/core';
+import { Component, ElementRef, Injector, inject } from '@angular/core';
 import { Editor } from '../../../editor';
 import { FilePanelState } from './file-panel.state';
 import { FileAddInput } from './file-add-input';
@@ -18,7 +18,7 @@ import { focusLater } from './move-focus';
   template: `
     <section aria-label="原稿ファイル">
       <ul class="space-y-1" role="list" cdkDropList (cdkDropListDropped)="onListDrop($event)">
-        @for (file of files(); track file.id; let i = $index; let last = $last) {
+        @for (file of editor.manuscriptList(); track file.id; let i = $index; let last = $last) {
           <li>
             <app-file-row-item
               cdkDrag
@@ -33,9 +33,9 @@ import { focusLater } from './move-focus';
       </ul>
       <app-file-add-input (selected)="editor.addFiles($event)" />
 
-      @if (warnings().length > 0) {
+      @if (editor.importWarnings().length > 0) {
         <ul class="mt-2 space-y-1" role="status">
-          @for (warning of warnings(); track warning) {
+          @for (warning of editor.importWarnings(); track warning) {
             <li class="rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-700">{{ warning }}</li>
           }
         </ul>
@@ -46,9 +46,6 @@ import { focusLater } from './move-focus';
 })
 export class FilePanel {
   protected readonly editor = inject(Editor);
-
-  protected readonly files = computed(() => this.editor.manuscriptList());
-  protected readonly warnings = computed(() => this.editor.importWarnings());
   protected readonly local = inject(FilePanelState);
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly injector = inject(Injector);
@@ -56,14 +53,14 @@ export class FilePanel {
   protected onListDrop(event: CdkDragDrop<unknown>): void {
     if (this.editor.isReorderable(event.previousIndex, event.currentIndex)) {
       this.editor.reorder(event.previousIndex, event.currentIndex);
-      this.local.moved(this.files()[event.currentIndex].name, event.currentIndex);
+      this.local.moved(this.editor.manuscriptList()[event.currentIndex].name, event.currentIndex);
     }
   }
 
   protected move(id: number, name: string, delta: -1 | 1): void {
     if (this.editor.isMovable(id, delta)) {
       this.editor.nudge(id, delta);
-      const index = this.files().findIndex((file) => file.id === id);
+      const index = this.editor.manuscriptList().findIndex((file) => file.id === id);
       this.local.moved(name, index);
       focusLater(this.injector, this.elementRef.nativeElement, id, delta);
     }
