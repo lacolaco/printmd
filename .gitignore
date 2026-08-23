@@ -48,3 +48,4 @@ Thumbs.db
 
 # セッション作業用 (リポジトリの成果物ではない)
 /.scratch
+.claude/

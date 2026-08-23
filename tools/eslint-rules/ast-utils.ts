@@ -25,13 +25,19 @@ export function effectiveUse(node: TSESTree.Node): {
   parent: TSESTree.Node | undefined;
 } {
   const { parent } = node;
-  if (parent === undefined) return { use: node, parent };
-  const { type } = parent;
-  return ASSERTION_TYPES.has(type) ? effectiveUse(parent) : { use: node, parent };
+  const { type } = parent ?? { type: undefined };
+  return parent !== undefined && type !== undefined && ASSERTION_TYPES.has(type)
+    ? effectiveUse(parent)
+    : { use: node, parent };
 }
 
 export function isMemberReceiver(parent: TSESTree.Node, id: TSESTree.Node): boolean {
   return parent.type === 'MemberExpression' && parent.object === id;
+}
+
+function callArgumentsOf(container: TSESTree.Node | undefined): readonly TSESTree.Node[] {
+  const isCall = container?.type === 'CallExpression' || container?.type === 'NewExpression';
+  return isCall ? ((container as TSESTree.CallExpression).arguments as TSESTree.Node[]) : [];
 }
 
 /** スプレッド (fn(...x)) は 1 段だけ潜り、呼び出しないし new の引数か判定する */
@@ -39,33 +45,30 @@ export function isCallArgument(parent: TSESTree.Node, id: TSESTree.Node): boolea
   const viaSpread = parent.type === 'SpreadElement';
   const container = viaSpread ? parent.parent : parent;
   const argument: TSESTree.Node = viaSpread ? parent : id;
-  if (container?.type !== 'CallExpression' && container?.type !== 'NewExpression') return false;
-  return (container.arguments as TSESTree.Node[]).includes(argument);
-}
-
-function appendIfFunction(chain: FunctionNode[], node: TSESTree.Node): void {
-  const { type } = node;
-  if (FUNCTION_TYPES.has(type)) chain.push(node as FunctionNode);
+  return callArgumentsOf(container).includes(argument);
 }
 
 function parentOf(node: TSESTree.Node): TSESTree.Node | undefined {
   return node.parent;
 }
 
-/** ノードを包む関数ノードを内側から外側の順で集める */
-export function enclosingFunctions(id: TSESTree.Node): FunctionNode[] {
-  const chain: FunctionNode[] = [];
-  for (let node = id.parent; node; node = parentOf(node)) {
-    appendIfFunction(chain, node);
-  }
-  return chain;
+function isFunctionNode(node: TSESTree.Node): node is FunctionNode {
+  return FUNCTION_TYPES.has(node.type);
 }
 
-/** range が無いノードは包含と見なさない (既定値で相互包含になると報告が消える) */
+/** ノードを包む関数ノードを内側から外側の順で集める */
+export function enclosingFunctions(id: TSESTree.Node): FunctionNode[] {
+  const chain: TSESTree.Node[] = [];
+  for (let node = id.parent; node; node = parentOf(node)) {
+    chain.push(node);
+  }
+  return chain.filter(isFunctionNode);
+}
+
+/** TSESTree は range を必ず持つため、範囲比較だけで包含を判定できる */
 export function containsRange(outer: TSESTree.Node, inner: TSESTree.Node): boolean {
   const { range: outerRange } = outer;
   const { range: innerRange } = inner;
-  if (outerRange === undefined || innerRange === undefined) return false;
   return outerRange[0] <= innerRange[0] && innerRange[1] <= outerRange[1];
 }
 

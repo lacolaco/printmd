@@ -9,24 +9,33 @@ const MERMAID_FAILED_MESSAGE = 'mermaid の描画に失敗したため、元の�
  * ブロック + 警告文に落とす。結果に含まれない (未解決の) プレースホルダは
  * そのまま残す。
  */
+function containsPlaceholder(html: string): boolean {
+  return html.includes('mermaid-placeholder');
+}
+
 export function applyMermaidResults(
   html: string,
   results: ReadonlyMap<string, MermaidOutcome>,
 ): string {
-  if (!html.includes('mermaid-placeholder')) return html;
+  return containsPlaceholder(html) ? replacePlaceholders(html, results) : html;
+}
+
+function replacePlaceholders(html: string, results: ReadonlyMap<string, MermaidOutcome>): string {
   const temp = document.createElement('div');
   temp.innerHTML = html;
   temp.querySelectorAll('.mermaid-placeholder').forEach((el) => replacePlaceholder(el, results));
   return temp.innerHTML;
 }
 
+function ifDefined<T>(value: T | undefined, use: (value: T) => void): void {
+  if (value !== undefined) use(value);
+}
+
 function replacePlaceholder(
   placeholder: Element,
   results: ReadonlyMap<string, MermaidOutcome>,
 ): void {
-  const outcome = results.get(placeholder.id);
-  if (outcome === undefined) return;
-  placeholder.replaceWith(buildMermaidFigure(outcome));
+  ifDefined(results.get(placeholder.id), (outcome) => placeholder.replaceWith(buildMermaidFigure(outcome)));
 }
 
 function buildMermaidFigure(outcome: MermaidOutcome): HTMLElement {

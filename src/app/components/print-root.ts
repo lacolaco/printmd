@@ -35,9 +35,10 @@ export class PrintRoot {
     doc: RenderedDocument | null,
     breaks: ReadonlySet<string>,
   ): void {
-    if (doc === null) return;
-    applyForcedBreaks(doc.container, doc.blocks, breaks);
-    host.append(doc.container);
+    if (doc !== null) {
+      applyForcedBreaks(doc.container, doc.blocks, breaks);
+      host.append(doc.container);
+    }
   }
 }
 

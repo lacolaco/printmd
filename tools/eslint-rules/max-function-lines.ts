@@ -19,15 +19,19 @@ type FunctionNode =
   | TSESTree.FunctionExpression
   | TSESTree.ArrowFunctionExpression;
 
-function check(
-  context: TSESLint.RuleContext<MessageIds, Options>,
-  maxLines: number,
-  node: FunctionNode,
-): void {
-  const lines = countLogicLines(context.sourceCode, node.body);
+type Context = TSESLint.RuleContext<MessageIds, Options>;
+
+function reportIfTooLong(context: Context, maxLines: number, node: FunctionNode, lines: number): void {
   if (lines > maxLines) {
     context.report({ node, messageId: 'tooLong', data: { lines: String(lines), max: String(maxLines) } });
   }
+}
+
+function makeListener(context: Context, maxLines: number, sourceCode: TSESLint.SourceCode) {
+  return (node: FunctionNode): void => {
+    const { body } = node;
+    reportIfTooLong(context, maxLines, node, countLogicLines(sourceCode, body));
+  };
 }
 
 /** 5 行ルール: 関数・メソッドの本体はロジックのある行が maxLines 行以内 (既定 5) */
@@ -48,8 +52,9 @@ export const maxFunctionLines = ESLintUtils.RuleCreator.withoutDocs<Options, Mes
   },
   defaultOptions: [{}],
   create(context) {
+    const { sourceCode } = context;
     const maxLines = maxLinesOption(context, DEFAULT_MAX_LINES);
-    const listener = (node: FunctionNode) => check(context, maxLines, node);
+    const listener = makeListener(context, maxLines, sourceCode);
     return { FunctionDeclaration: listener, FunctionExpression: listener, ArrowFunctionExpression: listener };
   },
 });

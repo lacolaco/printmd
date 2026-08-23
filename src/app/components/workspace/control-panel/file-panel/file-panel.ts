@@ -54,10 +54,11 @@ export class FilePanel {
   }
 
   protected move(id: number, name: string, delta: -1 | 1): void {
-    if (!this.store.moveFile(id, delta)) return;
-    const index = this.store.files().findIndex((file) => file.id === id);
-    this.announceOrder(name, index);
-    afterNextRender(() => this.focusMovedFileButton(id, delta), { injector: this.injector });
+    if (this.store.moveFile(id, delta)) {
+      const index = this.store.files().findIndex((file) => file.id === id);
+      this.announceOrder(name, index);
+      afterNextRender(() => this.focusMovedFileButton(id, delta), { injector: this.injector });
+    }
   }
 
   /**

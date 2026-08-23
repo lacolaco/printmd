@@ -19,12 +19,10 @@ const md = new MarkdownIt({
   html: true,
   linkify: true,
   // GitHub 同等のシンタックスハイライト。未知の言語は既定のエスケープに任せる
-  highlight: (code, lang) => {
-    if (lang && hljs.getLanguage(lang)) {
-      return hljs.highlight(code, { language: lang, ignoreIllegals: true }).value;
-    }
-    return '';
-  },
+  highlight: (code, lang) =>
+    lang && hljs.getLanguage(lang)
+      ? hljs.highlight(code, { language: lang, ignoreIllegals: true }).value
+      : '',
 }).use(taskLists);
 
 /**
@@ -67,10 +65,9 @@ function tokenAt(tokens: readonly Token[], idx: number): Token {
 const defaultFence = md.renderer.rules['fence']!.bind(md.renderer.rules);
 md.renderer.rules['fence'] = (tokens, idx, options, env, self) => {
   const token = tokenAt(tokens, idx);
-  if (token.info.trim() !== 'mermaid') {
-    return defaultFence(tokens, idx, options, env, self);
-  }
-  return pushMermaidPlaceholder(env as unknown as RenderEnv, token.content.trim());
+  return token.info.trim() === 'mermaid'
+    ? pushMermaidPlaceholder(env as unknown as RenderEnv, token.content.trim())
+    : defaultFence(tokens, idx, options, env, self);
 };
 
 /**
