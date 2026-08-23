@@ -1,12 +1,14 @@
 # コンポーネントツリー
 
-各コンポーネントの配置と責務。`src/app/components/` のディレクトリ構造はこのツリーの親子関係をそのまま写す (親コンポーネントのディレクトリ配下に子コンポーネントを置く。App 直下の葉は components/ 直下)。コンポーネントの協力オブジェクト (SheetRenderer / Demo など、コンポーネントではないクラス) は、それを使うコンポーネントと同じディレクトリに置く。複数のコンポーネントが共有するサービス (操作の Editor / ページ組導出の Paginator) は components/ 直下に置く。コンポーネント Xxx が状態を保有するときは、同じディレクトリの `xxx.state.ts` に `XxxState` として置き、コンポーネントの providers で提供する (WorkspaceState / FilePanelState)。他の状態からの computed 導出だけのクラスは作らない (State ではない)。グローバルステートは `src/app/state/` の `@Service` に限る。
+各コンポーネントの配置と責務。`src/app/components/` のディレクトリ構造はこのツリーの親子関係をそのまま写す (親コンポーネントのディレクトリ配下に子コンポーネントを置く。App 直下の葉は components/ 直下)。コンポーネントの協力オブジェクト (SheetRenderer / Demo など、コンポーネントではないクラス) は、それを使うコンポーネントと同じディレクトリに置く。複数のコンポーネントが共有するサービス (操作の Editor / ページ組導出の Paginator) は components/ 直下に置く。ローカルステートは提供元コンポーネントに同居する (workspace.state.ts / file-panel.state.ts)。
 **コンポーネントの追加・削除・責務変更のコミットでは、この図と docs/signal-graph.md を同じコミットで更新すること** (CLAUDE.md の生きたドキュメント規則)。
 
 ```mermaid
 flowchart TB
   APP["App<br/><small>画面骨格: ヘッダ / 画面切替 / 印刷対象、<br/>ウィンドウ全体のドロップ受け</small>"]
-  HEADER["Header<br/><small>ロゴ / 頁数・ズーム / 印刷</small>"]
+  HEADER["Header<br/><small>ロゴ / 表示操作の帯 / 印刷</small>"]
+  STATUS["PageStatus<br/><small>頁数・変換中の文言 (読み上げ対象)</small>"]
+  ZOOMC["ZoomControl<br/><small>ズームの段送り操作</small>"]
   WS["Workspace<br/><small>作業画面: md+ は 2 カラム、スマートフォン幅は<br/>シングルカラム + ボトムシート (開閉状態を所有)</small>"]
   IMPORT["ImportScreen<br/><small>空状態の画面 (初回のみ)</small>"]
   PREVIEW["Preview<br/><small>A4 シート面の結線。描画は<br/>SheetRenderer に委譲 (遅延実体化)</small>"]
@@ -21,6 +23,8 @@ flowchart TB
   PRINT["PrintRoot<br/><small>印刷対象 (変換済み文書の掲示)</small>"]
 
   APP --> HEADER
+  HEADER --> STATUS
+  HEADER --> ZOOMC
   APP --> FOOTER
   APP -->|"原稿あり"| WS
   APP -->|"空状態"| IMPORT
@@ -39,7 +43,7 @@ flowchart TB
   classDef leaf fill:#e0f2fe,stroke:#0369a1
   class APP shell
   class WS,PANEL,IMPORT layout
-  class HEADER,PREVIEW,FILEP,BREAKP,FOOTER,DROP,PRINT leaf
+  class HEADER,STATUS,ZOOMC,PREVIEW,FILEP,BREAKP,FOOTER,DROP,PRINT leaf
 ```
 
 - 画面領域の責務で階層化: App は骨格、Workspace / ImportScreen が画面、ControlPanel が右カラムを所有する

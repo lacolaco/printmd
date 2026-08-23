@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Footer } from './components/footer';
-import { Header } from './components/header';
+import { Header } from './components/header/header';
 import { ImportScreen } from './components/import-screen/import-screen';
 import { PrintRoot } from './components/print-root';
 import { Workspace } from './components/workspace/workspace';
@@ -18,7 +18,7 @@ import { ManuscriptState } from './state/manuscript.state';
       (dragover)="permitDrag($event)"
       (drop)="acceptDrop($event)"
     >
-      <app-header />
+      <app-header [active]="manuscripts.nonEmpty()" />
       @if (manuscripts.nonEmpty()) {
         <app-workspace class="min-h-0 flex-1" />
       } @else {

@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { MermaidRenderer, type MermaidLike } from '../mermaid/mermaid-renderer';
-import { Editor } from './editor';
-import { ZoomState } from '../state/zoom.state';
+import { MermaidRenderer, type MermaidLike } from '../../mermaid/mermaid-renderer';
+import { Editor } from '../editor';
+import { ZoomState } from '../../state/zoom.state';
 import { Header } from './header';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -23,6 +23,7 @@ describe('Header', () => {
 
   it('原稿がないときは表示操作も印刷ボタンも出さない (刷るものがない)', async () => {
     const fixture = TestBed.createComponent(Header);
+    fixture.componentRef.setInput('active', false);
     fixture.detectChanges();
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
@@ -35,6 +36,7 @@ describe('Header', () => {
     await editor.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A\n\n本文') }]);
 
     const fixture = TestBed.createComponent(Header);
+    fixture.componentRef.setInput('active', true);
     fixture.detectChanges();
     await fixture.whenStable();
 
