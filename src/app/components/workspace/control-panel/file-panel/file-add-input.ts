@@ -1,6 +1,6 @@
 import { Component, output, type OutputEmitterRef } from '@angular/core';
 import { isNonEmpty } from '../../../../collections';
-import { sourcesFrom, type ImportSource } from '../../../../manuscript';
+import { sourcesFrom, type ImportSource } from '../../../../manuscript/manuscript';
 
 /** 追加取り込みの入力面。ファイル選択とドロップを受けて選ばれたファイルを通知する */
 @Component({
@@ -41,7 +41,7 @@ export class FileAddInput {
   }
 }
 
-/** 空の選択は通知しない (仕様: ファイルの無いドロップは無視する) */
+/** ファイルの無いドロップは無視する */
 function emitSelection(
   selected: OutputEmitterRef<readonly ImportSource[]>,
   files: readonly ImportSource[],

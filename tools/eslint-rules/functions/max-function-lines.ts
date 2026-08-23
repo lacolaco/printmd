@@ -1,5 +1,5 @@
 import { ESLintUtils, type TSESLint, type TSESTree } from '@typescript-eslint/utils';
-import { maxLinesOption } from './options';
+import { maxLinesOption } from '../support/options';
 
 type MessageIds = 'tooLong';
 type Options = [{ maxLines?: number }?];

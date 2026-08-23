@@ -11,7 +11,7 @@ export interface ImportSource {
   text(): Promise<string>;
 }
 
-/** 利用者が選んだ File。プラットフォーム型を構造的一致で流さず、適合を宣言して包む */
+/** 利用者が選んだ File を ImportSource として包む */
 export class PickedFile implements ImportSource {
   readonly name: string;
 
@@ -24,7 +24,6 @@ export class PickedFile implements ImportSource {
   }
 }
 
-/** ドロップやファイル選択の FileList を、null / undefined を吸収して取り込み入力へそろえる */
 export function sourcesFrom(files: FileList | null | undefined): readonly ImportSource[] {
   const picked = files === null || files === undefined ? [] : [...files];
   return picked.map((file) => new PickedFile(file));

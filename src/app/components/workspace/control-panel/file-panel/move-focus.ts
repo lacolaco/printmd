@@ -11,7 +11,6 @@ function refocusMoveButton(host: HTMLElement, id: number, delta: -1 | 1): void {
   (preferred?.disabled === false ? preferred : fallback)?.focus();
 }
 
-/** レンダリング反映後にフォーカスを戻す */
 export function focusLater(injector: Injector, host: HTMLElement, id: number, delta: -1 | 1): void {
   afterNextRender(() => refocusMoveButton(host, id, delta), { injector });
 }

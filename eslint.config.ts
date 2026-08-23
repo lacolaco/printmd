@@ -3,20 +3,21 @@ import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import angular from 'angular-eslint';
 import stylistic from '@stylistic/eslint-plugin';
-import { callOrPass } from './tools/eslint-rules/call-or-pass';
-import { ifOnlyAtStart } from './tools/eslint-rules/if-only-at-start';
-import { inlineShortTemplates } from './tools/eslint-rules/inline-short-templates';
-import { maxFunctionLines } from './tools/eslint-rules/max-function-lines';
-import { noClassInheritance } from './tools/eslint-rules/no-class-inheritance';
-import { noCommonAffixes } from './tools/eslint-rules/no-common-affixes';
-import { noDataClump } from './tools/eslint-rules/no-data-clump';
-import { noElse } from './tools/eslint-rules/no-else';
-import { noGetterSetter } from './tools/eslint-rules/no-getter-setter';
-import { noNewInComponentProps } from './tools/eslint-rules/no-new-in-component-props';
-import { noPrivateComponentMethods } from './tools/eslint-rules/no-private-component-methods';
-import { noSingleImplementationInterface } from './tools/eslint-rules/no-single-implementation-interface';
-import { noSwitch } from './tools/eslint-rules/no-switch';
-import { pureConditions } from './tools/eslint-rules/pure-conditions';
+import { callOrPass } from './tools/eslint-rules/functions/call-or-pass';
+import { ifOnlyAtStart } from './tools/eslint-rules/functions/if-only-at-start';
+import { inlineShortTemplates } from './tools/eslint-rules/angular/inline-short-templates';
+import { maxDirectoryEntries } from './tools/eslint-rules/structure/max-directory-entries';
+import { maxFunctionLines } from './tools/eslint-rules/functions/max-function-lines';
+import { noClassInheritance } from './tools/eslint-rules/classes/no-class-inheritance';
+import { noCommonAffixes } from './tools/eslint-rules/classes/no-common-affixes';
+import { noDataClump } from './tools/eslint-rules/classes/no-data-clump';
+import { noElse } from './tools/eslint-rules/functions/no-else';
+import { noGetterSetter } from './tools/eslint-rules/classes/no-getter-setter';
+import { noNewInComponentProps } from './tools/eslint-rules/angular/no-new-in-component-props';
+import { noPrivateComponentMethods } from './tools/eslint-rules/angular/no-private-component-methods';
+import { noSingleImplementationInterface } from './tools/eslint-rules/classes/no-single-implementation-interface';
+import { noSwitch } from './tools/eslint-rules/functions/no-switch';
+import { pureConditions } from './tools/eslint-rules/functions/pure-conditions';
 
 /** 依存方向の定義。層の追加・変更はこの配列だけを編集する */
 const LAYERS = [
@@ -44,7 +45,7 @@ const LAYERS = [
   },
   {
     // src/app 直下のドメインモジュール。app.ts だけは画面骨格なので除外する
-    files: ['src/app/*.ts'],
+    files: ['src/app/*.ts', 'src/app/pagination/**/*.ts', 'src/app/manuscript/**/*.ts'],
     ignores: ['src/app/app.ts'],
     patterns: [
       {
@@ -73,6 +74,7 @@ export default defineConfig([
           'call-or-pass': callOrPass,
           'if-only-at-start': ifOnlyAtStart,
           'inline-short-templates': inlineShortTemplates,
+          'max-directory-entries': maxDirectoryEntries,
           'max-function-lines': maxFunctionLines,
           'no-class-inheritance': noClassInheritance,
           'no-common-affixes': noCommonAffixes,
@@ -103,6 +105,7 @@ export default defineConfig([
       '@stylistic/max-statements-per-line': ['error', { max: 1 }],
       'printmd/call-or-pass': 'error',
       'printmd/if-only-at-start': 'error',
+      'printmd/max-directory-entries': 'error',
       'printmd/max-function-lines': ['error', { maxLines: 5 }],
       'printmd/no-class-inheritance': 'error',
       'printmd/no-common-affixes': 'error',

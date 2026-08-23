@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
-import type { ImportSource } from '../../../../manuscript';
+import type { ImportSource } from '../../../../manuscript/manuscript';
 import { FileAddInput } from './file-add-input';
 
 @Component({

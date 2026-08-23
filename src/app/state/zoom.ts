@@ -1,5 +1,5 @@
 import { computed, signal } from '@angular/core';
-import { A4, MM_TO_PX } from '../page-geometry';
+import { A4, MM_TO_PX } from '../pagination/page-geometry';
 
 export const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
 
@@ -35,7 +35,7 @@ function startupStep(): number {
     : defaultZoomIndex(window.innerWidth, window.matchMedia('(min-width: 768px)').matches);
 }
 
-/** ズーム段の全体。段の移動と表示値の導出を 1 か所に閉じる。100% = A4 実寸 */
+/** ズーム段。100% = A4 実寸 */
 export class Zoom {
   private readonly index = signal(startupStep());
   readonly value = computed(() => ZOOMS[this.index()]);

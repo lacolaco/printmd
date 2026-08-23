@@ -1,5 +1,5 @@
 import { Service, computed, inject } from '@angular/core';
-import { measurePagination } from '../page-count';
+import { measurePagination } from '../pagination/page-count';
 import { EditorStore } from './editor-store';
 import { Zoom } from './zoom';
 

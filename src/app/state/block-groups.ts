@@ -20,7 +20,7 @@ interface MutableFileGroup {
   headingLevel: number;
 }
 
-/** ファイル境界で区切ったグループ列。追加先の判定と深さの計算を閉じる */
+/** ファイル境界で区切ったグループ列 */
 class Grouping {
   private readonly items: MutableFileGroup[] = [];
 
@@ -32,7 +32,7 @@ class Grouping {
     group.rows.push({ block, depth });
   }
 
-  /** ブロックの属するグループを返す。ファイル境界では新しいグループを開始する */
+  /** ファイル境界では新しいグループを開始する */
   private destination(block: Block): MutableFileGroup {
     return this.lastMatching(block) ?? this.openNew(block);
   }

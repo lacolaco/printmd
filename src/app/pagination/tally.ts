@@ -6,7 +6,6 @@ function pagesForScrollWidth(scrollWidth: number): number {
   return Math.max(1, Math.round(raw));
 }
 
-/** セグメントごとのページ数を積み上げ、開始ページと総数を導く */
 export class Tally {
   private readonly segments: PageSegment[] = [];
   private firstPage = 0;

@@ -72,7 +72,6 @@ export function enclosingFunctions(id: TSESTree.Node): FunctionNode[] {
   return chain.filter(isFn);
 }
 
-/** TSESTree は range を必ず持つため、範囲比較だけで包含を判定できる */
 export function isWrapping(outer: TSESTree.Node, inner: TSESTree.Node): boolean {
   return outer.range[0] <= inner.range[0] && inner.range[1] <= outer.range[1];
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildRenderedDocument } from './markdown/block-extractor';
+import { buildRenderedDocument } from '../markdown/block-extractor';
 import { measurePagination, splitAtForcedBreaks } from './page-count';
 import { buildSegmentClone } from './segment-clone';
 

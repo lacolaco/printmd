@@ -1,6 +1,6 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
-import { isComponentClass, isAngularModule } from './angular-utils';
-import { FUNCTION_TYPES } from './ast-utils';
+import { isComponentClass, isAngularModule } from '../support/angular-utils';
+import { FUNCTION_TYPES } from '../support/ast-utils';
 
 type MessageIds = 'noNewInProps';
 

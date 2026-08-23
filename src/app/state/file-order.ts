@@ -1,6 +1,6 @@
-import type { ManuscriptFile } from '../manuscript';
+import type { ManuscriptFile } from '../manuscript/manuscript';
 
-/** 原稿ファイル列の純粋操作。並べ替えの検証・実行と、追記だけの変化の判定を閉じる */
+/** 原稿ファイル列の純粋操作 */
 export class FileOrder {
   constructor(private readonly items: readonly ManuscriptFile[]) {}
 
@@ -19,7 +19,6 @@ export class FileOrder {
     return from !== to && from >= 0 && to >= 0 && from < length && to < length;
   }
 
-  /** id のファイルを delta 方向へ動かせるか */
   isNudgeable(id: number, delta: -1 | 1): boolean {
     const index = this.items.findIndex((file) => file.id === id);
     return this.isMovable(index, index + delta);

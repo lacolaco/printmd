@@ -42,7 +42,7 @@ export class Preview {
   private readonly sheetsHost = viewChild.required<ElementRef<HTMLElement>>('sheetsHost');
   private renderer: SheetRenderer | null = null;
 
-  /** 計測は pagination (computed) に移っており、ここは DOM 書き込みのみ */
+  /** ここは DOM 書き込みのみ (計測は pagination の computed が担う) */
   constructor() {
     effect(() => {
       this.renderer = renewRenderer(this.renderer, this.sheetsHost().nativeElement);
@@ -53,7 +53,6 @@ export class Preview {
   }
 }
 
-/** 張り替えでは前のレンダラを破棄してから作り直す */
 function renewRenderer(previous: SheetRenderer | null, host: HTMLElement): SheetRenderer {
   previous?.dispose();
   return new SheetRenderer(host);

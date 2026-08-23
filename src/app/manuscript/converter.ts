@@ -1,10 +1,10 @@
 import { Service, inject } from '@angular/core';
 import { FragmentCache } from './fragment-cache';
 import type { ManuscriptFile } from './manuscript';
-import { buildRenderedDocument, type RenderedDocument } from './markdown/block-extractor';
-import { renderMarkdown, type MermaidBlock } from './markdown/render-markdown';
-import { applyMermaidResults } from './mermaid/apply-mermaid-results';
-import { MermaidRenderer, type MermaidOutcome } from './mermaid/mermaid-renderer';
+import { buildRenderedDocument, type RenderedDocument } from '../markdown/block-extractor';
+import { renderMarkdown, type MermaidBlock } from '../markdown/render-markdown';
+import { applyMermaidResults } from '../mermaid/apply-mermaid-results';
+import { MermaidRenderer, type MermaidOutcome } from '../mermaid/mermaid-renderer';
 
 function collectMermaidBlocks(
   rendered: readonly { mermaidBlocks: readonly MermaidBlock[] }[],

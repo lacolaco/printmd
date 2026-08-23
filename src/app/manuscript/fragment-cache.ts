@@ -1,4 +1,4 @@
-import type { FileFragment } from './markdown/block-extractor';
+import type { FileFragment } from '../markdown/block-extractor';
 import type { ManuscriptFile } from './manuscript';
 
 /**
@@ -11,7 +11,6 @@ export class FragmentCache {
   private readonly entries = new Map<string, string>();
   private epoch = 0;
 
-  /** 新しい世代を開始し、その世代番号を返す */
   begin(): number {
     return ++this.epoch;
   }

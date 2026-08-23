@@ -1,8 +1,8 @@
 import type { RenderedDocument } from '../../../markdown/block-extractor';
-import type { PageSegment, Pagination } from '../../../pagination';
-import { buildSegmentClone } from '../../../segment-clone';
+import type { PageSegment, Pagination } from '../../../pagination/pagination';
+import { buildSegmentClone } from '../../../pagination/segment-clone';
 import { ifDefined } from '../../../collections';
-import { A4 } from '../../../page-geometry';
+import { A4 } from '../../../pagination/page-geometry';
 
 function isEmpty(sheet: HTMLElement): boolean {
   return sheet.childElementCount === 0;
@@ -41,10 +41,7 @@ function shiftedClone(doc: RenderedDocument, segment: PageSegment, column: numbe
   return mc;
 }
 
-/**
- * シート群の描画。空の枠を並べ、可視域に入ったシートだけ中身を実体化する
- * (大部数対策)。張り替え時は前のインスタンスを dispose して observer を切断する
- */
+/** シート群の描画。空の枠を並べ、可視域に入ったシートだけ中身を実体化する (大部数対策) */
 export class SheetRenderer {
   /** 可視シートの遅延実体化に使う */
   private observer: IntersectionObserver | null = null;
@@ -128,7 +125,6 @@ export class SheetRenderer {
     }
   }
 
-  /** シートへ段組クローンの窓を実体化する。実体化済みなら何もしない */
   private realize(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
     if (isEmpty(sheet)) {
       this.materialize(sheet, doc, pagination);

@@ -1,4 +1,4 @@
-import type { Block, RenderedDocument } from './markdown/block-extractor';
+import type { Block, RenderedDocument } from '../markdown/block-extractor';
 import type { Pagination, SegmentRange } from './pagination';
 import { Probe } from './probe';
 import { Ranges } from './ranges';

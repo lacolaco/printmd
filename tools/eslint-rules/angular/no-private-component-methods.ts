@@ -1,5 +1,5 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
-import { isComponentClass, isAngularModule } from './angular-utils';
+import { isComponentClass, isAngularModule } from '../support/angular-utils';
 
 type MessageIds = 'noPrivateMethod';
 

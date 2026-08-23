@@ -1,5 +1,5 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
-import { FUNCTION_TYPES, enclosingFunctions } from './ast-utils';
+import { FUNCTION_TYPES, enclosingFunctions } from '../support/ast-utils';
 
 type MessageIds = 'notAtStart';
 

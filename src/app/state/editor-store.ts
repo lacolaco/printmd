@@ -1,8 +1,8 @@
 import { Service, computed, inject, linkedSignal, resource, signal } from '@angular/core';
 import type { Block, RenderedDocument } from '../markdown/block-extractor';
 import { isNonEmpty } from '../collections';
-import { Converter } from '../converter';
-import type { ImportSource, ManuscriptFile } from '../manuscript';
+import { Converter } from '../manuscript/converter';
+import type { ImportSource, ManuscriptFile } from '../manuscript/manuscript';
 import { groupBlocks } from './block-groups';
 import { FileOrder } from './file-order';
 
@@ -106,7 +106,6 @@ export class EditorStore {
     );
   }
 
-  /** id のファイルを delta 方向へ動かせるか */
   isMovable(id: number, delta: -1 | 1): boolean {
     return new FileOrder(this.manuscripts()).isNudgeable(id, delta);
   }
