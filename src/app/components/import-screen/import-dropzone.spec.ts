@@ -30,7 +30,7 @@ describe('ImportDropzone', () => {
         text: async () => `# ${url}`,
       })),
     );
-    const store = TestBed.inject(ManuscriptState);
+    const manuscripts = TestBed.inject(ManuscriptState);
     const fixture = TestBed.createComponent(ImportDropzone);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -42,7 +42,10 @@ describe('ImportDropzone', () => {
     await fixture.whenStable();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(store.files().map((f) => f.name)).toEqual(['printmd-guide.md', 'hashire-merosu.md']);
+    expect(manuscripts.files().map((f) => f.name)).toEqual([
+      'printmd-guide.md',
+      'hashire-merosu.md',
+    ]);
   });
 });
 
@@ -54,7 +57,7 @@ describe('ImportDropzone 取り込み経路', () => {
   });
 
   it('ファイル選択 (input change) で取り込む', async () => {
-    const store = TestBed.inject(ManuscriptState);
+    const manuscripts = TestBed.inject(ManuscriptState);
     const fixture = TestBed.createComponent(ImportDropzone);
     fixture.detectChanges();
     const input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
@@ -66,12 +69,12 @@ describe('ImportDropzone 取り込み経路', () => {
     });
     input.dispatchEvent(new Event('change'));
     await fixture.whenStable();
-    expect(store.files().map((f) => f.name)).toEqual(['a.md']);
+    expect(manuscripts.files().map((f) => f.name)).toEqual(['a.md']);
     expect(input.value).toBe('');
   });
 
   it('ドロップで取り込み、既定動作を抑止する', async () => {
-    const store = TestBed.inject(ManuscriptState);
+    const manuscripts = TestBed.inject(ManuscriptState);
     const fixture = TestBed.createComponent(ImportDropzone);
     fixture.detectChanges();
     const label = (fixture.nativeElement as HTMLElement).querySelector('label')!;
@@ -84,7 +87,7 @@ describe('ImportDropzone 取り込み経路', () => {
     label.dispatchEvent(drop);
     expect(drop.defaultPrevented).toBe(true);
     await fixture.whenStable();
-    expect(store.files().map((f) => f.name)).toEqual(['a.md']);
+    expect(manuscripts.files().map((f) => f.name)).toEqual(['a.md']);
   });
 
   it('サンプル原稿ボタンで demo 配下の 2 ファイルを取り込む', async () => {
@@ -95,12 +98,15 @@ describe('ImportDropzone 取り込み経路', () => {
       ),
     );
     try {
-      const store = TestBed.inject(ManuscriptState);
+      const manuscripts = TestBed.inject(ManuscriptState);
       const fixture = TestBed.createComponent(ImportDropzone);
       fixture.detectChanges();
       (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button')!.click();
       await fixture.whenStable();
-      expect(store.files().map((f) => f.name)).toEqual(['printmd-guide.md', 'hashire-merosu.md']);
+      expect(manuscripts.files().map((f) => f.name)).toEqual([
+        'printmd-guide.md',
+        'hashire-merosu.md',
+      ]);
     } finally {
       vi.unstubAllGlobals();
     }
@@ -112,12 +118,12 @@ describe('ImportDropzone 取り込み経路', () => {
       vi.fn(() => Promise.resolve({ ok: false })),
     );
     try {
-      const store = TestBed.inject(ManuscriptState);
+      const manuscripts = TestBed.inject(ManuscriptState);
       const fixture = TestBed.createComponent(ImportDropzone);
       fixture.detectChanges();
       (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button')!.click();
       await fixture.whenStable();
-      expect(store.files()).toEqual([]);
+      expect(manuscripts.files()).toEqual([]);
     } finally {
       vi.unstubAllGlobals();
     }

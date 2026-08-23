@@ -13,7 +13,7 @@ import { BreakRowItem } from './break-row-item';
   selector: 'app-break-panel',
   imports: [BreakRowItem],
   template: `
-    @if (store.nonEmpty()) {
+    @if (manuscripts.nonEmpty()) {
       <section class="mt-4" aria-labelledby="break-heading">
         <div class="mb-2 flex items-center justify-between gap-2">
           <h2 id="break-heading" class="text-sm font-bold text-stone-700">改ページ調整</h2>
@@ -44,7 +44,7 @@ import { BreakRowItem } from './break-row-item';
   `,
 })
 export class BreakPanel {
-  protected readonly store = inject(ManuscriptState);
+  protected readonly manuscripts = inject(ManuscriptState);
   protected readonly documents = inject(DocumentState);
   protected readonly marks = inject(BreakState);
   protected readonly editor = inject(Editor);

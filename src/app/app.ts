@@ -19,7 +19,7 @@ import { ManuscriptState } from './state/manuscript-state';
       (drop)="acceptDrop($event)"
     >
       <app-header />
-      @if (store.nonEmpty()) {
+      @if (manuscripts.nonEmpty()) {
         <app-workspace class="min-h-0 flex-1" />
       } @else {
         <app-import-screen class="min-h-0 flex-1" />
@@ -32,7 +32,7 @@ import { ManuscriptState } from './state/manuscript-state';
   `,
 })
 export class App {
-  protected readonly store = inject(ManuscriptState);
+  protected readonly manuscripts = inject(ManuscriptState);
   private readonly editor = inject(Editor);
 
   /** ウィンドウ全体をドロップ先にする (誤ドロップでのページ遷移も防ぐ) */

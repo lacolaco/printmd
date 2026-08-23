@@ -23,7 +23,7 @@ import { SheetRenderer } from './sheet-renderer';
         <div class="mx-auto w-fit" #sheetsHost [style.zoom]="zoom.value()"></div>
       </div>
       <!-- 読み上げはヘッダの status が担うため、こちらは視覚専用 -->
-      @if (store.rendering()) {
+      @if (documents.rendering()) {
         <div
           class="app-rendering-indicator pointer-events-none absolute inset-x-0 top-4 flex justify-center"
           aria-hidden="true"
@@ -37,7 +37,7 @@ import { SheetRenderer } from './sheet-renderer';
   `,
 })
 export class Preview {
-  protected readonly store = inject(DocumentState);
+  protected readonly documents = inject(DocumentState);
   protected readonly viewer = inject(ViewerState);
   protected readonly zoom = inject(ZoomState);
 
@@ -46,7 +46,7 @@ export class Preview {
 
   /** ここは DOM 書き込みのみ (計測は pagination の computed が担う)。signal は先に読む (例外時も依存を登録する) */
   private readonly repaint = effect(() => {
-    const doc = this.store.renderedDocument();
+    const doc = this.documents.renderedDocument();
     const pagination = this.viewer.pagination();
     this.renderer = renewRenderer(this.renderer, this.sheetsHost().nativeElement);
     this.renderer.render(doc, pagination);

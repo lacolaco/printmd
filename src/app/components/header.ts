@@ -15,7 +15,7 @@ import { ZoomState } from '../state/zoom-state';
   template: `
     <header class="app-header flex h-12 shrink-0 items-center gap-3 border-b px-4">
       <h1 class="app-logo text-base font-bold tracking-tight">printmd</h1>
-      @if (store.nonEmpty()) {
+      @if (manuscripts.nonEmpty()) {
         <div
           class="absolute left-1/2 flex -translate-x-1/2 items-center gap-2 text-xs text-stone-700"
           ngToolbar
@@ -46,7 +46,7 @@ import { ZoomState } from '../state/zoom-state';
           </button>
         </div>
       }
-      @if (store.nonEmpty()) {
+      @if (manuscripts.nonEmpty()) {
         <button
           type="button"
           class="app-print-button ml-auto rounded-sm px-3 py-1 text-xs font-medium"
@@ -59,7 +59,7 @@ import { ZoomState } from '../state/zoom-state';
   `,
 })
 export class Header {
-  protected readonly store = inject(ManuscriptState);
+  protected readonly manuscripts = inject(ManuscriptState);
   protected readonly documents = inject(DocumentState);
   protected readonly viewer = inject(ViewerState);
   protected readonly zoom = inject(ZoomState);

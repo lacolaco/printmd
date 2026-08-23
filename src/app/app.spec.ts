@@ -97,7 +97,7 @@ describe('App ウィンドウ全体のドロップ受け', () => {
   }
 
   it('ウィンドウへのドロップで原稿を取り込み、既定動作を抑止する', async () => {
-    const store = TestBed.inject(ManuscriptState);
+    const manuscripts = TestBed.inject(ManuscriptState);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const host = (fixture.nativeElement as HTMLElement).querySelector('.app-ui')!;
@@ -105,17 +105,17 @@ describe('App ウィンドウ全体のドロップ受け', () => {
     host.dispatchEvent(event);
     expect(event.defaultPrevented).toBe(true);
     await fixture.whenStable();
-    expect(store.files().map((f) => f.name)).toEqual(['a.md']);
+    expect(manuscripts.files().map((f) => f.name)).toEqual(['a.md']);
   });
 
   it('ファイルの無いドロップでは何も取り込まない', async () => {
-    const store = TestBed.inject(ManuscriptState);
+    const manuscripts = TestBed.inject(ManuscriptState);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const host = (fixture.nativeElement as HTMLElement).querySelector('.app-ui')!;
     host.dispatchEvent(dropEvent([]));
     await fixture.whenStable();
-    expect(store.files()).toEqual([]);
+    expect(manuscripts.files()).toEqual([]);
   });
 
   it('dragover で既定動作 (ページ遷移) を抑止する', () => {
