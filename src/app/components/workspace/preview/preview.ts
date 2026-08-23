@@ -123,9 +123,22 @@ export class Preview {
   }
 
   private scheduleFill(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
+    this.observeSheetLazily(sheet);
+    this.fillSheetEagerly(sheet, doc, pagination);
+  }
+
+  private observeSheetLazily(sheet: HTMLElement): void {
     if (this.observer !== null) {
       this.observer.observe(sheet);
-    } else {
+    }
+  }
+
+  private fillSheetEagerly(
+    sheet: HTMLElement,
+    doc: RenderedDocument,
+    pagination: Pagination,
+  ): void {
+    if (this.observer === null) {
       this.fillSheet(sheet, doc, pagination);
     }
   }
