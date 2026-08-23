@@ -14,7 +14,9 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test && vitest run --config tools/vitest.config.ts",
     "e2e": "playwright test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "format:check": "prettier --check 'src/**/*.ts' 'tools/**/*.ts' 'e2e/**/*.ts' eslint.config.ts",
+    "format": "prettier --write 'src/**/*.ts' 'tools/**/*.ts' 'e2e/**/*.ts' eslint.config.ts"
   },
   "private": true,
   "packageManager": "pnpm@10.33.4",
