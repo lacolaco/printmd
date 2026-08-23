@@ -15,26 +15,7 @@ printmd のプロジェクト規範。
 
 ## コーディング規律
 
-- if は常に brace でブロック化し、1 行に潰さない (`curly` と `@stylistic/max-statements-per-line` が強制)。1 行化による 5 行ルールの回避は許されない。同種の回避 (`&&` や三項演算子の文としての使用、カンマ演算子、手整形での行連結) も `no-unused-expressions` / `no-sequences` / CI の `prettier --check` が塞ぐ。
-- 5 行ルール: 関数・メソッドの本体は、ロジックのある行が 5 行以内でなければならない。括弧・区切り記号 (`{` `}` `(` `)` `[` `]` `;` `,`) だけの行と空行は数えない。lint ルール `printmd/max-function-lines` が強制する。適用対象は `src/` と `tools/` の実装コードで、`*.spec.ts` ファイルと `e2e/` は対象外。
-
-- 呼び出すか渡すか: 関数は、オブジェクトのメンバー (メソッド・プロパティ) にアクセスするか、オブジェクトを引数として他の関数へ渡すかのどちらか一方だけを行う。メンバーアクセスは意味のある関数へ局所化するか、分割代入で先に取り出してから渡す (単なる 1 行アクセサの切り出しで逃げない)。lint ルール `printmd/call-or-pass` が強制する。適用対象は 5 行ルールと同じ。
-
-- if は最初だけ: if 文は関数本体の先頭に置き、その関数は他のことをしない (else / else-if 連鎖は先頭 if の一部)。値を返すだけの分岐は条件演算子にして if 文自体を消すか、if を唯一の文とする関数へ抽出する。lint ルール `printmd/if-only-at-start` が強制する。適用対象は 5 行ルールと同じ。
-
-- if で else は使わない: 分岐は早期 return・条件演算子・多態で表す。外部データ型 (制御できない入力) のチェックだけは `eslint-disable-next-line printmd/no-else -- 理由` で除外できる。lint ルール `printmd/no-else` が強制する。適用対象は 5 行ルールと同じ。
-
-- switch は使わない: 原則禁止。使う場合は default を持たず、全 case が return し、網羅性が型で保証されている形に限る。lint ルール `printmd/no-switch` (default 禁止・全 case return。throw 終端も不可) と `@typescript-eslint/switch-exhaustiveness-check` (型ベースの網羅性検査。type-aware lint) が強制し、`noImplicitReturns` が背後で漏れを拾う。union 型以外を対象とする switch は両ルールの組み合わせにより書けない (意図した閉じ方)。適用対象は 5 行ルールと同じ。
-
-- 継承はインタフェースだけからする: クラス (抽象クラス含む) の extends を禁止し、実装の共有は移譲で表す。interface の implements と interface 同士の extends は許可。lint ルール `printmd/no-class-inheritance` が強制する。適用対象は 5 行ルールと同じ (テストダブルを作る *.spec.ts は対象外)。
-
-- 純粋な条件式: 条件には副作用の無い問い合わせだけを使う (コマンド問い合わせ分離)。変更系メソッド・代入・インクリメント・非決定的呼び出し (Date.now / Math.random 等) を条件位置に置かない。lint ルール `printmd/pure-conditions` が強制する (名前から確定できる範囲の近似検査)。適用対象は 5 行ルールと同じ。
-
-- 実装が 1 つしかないインタフェースは作らない: interface 宣言を起点に、プログラム全体で implements する実装クラスを数え、ちょうど 1 つなら違反 (0 = 型としての利用は許可)。lint ルール `printmd/no-single-implementation-interface` (type-aware) が強制する。適用対象は 5 行ルールと同じ。
-
-- getter と setter は使わない (デメテルの法則): データを取り出して外で操作するのではなく、振る舞いをオブジェクト側へ移す。構文の get/set アクセサに加え、getXxx / setXxx 命名のメソッドによるカプセル化も禁止。ブール型のフィールド (getter の返り値・setter の第 1 引数がブール型) のみ例外。lint ルール `printmd/no-getter-setter` (type-aware) が強制する。適用対象は 5 行ルールと同じ。
-
-- 共通の接頭辞・接尾辞を持たせない: 同一スコープ (クラス本体のメンバー・変数スコープの宣言) で、複数語の名前どうしが先頭語または接尾の語を共有したら、Foo というクラスによるカプセル化の不足である。単一語の名前は接辞を持たない。import 束縛と型宣言は他所の名前なので数えない。lint ルール `printmd/no-common-affixes` が強制する。適用対象は 5 行ルールと同じ。
+- コーディング規律は lint で決定論的に強制する (`eslint.config.ts` と `tools/eslint-rules/` が唯一の定義)。規律を文書へ書き写さない。lint で表現できない規律だけをここへ書く。
 
 ## 検証
 
@@ -74,7 +55,6 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use `model()` for two-way bound properties with `[(prop)]` syntax instead of pairing `input()` with `output()`
 - Use `computed()` for derived state
 - Use `linkedSignal()` for state derived from multiple reactive sources that must stay synchronized
-- Inline the template when it is 20 lines or fewer; use an external file only above that (enforced by the `printmd/inline-short-templates` lint rule)
 - Prefer Signal Forms (`@angular/forms/signals`) for new forms. They are stable in Angular v22+ and provide signal-based state, type-safe field access, and schema-based validation
 - When not using Signal Forms, prefer Reactive forms instead of Template-driven ones
 - Do NOT use `ngClass`, use `class` bindings instead
