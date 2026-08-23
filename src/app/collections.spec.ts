@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hasItems } from './collections';
+import { hasItems, ifDefined } from './collections';
 
 describe('hasItems', () => {
   it('要素があれば真', () => {
@@ -8,5 +8,19 @@ describe('hasItems', () => {
 
   it('空配列は偽', () => {
     expect(hasItems([])).toBe(false);
+  });
+});
+
+describe('ifDefined', () => {
+  it('値があれば関数を適用する', () => {
+    const seen: number[] = [];
+    ifDefined(1, (v) => seen.push(v));
+    expect(seen).toEqual([1]);
+  });
+
+  it('undefined なら何もしない', () => {
+    const seen: number[] = [];
+    ifDefined(undefined, (v: number) => seen.push(v));
+    expect(seen).toEqual([]);
   });
 });

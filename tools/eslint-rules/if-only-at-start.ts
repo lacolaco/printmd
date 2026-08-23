@@ -1,12 +1,7 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
+import { FUNCTION_TYPES, enclosingFunctions } from './ast-utils';
 
 type MessageIds = 'notAtStart';
-
-const FUNCTION_TYPES: ReadonlySet<string> = new Set([
-  'FunctionDeclaration',
-  'FunctionExpression',
-  'ArrowFunctionExpression',
-]);
 
 /** else if の連鎖は先頭の if の一部と見なす */
 function isElseIfChain(node: TSESTree.IfStatement, parent: TSESTree.Node): boolean {
@@ -25,11 +20,11 @@ function isOnlyStatementOfFunction(node: TSESTree.IfStatement, parent: TSESTree.
   return body[0] === node && body.length === 1;
 }
 
+/** 規律は関数の中の話。関数の外 (モジュールレベルや static ブロック) の if は対象外 */
 function isCompliant(node: TSESTree.IfStatement): boolean {
   const { parent } = node;
-  const compliant =
-    isElseIfChain(node, parent) || isOnlyStatementOfFunction(node, parent);
-  return compliant;
+  const insideFunction = enclosingFunctions(node).length > 0;
+  return !insideFunction || isElseIfChain(node, parent) || isOnlyStatementOfFunction(node, parent);
 }
 
 type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>[0]['create']>[0];

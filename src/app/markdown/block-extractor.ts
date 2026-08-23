@@ -1,3 +1,5 @@
+import { ifDefined } from '../collections';
+
 export type BlockKind =
   | 'heading'
   | 'paragraph'
@@ -139,17 +141,13 @@ function toBlockOrigin(
  * 呼び出しは各消費者の描画時に行う。派生値 (computed) の読み取りに
  * DOM 変異の副作用を持ち込まないための取り決め
  */
-function withBlock(blocks: readonly Block[], index: number, use: (block: Block) => void): void {
-  if (blocks[index] !== undefined) use(blocks[index]);
-}
-
 export function applyForcedBreaks(
   container: HTMLElement,
   blocks: readonly Block[],
   breaks: ReadonlySet<string>,
 ): void {
   [...container.children].forEach((el, index) =>
-    withBlock(blocks, index, (block) =>
+    ifDefined(blocks[index], (block) =>
       el.classList.toggle('forced-break', block.isFileBoundary || breaks.has(block.id)),
     ),
   );

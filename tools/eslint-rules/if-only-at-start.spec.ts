@@ -51,6 +51,24 @@ function run() {
   });
 }`,
     },
+    {
+      name: '関数の外 (モジュールレベル) の if は対象外',
+      code: `declare const x: boolean; declare function f(): void;
+if (x) {
+  f();
+}`,
+    },
+    {
+      name: '関数の外 (class の static ブロック) の if は対象外',
+      code: `declare const x: boolean; declare function f(): void;
+class C {
+  static {
+    if (x) {
+      f();
+    }
+  }
+}`,
+    },
   ],
   invalid: [
     {

@@ -5,7 +5,7 @@ export type FunctionNode =
   | TSESTree.FunctionExpression
   | TSESTree.ArrowFunctionExpression;
 
-const FUNCTION_TYPES: ReadonlySet<string> = new Set([
+export const FUNCTION_TYPES: ReadonlySet<string> = new Set([
   'FunctionDeclaration',
   'FunctionExpression',
   'ArrowFunctionExpression',

@@ -1,6 +1,7 @@
 import { Component, DestroyRef, effect, inject, viewChild, type ElementRef } from '@angular/core';
 import type { RenderedDocument } from '../../../markdown/block-extractor';
 import { buildSegmentClone, type PageSegment, type Pagination } from '../../../page-count';
+import { ifDefined } from '../../../collections';
 import { EditorStore } from '../../../state/editor-store';
 import { ViewerState } from '../../../state/viewer-state';
 import { COLUMN_STEP_MM } from '../../../page-geometry';
@@ -127,14 +128,10 @@ export class Preview {
 
   private materializeSheet(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
     const index = Number(sheet.dataset['page']) - 1;
-    appendIfDefined(segmentForPage(pagination, index), (segment) =>
+    ifDefined(segmentForPage(pagination, index), (segment) =>
       sheet.append(buildSheetWindow(doc, segment, columnFor(segment, index))),
     );
   }
-}
-
-function appendIfDefined<T>(value: T | undefined, use: (value: T) => void): void {
-  if (value !== undefined) use(value);
 }
 
 function isEmptySheet(sheet: HTMLElement): boolean {

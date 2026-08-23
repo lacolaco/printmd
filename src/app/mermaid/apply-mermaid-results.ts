@@ -1,4 +1,5 @@
 import DOMPurify from 'dompurify';
+import { ifDefined } from '../collections';
 import type { MermaidOutcome } from './mermaid-renderer';
 
 const MERMAID_FAILED_MESSAGE = 'mermaid の描画に失敗したため、元のコードを表示しています';
@@ -25,10 +26,6 @@ function replacePlaceholders(html: string, results: ReadonlyMap<string, MermaidO
   temp.innerHTML = html;
   temp.querySelectorAll('.mermaid-placeholder').forEach((el) => replacePlaceholder(el, results));
   return temp.innerHTML;
-}
-
-function ifDefined<T>(value: T | undefined, use: (value: T) => void): void {
-  if (value !== undefined) use(value);
 }
 
 function replacePlaceholder(
