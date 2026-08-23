@@ -17,6 +17,43 @@ import { noSingleImplementationInterface } from './tools/eslint-rules/no-single-
 import { noSwitch } from './tools/eslint-rules/no-switch';
 import { pureConditions } from './tools/eslint-rules/pure-conditions';
 
+/** 依存方向の定義。層の追加・変更はこの配列だけを編集する */
+const LAYERS = [
+  {
+    files: ['src/app/state/**/*.ts'],
+    patterns: [
+      { group: ['**/components/**'], message: 'state は components に依存しない' },
+      { group: ['**/mermaid/**'], message: 'state は変換の実装に依存しない。Converter を経由する' },
+    ],
+  },
+  {
+    files: ['src/app/markdown/**/*.ts'],
+    patterns: [
+      {
+        group: ['**/state/**', '**/components/**', '**/mermaid/**'],
+        message: 'markdown 層は上位層と mermaid に依存しない',
+      },
+    ],
+  },
+  {
+    files: ['src/app/mermaid/**/*.ts'],
+    patterns: [
+      { group: ['**/state/**', '**/components/**'], message: 'mermaid 層は上位層に依存しない' },
+    ],
+  },
+  {
+    // src/app 直下のドメインモジュール。app.ts だけは画面骨格なので除外する
+    files: ['src/app/*.ts'],
+    ignores: ['src/app/app.ts'],
+    patterns: [
+      {
+        group: ['**/state/**', '**/components/**'],
+        message: 'ドメインモジュールは上位層に依存しない',
+      },
+    ],
+  },
+];
+
 export default defineConfig([
   {
     files: ['**/*.ts'],
@@ -83,77 +120,14 @@ export default defineConfig([
     },
   },
   // 依存方向の規律: components → state → ドメイン (src/app 直下) → markdown / mermaid。
-  // 逆向きの import を層ごとに禁止する (型 import も含む)
-  {
-    files: ['src/app/state/**/*.ts'],
-    ignores: ['**/*.spec.ts'],
+  // 逆向きの import を層ごとに禁止する (型 import も含む)。spec はダブルの注入で層を跨げる
+  ...LAYERS.map((layer) => ({
+    files: layer.files,
+    ignores: [...(layer.ignores ?? []), '**/*.spec.ts'],
     rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            { group: ['**/components/**'], message: 'state は components に依存しない' },
-            {
-              group: ['**/mermaid/**'],
-              message: 'state は変換の実装に依存しない。Converter を経由する',
-            },
-          ],
-        },
-      ],
+      'no-restricted-imports': ['error', { patterns: layer.patterns }],
     },
-  },
-  {
-    files: ['src/app/markdown/**/*.ts'],
-    ignores: ['**/*.spec.ts'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['**/state/**', '**/components/**', '**/mermaid/**'],
-              message: 'markdown 層は上位層と mermaid に依存しない',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ['src/app/mermaid/**/*.ts'],
-    ignores: ['**/*.spec.ts'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['**/state/**', '**/components/**'],
-              message: 'mermaid 層は上位層に依存しない',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    // src/app 直下のドメインモジュール。app.ts だけは画面骨格なので除外する
-    files: ['src/app/*.ts'],
-    ignores: ['src/app/app.ts', 'src/app/app.config.ts', '**/*.spec.ts'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['**/state/**', '**/components/**'],
-              message: 'ドメインモジュールは上位層に依存しない',
-            },
-          ],
-        },
-      ],
-    },
-  },
+  })),
   {
     files: ['**/*.ts'],
     extends: [

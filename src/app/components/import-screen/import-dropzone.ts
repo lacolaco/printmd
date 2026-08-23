@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { fromFileList } from '../../manuscript';
+import { fromFileList } from '../../collections';
 import { EditorStore } from '../../state/editor-store';
 import { Demo } from './demo';
 

@@ -10,8 +10,3 @@ export interface ImportSource {
   readonly name: string;
   text(): Promise<string>;
 }
-
-/** ドロップやファイル選択の FileList を取り込み入力の配列へそろえる */
-export function fromFileList(files: FileList | null | undefined): readonly File[] {
-  return files === null || files === undefined ? [] : [...files];
-}

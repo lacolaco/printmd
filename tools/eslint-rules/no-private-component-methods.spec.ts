@@ -12,15 +12,23 @@ tester.run('no-private-component-methods', noPrivateComponentMethods, {
   valid: [
     {
       name: 'コンポーネントの protected ハンドラは許可',
-      code: `declare function Component(config: object): ClassDecorator;
+      code: `import { Component } from '@angular/core';
 @Component({})
 export class Panel {
   protected close(): void {}
 }`,
     },
     {
+      name: '@angular/core 以外の Component デコレータは対象外',
+      code: `import { Component } from 'my-lib';
+@Component({})
+export class Panel {
+  private prepare(): void {}
+}`,
+    },
+    {
       name: 'コンポーネントの private フィールドは許可 (メソッドだけが対象)',
-      code: `declare function Component(config: object): ClassDecorator;
+      code: `import { Component } from '@angular/core';
 @Component({})
 export class Panel {
   private readonly count = 0;
@@ -39,7 +47,7 @@ export class Panel {
   invalid: [
     {
       name: 'コンポーネントの private メソッドは禁止',
-      code: `declare function Component(config: object): ClassDecorator;
+      code: `import { Component } from '@angular/core';
 @Component({})
 export class Panel {
   private prepare(): void {}
@@ -48,10 +56,19 @@ export class Panel {
     },
     {
       name: 'コンポーネントの # メソッドも禁止',
-      code: `declare function Component(config: object): ClassDecorator;
+      code: `import { Component } from '@angular/core';
 @Component({})
 export class Panel {
   #prepare(): void {}
+}`,
+      errors: [{ messageId: 'noPrivateMethod' }],
+    },
+    {
+      name: 'private なアロー関数フィールドによる回避も禁止',
+      code: `import { Component } from '@angular/core';
+@Component({})
+export class Panel {
+  private prepare = (): void => {};
 }`,
       errors: [{ messageId: 'noPrivateMethod' }],
     },
