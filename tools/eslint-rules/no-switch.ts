@@ -9,7 +9,7 @@ function endsWithReturn(statements: readonly TSESTree.Statement[]): boolean {
 }
 
 /** fallthrough でまとめた空 case は、末尾でなければ許す */
-function isCompliantCase(switchCase: TSESTree.SwitchCase, isLast: boolean): boolean {
+function tolerated(switchCase: TSESTree.SwitchCase, isLast: boolean): boolean {
   const { consequent } = switchCase;
   const { length } = consequent;
   return (length === 0 && !isLast) || endsWithReturn(consequent);
@@ -21,11 +21,11 @@ function caseFinding(
 ): { node: TSESTree.SwitchCase; messageId: MessageIds } | null {
   const { test } = switchCase;
   const messageId = test === null ? 'noDefault' : 'caseMustReturn';
-  const compliant = test !== null && isCompliantCase(switchCase, isLast);
+  const compliant = test !== null && tolerated(switchCase, isLast);
   return compliant ? null : { node: switchCase, messageId };
 }
 
-function switchFindings(
+function findingsIn(
   node: TSESTree.SwitchStatement,
 ): { node: TSESTree.SwitchCase; messageId: MessageIds }[] {
   const { cases } = node;
@@ -51,7 +51,7 @@ export const noSwitch = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
   create(context) {
     return {
       SwitchStatement(node) {
-        switchFindings(node).forEach((finding) => context.report(finding));
+        findingsIn(node).forEach((finding) => context.report(finding));
       },
     };
   },

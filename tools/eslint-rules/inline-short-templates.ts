@@ -10,7 +10,7 @@ type Context = TSESLint.RuleContext<MessageIds, Options>;
 const DEFAULT_MAX_LINES = 20;
 
 /** @Component デコレータの引数オブジェクト直下の templateUrl だけを対象にするセレクタ */
-const TEMPLATE_URL_SELECTOR =
+const TEMPLATE_PROPERTY_SELECTOR =
   'Decorator > CallExpression[callee.name="Component"] > ObjectExpression > Property[key.name="templateUrl"]';
 
 function safeRead(file: string): string | null {
@@ -21,17 +21,17 @@ function safeRead(file: string): string | null {
   }
 }
 
-function readTemplateFile(context: Context, templateUrl: string): string | null {
+function loadReferenced(context: Context, templateUrl: string): string | null {
   const file = path.resolve(path.dirname(context.filename), templateUrl);
   return safeRead(file);
 }
 
-function escapeForTemplateLiteral(content: string): string {
+function escapeForBacktick(content: string): string {
   return content.replaceAll('\\', '\\\\').replaceAll('`', '\\`').replaceAll('${', '\\${');
 }
 
 /** プロパティのインデント (既定 2) に合わせて本文を 1 段深く敷き直す */
-function buildInlineTemplateBody(content: string, escaped: string, column: number): string {
+function buildBody(content: string, escaped: string, column: number): string {
   const indent = ' '.repeat(column + 2);
   const body = `\n${indent}${escaped.split('\n').join(`\n${indent}`)}\n${' '.repeat(column)}`;
   return content.trim() === '' ? '' : body;
@@ -41,14 +41,14 @@ function indentColumn(node: TSESTree.Node): number {
   return node.loc.start.column;
 }
 
-function toInlineTemplateFix(
+function toReplacement(
   fixer: TSESLint.RuleFixer,
   node: TSESTree.Node,
   content: string,
 ): TSESLint.RuleFix {
   const column = indentColumn(node);
-  const escaped = escapeForTemplateLiteral(content);
-  const body = buildInlineTemplateBody(content, escaped, column);
+  const escaped = escapeForBacktick(content);
+  const body = buildBody(content, escaped, column);
   return fixer.replaceText(node, `template: \`${body}\``);
 }
 
@@ -56,7 +56,7 @@ function lineTotal(content: string): number {
   return content.split('\n').length;
 }
 
-function reportInline(
+function reportViolation(
   context: Context,
   maxLines: number,
   node: TSESTree.Node,
@@ -64,18 +64,18 @@ function reportInline(
 ): void {
   const lines = lineTotal(content);
   const data = { lines: String(lines), max: String(maxLines) };
-  const fix: TSESLint.ReportFixFunction = (fixer) => toInlineTemplateFix(fixer, node, content);
+  const fix: TSESLint.ReportFixFunction = (fixer) => toReplacement(fixer, node, content);
   context.report({ node, messageId: 'inline', data, fix });
 }
 
-function flagShortEnough(
+function flagCandidate(
   context: Context,
   maxLines: number,
   node: TSESTree.Node,
   content: string | null,
 ): void {
   if (content !== null && lineTotal(content) <= maxLines) {
-    reportInline(context, maxLines, node, content);
+    reportViolation(context, maxLines, node, content);
   }
 }
 
@@ -85,13 +85,13 @@ function urlOf(node: TSESTree.Node): string | null {
   return typeof literal === 'string' ? literal : null;
 }
 
-function resolveTemplate(context: Context, node: TSESTree.Node): string | null {
+function resolveContent(context: Context, node: TSESTree.Node): string | null {
   const templateUrl = urlOf(node);
-  return templateUrl === null ? null : readTemplateFile(context, templateUrl);
+  return templateUrl === null ? null : loadReferenced(context, templateUrl);
 }
 
-function checkTemplateUrl(context: Context, maxLines: number, node: TSESTree.Node): void {
-  flagShortEnough(context, maxLines, node, resolveTemplate(context, node));
+function checkNode(context: Context, maxLines: number, node: TSESTree.Node): void {
+  flagCandidate(context, maxLines, node, resolveContent(context, node));
 }
 
 /**
@@ -120,7 +120,7 @@ export const inlineShortTemplates = ESLintUtils.RuleCreator.withoutDocs<Options,
   create(context) {
     const maxLines = maxLinesOption(context, DEFAULT_MAX_LINES);
     return {
-      [TEMPLATE_URL_SELECTOR]: (node: TSESTree.Node) => checkTemplateUrl(context, maxLines, node),
+      [TEMPLATE_PROPERTY_SELECTOR]: (node: TSESTree.Node) => checkNode(context, maxLines, node),
     };
   },
 });

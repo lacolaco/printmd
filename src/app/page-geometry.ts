@@ -14,7 +14,7 @@ const gap = 16;
 const column = { gap, step: content.width + gap };
 
 /** 紙面の全寸法 (単位 mm) */
-export const A4_MM = { page, content, column } as const;
+export const A4 = { page, content, column } as const;
 
 /** 1mm を CSS px に換算する係数 (96dpi 基準) */
 export const MM_TO_PX = 96 / 25.4;

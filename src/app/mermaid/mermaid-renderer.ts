@@ -19,7 +19,7 @@ const INIT_CONFIG = {
   flowchart: { htmlLabels: false },
 } as const;
 
-function initializeMermaid(mermaid: MermaidLike): MermaidLike {
+function configure(mermaid: MermaidLike): MermaidLike {
   mermaid.initialize(INIT_CONFIG);
   return mermaid;
 }
@@ -36,7 +36,7 @@ export class MermaidRenderer {
   private sequence = 0;
 
   protected loadModule(): Promise<MermaidLike> {
-    return import('mermaid').then((mod) => initializeMermaid(mod.default));
+    return import('mermaid').then((mod) => configure(mod.default));
   }
 
   private load(): Promise<MermaidLike> {

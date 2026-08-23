@@ -117,7 +117,7 @@ const SANITIZE_CONFIG = {
   ],
 } satisfies import('dompurify').Config;
 
-let mermaidSeq = 0;
+let serial = 0;
 
 interface RenderEnv {
   mermaidBlocks: MermaidBlock[];
@@ -125,7 +125,7 @@ interface RenderEnv {
 
 /** mermaid フェンスを SVG 化用のプレースホルダへ差し替え、コードを env に退避する */
 function pushMermaidPlaceholder(env: RenderEnv, code: string): string {
-  const id = `printmd-mermaid-${mermaidSeq++}`;
+  const id = `printmd-mermaid-${serial++}`;
   env.mermaidBlocks.push({ id, code });
   return `<div class="mermaid-placeholder" id="${id}"></div>`;
 }

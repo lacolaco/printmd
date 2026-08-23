@@ -33,7 +33,7 @@ function isCompliant(node: TSESTree.IfStatement): boolean {
 
 type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>[0]['create']>[0];
 
-function reportMisplacedIf(context: Context, node: TSESTree.IfStatement): void {
+function reportMisplaced(context: Context, node: TSESTree.IfStatement): void {
   const { loc } = node;
   const ifToken = context.sourceCode.getFirstToken(node);
   context.report({ loc: ifToken?.loc ?? loc, messageId: 'notAtStart' });
@@ -41,7 +41,7 @@ function reportMisplacedIf(context: Context, node: TSESTree.IfStatement): void {
 
 function flagViolation(context: Context, node: TSESTree.IfStatement): void {
   if (!isCompliant(node)) {
-    reportMisplacedIf(context, node);
+    reportMisplaced(context, node);
   }
 }
 

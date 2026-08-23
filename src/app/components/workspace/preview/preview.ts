@@ -4,7 +4,7 @@ import { buildSegmentClone, type PageSegment, type Pagination } from '../../../p
 import { ifDefined } from '../../../collections';
 import { EditorStore } from '../../../state/editor-store';
 import { ViewerState } from '../../../state/viewer-state';
-import { A4_MM } from '../../../page-geometry';
+import { A4 } from '../../../page-geometry';
 
 /**
  * プレビュー: CSS 多段組を流用したページ分割。変換済み文書の要素を段幅 178mm の
@@ -119,10 +119,10 @@ export class Preview {
   ): void {
     const sheet = createSheet(index);
     host.append(sheet);
-    this.scheduleFill(sheet, doc, pagination);
+    this.settle(sheet, doc, pagination);
   }
 
-  private scheduleFill(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
+  private settle(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
     this.watchLazily(sheet);
     this.fillEagerly(sheet, doc, pagination);
   }
@@ -148,7 +148,7 @@ export class Preview {
 
   private materialize(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
     const index = Number(sheet.dataset['page']) - 1;
-    ifDefined(segmentForPage(pagination, index), (segment) =>
+    ifDefined(segmentAt(pagination, index), (segment) =>
       sheet.append(clipWindow(doc, segment, columnFor(segment, index))),
     );
   }
@@ -169,7 +169,7 @@ function columnFor(segment: PageSegment, index: number): number {
   return index - segment.firstPage;
 }
 
-function segmentForPage(pagination: Pagination, index: number): PageSegment | undefined {
+function segmentAt(pagination: Pagination, index: number): PageSegment | undefined {
   return pagination.segments.find((s) => index >= s.firstPage && index < s.firstPage + s.pages);
 }
 
@@ -186,7 +186,7 @@ function clipWindow(doc: RenderedDocument, segment: PageSegment, column: number)
  */
 function shiftedClone(doc: RenderedDocument, segment: PageSegment, column: number): HTMLElement {
   const mc = buildSegmentClone(doc, segment.start, segment.end);
-  mc.style.marginLeft = `${-(column * A4_MM.column.step)}mm`;
+  mc.style.marginLeft = `${-(column * A4.column.step)}mm`;
   mc.setAttribute('inert', '');
   return mc;
 }

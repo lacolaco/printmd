@@ -7,7 +7,7 @@ type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>
 
 type Services = ReturnType<typeof ESLintUtils.getParserServices>;
 
-const ACCESSOR_NAME_PATTERN = /^(get|set)[A-Z_$]/;
+const NAMING_PATTERN = /^(get|set)[A-Z_$]/;
 
 function declaredName(node: TSESTree.MethodDefinition): string {
   const { key } = node;
@@ -18,7 +18,7 @@ function declaredName(node: TSESTree.MethodDefinition): string {
 function looksAccessor(node: TSESTree.MethodDefinition): boolean {
   const { kind } = node;
   const isSyntaxAccessor = kind === 'get' || kind === 'set';
-  return isSyntaxAccessor || ACCESSOR_NAME_PATTERN.test(declaredName(node));
+  return isSyntaxAccessor || NAMING_PATTERN.test(declaredName(node));
 }
 
 function booleanFlagged(type: ts.Type): boolean {
@@ -26,7 +26,7 @@ function booleanFlagged(type: ts.Type): boolean {
   return (flags & (ts.TypeFlags.BooleanLike | ts.TypeFlags.Boolean)) !== 0;
 }
 
-function returnTypeOf(checker: ts.TypeChecker, declaration: ts.SignatureDeclaration): ts.Type {
+function resultOf(checker: ts.TypeChecker, declaration: ts.SignatureDeclaration): ts.Type {
   const signature = checker.getSignatureFromDeclaration(declaration);
   return signature === undefined ? checker.getAnyType() : signature.getReturnType();
 }
@@ -40,14 +40,12 @@ function firstParameterType(
 }
 
 /** ブール型フィールドの例外: getter は返り値、setter は第 1 引数がブール型なら許す */
-function exemptedBoolean(
+function exempted(
   checker: ts.TypeChecker,
   declaration: ts.SignatureDeclaration,
   isSetter: boolean,
 ): boolean {
-  const type = isSetter
-    ? firstParameterType(checker, declaration)
-    : returnTypeOf(checker, declaration);
+  const type = isSetter ? firstParameterType(checker, declaration) : resultOf(checker, declaration);
   return booleanFlagged(type);
 }
 
@@ -69,7 +67,7 @@ function checkMethod(
 ): void {
   const accessorLike = looksAccessor(node);
   const declaration = esMap.get(node) as ts.SignatureDeclaration;
-  const excepted = accessorLike && exemptedBoolean(checker, declaration, writesValue(node));
+  const excepted = accessorLike && exempted(checker, declaration, writesValue(node));
   reportUnlessExcepted(context, node, accessorLike && !excepted);
 }
 

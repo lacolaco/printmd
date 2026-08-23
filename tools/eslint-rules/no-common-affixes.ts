@@ -1,5 +1,5 @@
 import { ESLintUtils, type TSESLint, type TSESTree } from '@typescript-eslint/utils';
-import { allScopes } from './ast-utils';
+import { allScopes, distinct } from './ast-utils';
 
 type MessageIds = 'commonAffix';
 
@@ -10,11 +10,10 @@ interface NamedEntry {
   node: TSESTree.Node;
 }
 
-/** 接辞を 1 回だけ計算した検査単位 */
+/** 名前を構成する語を 1 回だけ計算した検査単位 */
 interface TaggedName {
   node: TSESTree.Node;
-  prefix: string;
-  suffix: string;
+  words: readonly string[];
 }
 
 /** 検査対象の宣言種別。import 束縛と型宣言は他所の名前なので数えない */
@@ -38,60 +37,40 @@ function splitWords(name: string): string[] {
   return lower.length > 1 && MARKER_PREFIXES.has(lower[0]) ? lower.slice(1) : lower;
 }
 
-/** 2 語以上の名前だけが接辞 (先頭語・末尾語) を持つ */
-function affixPair(name: string): { prefix: string; suffix: string } {
+/** 2 語以上の複合名だけが語を共有しうる。単一語の名前は対象外 */
+function compoundParts(name: string): string[] {
   const words = splitWords(name);
-  const proper = words.length >= 2;
-  return { prefix: proper ? words[0] : '', suffix: proper ? words[words.length - 1] : '' };
+  const { length } = words;
+  return length >= 2 ? distinct(words) : [];
 }
 
-function bucketFor(groups: Map<string, TaggedName[]>, affix: string): TaggedName[] {
-  const bucket = groups.get(affix) ?? [];
-  groups.set(affix, bucket);
+function bucketFor(groups: Map<string, TSESTree.Node[]>, word: string): TSESTree.Node[] {
+  const bucket = groups.get(word) ?? [];
+  groups.set(word, bucket);
   return bucket;
 }
 
-function appendGroup(groups: Map<string, TaggedName[]>, affix: string, item: TaggedName): void {
-  if (affix !== '') {
-    bucketFor(groups, affix).push(item);
-  }
-}
-
-function groupBy(
-  tagged: readonly TaggedName[],
-  select: (item: TaggedName) => string,
-): Map<string, TaggedName[]> {
-  const groups = new Map<string, TaggedName[]>();
-  tagged.forEach((item) => appendGroup(groups, select(item), item));
+function collectGroups(tagged: readonly TaggedName[]): Map<string, TSESTree.Node[]> {
+  const groups = new Map<string, TSESTree.Node[]>();
+  tagged.forEach(({ node, words }) => words.forEach((word) => bucketFor(groups, word).push(node)));
   return groups;
 }
 
-function flagIfShared(context: Context, affix: string, group: TaggedName[]): void {
+function flagIfShared(context: Context, affix: string, group: readonly TSESTree.Node[]): void {
   if (group.length >= 2) {
-    group.forEach(({ node }) =>
-      context.report({ node, messageId: 'commonAffix', data: { affix } }),
-    );
+    group.forEach((node) => context.report({ node, messageId: 'commonAffix', data: { affix } }));
   }
 }
 
-function reportDuplicates(context: Context, groups: Map<string, TaggedName[]>): void {
+function reportDuplicates(context: Context, groups: Map<string, TSESTree.Node[]>): void {
   groups.forEach((group, affix) => {
     flagIfShared(context, affix, group);
   });
 }
 
-function checkSide(
-  context: Context,
-  tagged: readonly TaggedName[],
-  select: (item: TaggedName) => string,
-): void {
-  reportDuplicates(context, groupBy(tagged, select));
-}
-
 function auditEntries(context: Context, entries: readonly NamedEntry[]): void {
-  const tagged = entries.map(({ name, node }) => ({ node, ...affixPair(name) }));
-  checkSide(context, tagged, (item) => item.prefix);
-  checkSide(context, tagged, (item) => item.suffix);
+  const tagged = entries.map(({ name, node }) => ({ node, words: compoundParts(name) }));
+  reportDuplicates(context, collectGroups(tagged));
 }
 
 function keyOf(member: TSESTree.ClassElement): TSESTree.Node | undefined {
@@ -125,14 +104,14 @@ function sweepScopes(context: Context, sourceCode: TSESLint.SourceCode): void {
 
 /**
  * 共通の接頭辞・接尾辞を持たせない。同一スコープ (クラス本体・変数スコープ) で
- * 複数語の名前どうしが先頭語または末尾語を共有したら、カプセル化の不足として報告する
+ * 複合名どうしが語を共有したら (位置を問わない)、カプセル化の不足として報告する
  */
 export const noCommonAffixes = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
   meta: {
     type: 'suggestion',
     messages: {
       commonAffix:
-        '同一スコープに接辞「{{affix}}」を共有する名前が複数ある。クラスへのカプセル化が不足している (共通の接頭辞・接尾辞を持たせない)',
+        '同一スコープに語「{{affix}}」を共有する名前が複数ある。クラスへのカプセル化が不足している (共通の接頭辞・接尾辞を持たせない)',
     },
     schema: [],
   },

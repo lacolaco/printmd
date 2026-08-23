@@ -9,6 +9,7 @@ import { inlineShortTemplates } from './tools/eslint-rules/inline-short-template
 import { maxFunctionLines } from './tools/eslint-rules/max-function-lines';
 import { noClassInheritance } from './tools/eslint-rules/no-class-inheritance';
 import { noCommonAffixes } from './tools/eslint-rules/no-common-affixes';
+import { noDataClump } from './tools/eslint-rules/no-data-clump';
 import { noElse } from './tools/eslint-rules/no-else';
 import { noGetterSetter } from './tools/eslint-rules/no-getter-setter';
 import { noSingleImplementationInterface } from './tools/eslint-rules/no-single-implementation-interface';
@@ -36,6 +37,7 @@ export default defineConfig([
           'max-function-lines': maxFunctionLines,
           'no-class-inheritance': noClassInheritance,
           'no-common-affixes': noCommonAffixes,
+          'no-data-clump': noDataClump,
           'no-else': noElse,
           'no-getter-setter': noGetterSetter,
           'no-single-implementation-interface': noSingleImplementationInterface,
@@ -62,6 +64,7 @@ export default defineConfig([
       'printmd/max-function-lines': ['error', { maxLines: 5 }],
       'printmd/no-class-inheritance': 'error',
       'printmd/no-common-affixes': 'error',
+      'printmd/no-data-clump': 'error',
       'printmd/no-else': 'error',
       'printmd/no-getter-setter': 'error',
       'printmd/no-single-implementation-interface': 'error',

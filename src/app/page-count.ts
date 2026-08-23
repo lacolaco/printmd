@@ -1,5 +1,5 @@
 import type { Block, RenderedDocument } from './markdown/block-extractor';
-import { A4_MM, MM_TO_PX } from './page-geometry';
+import { A4, MM_TO_PX } from './page-geometry';
 
 /** 強制改ページで区切られた、連続するトップレベルブロックの範囲 [start, end) */
 export interface SegmentRange {
@@ -19,20 +19,21 @@ export interface Pagination {
   readonly segments: readonly PageSegment[];
 }
 
-interface BreakAccumulator {
-  readonly ranges: SegmentRange[];
-  start: number;
-}
+/** 強制改ページ位置で切った [start, end) の並び。切断判定と締めを閉じる */
+class Ranges {
+  private readonly items: SegmentRange[] = [];
+  private start = 0;
 
-function recordBreak(
-  acc: BreakAccumulator,
-  block: Block,
-  index: number,
-  breaks: ReadonlySet<string>,
-): void {
-  if (index !== 0 && (block.isFileBoundary || breaks.has(block.id))) {
-    acc.ranges.push({ start: acc.start, end: index });
-    acc.start = index;
+  cut(block: Block, index: number, breaks: ReadonlySet<string>): void {
+    if (index !== 0 && (block.isFileBoundary || breaks.has(block.id))) {
+      this.items.push({ start: this.start, end: index });
+      this.start = index;
+    }
+  }
+
+  close(end: number): SegmentRange[] {
+    this.items.push({ start: this.start, end });
+    return this.items;
   }
 }
 
@@ -43,18 +44,13 @@ function recordBreak(
  * どのエンジンでも起きる自然な流し込みだけに依存させる (印刷側は全エンジンが
  * 解する break-before: page のままクラスで表現する)
  */
-function closeAccumulator(acc: BreakAccumulator, end: number): SegmentRange[] {
-  acc.ranges.push({ start: acc.start, end });
-  return acc.ranges;
-}
-
 export function splitAtForcedBreaks(
   blocks: readonly Block[],
   breaks: ReadonlySet<string>,
 ): SegmentRange[] {
-  const acc: BreakAccumulator = { ranges: [], start: 0 };
-  blocks.forEach((block, index) => recordBreak(acc, block, index, breaks));
-  return closeAccumulator(acc, blocks.length);
+  const ranges = new Ranges();
+  blocks.forEach((block, index) => ranges.cut(block, index, breaks));
+  return ranges.close(blocks.length);
 }
 
 function copyChildren(
@@ -98,56 +94,61 @@ export function buildSegmentClone(doc: RenderedDocument, start: number, end: num
   return assemble(mc, parent);
 }
 
-function cloneInto(probe: HTMLElement, doc: RenderedDocument, range: SegmentRange): HTMLElement {
-  const mc = buildSegmentClone(doc, range.start, range.end);
-  probe.append(mc);
-  return mc;
-}
+/** 計測用の使い捨て DOM。生成・複製の掲示・計測・破棄を 1 か所に閉じる */
+class Probe {
+  private readonly host = document.createElement('div');
 
-function probeShell(): HTMLElement {
-  const probe = document.createElement('div');
-  probe.className = 'preview-probe';
-  return probe;
-}
+  constructor() {
+    this.host.className = 'preview-probe';
+  }
 
-function createProbe(
-  doc: RenderedDocument,
-  ranges: readonly SegmentRange[],
-): { probe: HTMLElement; clones: HTMLElement[] } {
-  const probe = probeShell();
-  const clones = ranges.map((range) => cloneInto(probe, doc, range));
-  document.body.append(probe);
-  return { probe, clones };
+  /** 全クローンの構築後に掲示し、計測してから自身を破棄する (計測は必ず破棄より先) */
+  measure(doc: RenderedDocument, ranges: readonly SegmentRange[]): Pagination {
+    const clones = this.mount(doc, ranges);
+    document.body.append(this.host);
+    const result = tallySegments(ranges, clones);
+    this.host.remove();
+    return result;
+  }
+
+  private mount(doc: RenderedDocument, ranges: readonly SegmentRange[]): HTMLElement[] {
+    return ranges.map((range) => this.adopt(buildSegmentClone(doc, range.start, range.end)));
+  }
+
+  private adopt(clone: HTMLElement): HTMLElement {
+    this.host.append(clone);
+    return clone;
+  }
 }
 
 function pagesForScrollWidth(scrollWidth: number): number {
-  const raw = (scrollWidth + A4_MM.column.gap * MM_TO_PX) / (A4_MM.column.step * MM_TO_PX);
+  const raw = (scrollWidth + A4.column.gap * MM_TO_PX) / (A4.column.step * MM_TO_PX);
   return Math.max(1, Math.round(raw));
 }
 
-interface SegmentAccumulator {
-  readonly segments: PageSegment[];
-  firstPage: number;
-}
+/** セグメントごとのページ数を積み上げ、開始ページと総数を導く */
+class Tally {
+  private readonly segments: PageSegment[] = [];
+  private firstPage = 0;
 
-function accumulateSegment(acc: SegmentAccumulator, range: SegmentRange, clone: HTMLElement): void {
-  const pages = pagesForScrollWidth(clone.scrollWidth);
-  const segment: PageSegment = { ...range, pages, firstPage: acc.firstPage };
-  acc.segments.push(segment);
-  acc.firstPage += pages;
-}
+  absorb(range: SegmentRange, clone: HTMLElement): void {
+    const pages = pagesForScrollWidth(clone.scrollWidth);
+    this.segments.push({ ...range, pages, firstPage: this.firstPage });
+    this.firstPage += pages;
+  }
 
-function summarize(acc: SegmentAccumulator): { segments: PageSegment[]; total: number } {
-  return { segments: acc.segments, total: acc.firstPage };
+  result(): Pagination {
+    return { segments: this.segments, total: this.firstPage };
+  }
 }
 
 function tallySegments(
   ranges: readonly SegmentRange[],
   clones: readonly HTMLElement[],
-): { segments: PageSegment[]; total: number } {
-  const acc: SegmentAccumulator = { segments: [], firstPage: 0 };
-  ranges.forEach((range, index) => accumulateSegment(acc, range, clones[index]));
-  return summarize(acc);
+): Pagination {
+  const tally = new Tally();
+  ranges.forEach((range, index) => tally.absorb(range, clones[index]));
+  return tally.result();
 }
 
 /**
@@ -158,17 +159,5 @@ function tallySegments(
 export function measurePagination(doc: RenderedDocument, breaks: ReadonlySet<string>): Pagination {
   const { blocks } = doc;
   const ranges = splitAtForcedBreaks(blocks, breaks);
-  const { probe, clones } = createProbe(doc, ranges);
-  return finishMeasurement(probe, ranges, clones);
-}
-
-/** 計測してからプローブを破棄する (計測は必ず破棄より先) */
-function finishMeasurement(
-  probe: HTMLElement,
-  ranges: readonly SegmentRange[],
-  clones: readonly HTMLElement[],
-): Pagination {
-  const result = tallySegments(ranges, clones);
-  probe.remove();
-  return result;
+  return new Probe().measure(doc, ranges);
 }

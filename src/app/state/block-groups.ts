@@ -20,39 +20,42 @@ interface MutableFileGroup {
   headingLevel: number;
 }
 
-function pushNewGroup(groups: MutableFileGroup[], block: Block): MutableFileGroup {
-  const next = { fileIndex: block.fileIndex, fileName: block.fileName, rows: [], headingLevel: 0 };
-  groups.push(next);
-  return next;
-}
+/** ファイル境界で区切ったグループ列。追加先の判定と深さの計算を閉じる */
+class Grouping {
+  private readonly items: MutableFileGroup[] = [];
 
-function lastGroupMatching(
-  groups: readonly MutableFileGroup[],
-  block: Block,
-): MutableFileGroup | undefined {
-  const last = groups.at(-1);
-  return last !== undefined && last.fileIndex === block.fileIndex ? last : undefined;
-}
+  append(block: Block): void {
+    const group = this.destination(block);
+    const { kind, level } = block;
+    group.headingLevel = kind === 'heading' ? (level ?? 1) : group.headingLevel;
+    const depth = kind === 'heading' ? (level ?? 1) : group.headingLevel + 1;
+    group.rows.push({ block, depth });
+  }
 
-/** ブロックの属するグループを返す。ファイル境界では新しいグループを開始する */
-function destinationFor(groups: MutableFileGroup[], block: Block): MutableFileGroup {
-  return lastGroupMatching(groups, block) ?? pushNewGroup(groups, block);
-}
+  /** ブロックの属するグループを返す。ファイル境界では新しいグループを開始する */
+  private destination(block: Block): MutableFileGroup {
+    return this.lastMatching(block) ?? this.openNew(block);
+  }
 
-function appendBlock(groups: MutableFileGroup[], block: Block): void {
-  const group = destinationFor(groups, block);
-  const { kind, level } = block;
-  group.headingLevel = kind === 'heading' ? (level ?? 1) : group.headingLevel;
-  const depth = kind === 'heading' ? (level ?? 1) : group.headingLevel + 1;
-  group.rows.push({ block, depth });
-}
+  private lastMatching(block: Block): MutableFileGroup | undefined {
+    const last = this.items.at(-1);
+    return last !== undefined && last.fileIndex === block.fileIndex ? last : undefined;
+  }
 
-function nonEmptyGroups(groups: readonly MutableFileGroup[]): readonly FileGroup[] {
-  return groups.filter((group) => group.rows.length > 0);
+  private openNew(block: Block): MutableFileGroup {
+    const { fileIndex: origin, fileName: name } = block;
+    const next = { fileIndex: origin, fileName: name, rows: [], headingLevel: 0 };
+    this.items.push(next);
+    return next;
+  }
+
+  nonEmpty(): readonly FileGroup[] {
+    return this.items.filter((group) => group.rows.length > 0);
+  }
 }
 
 export function groupBlocks(blocks: readonly Block[]): readonly FileGroup[] {
-  const groups: MutableFileGroup[] = [];
-  blocks.forEach((block) => appendBlock(groups, block));
-  return nonEmptyGroups(groups);
+  const list = new Grouping();
+  blocks.forEach((block) => list.append(block));
+  return list.nonEmpty();
 }
