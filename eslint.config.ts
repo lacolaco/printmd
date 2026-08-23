@@ -51,6 +51,8 @@ export default defineConfig([
       'printmd/max-function-lines': ['error', { maxLines: 5 }],
       'printmd/no-else': 'error',
       'printmd/no-switch': 'error',
+      // requireDefaultForNonUnion は printmd/no-switch の default 禁止と意図的に矛盾させる。
+      // 両立不能にすることで、union 型以外を対象とする switch は書けない
       '@typescript-eslint/switch-exhaustiveness-check': [
         'error',
         { allowDefaultCaseForExhaustiveSwitch: false, requireDefaultForNonUnion: true },
