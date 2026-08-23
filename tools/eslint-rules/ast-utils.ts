@@ -38,7 +38,7 @@ export function effectiveUse(node: TSESTree.Node): {
     : { use: node, parent };
 }
 
-export function usedAsReceiver(parent: TSESTree.Node, id: TSESTree.Node): boolean {
+export function isReceiver(parent: TSESTree.Node, id: TSESTree.Node): boolean {
   return parent.type === 'MemberExpression' && parent.object === id;
 }
 
@@ -59,7 +59,7 @@ function parentOf(node: TSESTree.Node): TSESTree.Node | undefined {
   return node.parent;
 }
 
-function fnLike(node: TSESTree.Node): node is FunctionNode {
+function isFn(node: TSESTree.Node): node is FunctionNode {
   return FUNCTION_TYPES.has(node.type);
 }
 
@@ -69,17 +69,17 @@ export function enclosingFunctions(id: TSESTree.Node): FunctionNode[] {
   for (let node = id.parent; node; node = parentOf(node)) {
     chain.push(node);
   }
-  return chain.filter(fnLike);
+  return chain.filter(isFn);
 }
 
 /** TSESTree は range を必ず持つため、範囲比較だけで包含を判定できる */
-export function containsRange(outer: TSESTree.Node, inner: TSESTree.Node): boolean {
+export function isWrapping(outer: TSESTree.Node, inner: TSESTree.Node): boolean {
   return outer.range[0] <= inner.range[0] && inner.range[1] <= outer.range[1];
 }
 
 /** 候補のうち、内側に別の候補を含まない (最も内側の) ものだけを残す */
 export function innermostOnly(candidates: readonly FunctionNode[]): FunctionNode[] {
   return candidates.filter(
-    (fn) => !candidates.some((inner) => inner !== fn && containsRange(fn, inner)),
+    (fn) => !candidates.some((inner) => inner !== fn && isWrapping(fn, inner)),
   );
 }

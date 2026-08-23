@@ -141,7 +141,7 @@ export class Preview {
 
   /** シートへ段組クローンの窓を実体化する。実体化済みなら何もしない */
   private realize(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
-    if (vacant(sheet)) {
+    if (isEmpty(sheet)) {
       this.materialize(sheet, doc, pagination);
     }
   }
@@ -154,7 +154,7 @@ export class Preview {
   }
 }
 
-function vacant(sheet: HTMLElement): boolean {
+function isEmpty(sheet: HTMLElement): boolean {
   return sheet.childElementCount === 0;
 }
 

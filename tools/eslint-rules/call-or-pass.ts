@@ -7,7 +7,7 @@ import {
   enclosingFunctions,
   innermostOnly,
   isCallArgument,
-  usedAsReceiver,
+  isReceiver,
   type FunctionNode,
 } from './ast-utils';
 
@@ -18,7 +18,7 @@ type Kind = 'member' | 'passed';
 
 function classify(id: TSESTree.Node): Kind | null {
   const { use, parent } = effectiveUse(id);
-  const member = parent !== undefined && usedAsReceiver(parent, use);
+  const member = parent !== undefined && isReceiver(parent, use);
   const passed = parent !== undefined && isCallArgument(parent, use);
   return member ? 'member' : passed ? 'passed' : null;
 }

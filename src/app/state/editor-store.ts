@@ -2,7 +2,7 @@ import { Service, computed, inject, linkedSignal, resource, signal } from '@angu
 import type { Block, FileFragment, RenderedDocument } from '../markdown/block-extractor';
 import { buildRenderedDocument } from '../markdown/block-extractor';
 import { applyMermaidResults } from '../mermaid/apply-mermaid-results';
-import { hasItems } from '../collections';
+import { isNonEmpty } from '../collections';
 import { groupBlocks } from './block-groups';
 import { MermaidRenderer, type MermaidOutcome } from '../mermaid/mermaid-renderer';
 import { renderMarkdown, type MermaidBlock } from '../markdown/render-markdown';
@@ -129,7 +129,7 @@ export class EditorStore {
    */
   private readonly pipeline = resource({
     params: () => this.manuscripts(),
-    loader: async ({ params: files }) => (hasItems(files) ? this.runPipeline(files) : null),
+    loader: async ({ params: files }) => (isNonEmpty(files) ? this.runPipeline(files) : null),
   });
 
   private async runPipeline(files: readonly ManuscriptFile[]): Promise<RenderedDocument> {
@@ -196,7 +196,7 @@ export class EditorStore {
   }
 
   private append(files: readonly ManuscriptFile[]): void {
-    if (hasItems(files)) {
+    if (isNonEmpty(files)) {
       this.manuscripts.update((current) => [...current, ...files]);
     }
   }
@@ -276,7 +276,7 @@ function collectMermaidBlocks(
   return rendered.flatMap((r) => r.mermaidBlocks);
 }
 
-function marked(breaks: ReadonlySet<string>, blockId: string): boolean {
+function isMarked(breaks: ReadonlySet<string>, blockId: string): boolean {
   return breaks.has(blockId);
 }
 
@@ -293,5 +293,5 @@ function withAdded(current: ReadonlySet<string>, blockId: string): ReadonlySet<s
 }
 
 function toggled(current: ReadonlySet<string>, blockId: string): ReadonlySet<string> {
-  return marked(current, blockId) ? without(current, blockId) : withAdded(current, blockId);
+  return isMarked(current, blockId) ? without(current, blockId) : withAdded(current, blockId);
 }

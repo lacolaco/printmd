@@ -74,12 +74,12 @@ function auditEntries(context: Context, entries: readonly NamedEntry[]): void {
 }
 
 function keyOf(member: TSESTree.ClassElement): TSESTree.Node | undefined {
-  const named =
+  const isNamed =
     member.type === 'MethodDefinition' || member.type === 'PropertyDefinition' ? member : undefined;
-  return named?.key;
+  return isNamed?.key;
 }
 
-function named(
+function isNamed(
   key: TSESTree.Node | undefined,
 ): key is TSESTree.Identifier | TSESTree.PrivateIdentifier {
   return key?.type === 'Identifier' || key?.type === 'PrivateIdentifier';
@@ -87,7 +87,7 @@ function named(
 
 function classMembers(body: TSESTree.ClassBody): NamedEntry[] {
   const keys = body.body.map((member) => keyOf(member));
-  return keys.filter(named).map((key) => ({ name: key.name, node: key }));
+  return keys.filter(isNamed).map((key) => ({ name: key.name, node: key }));
 }
 
 function scopeVariables(scope: TSESLint.Scope.Scope): NamedEntry[] {

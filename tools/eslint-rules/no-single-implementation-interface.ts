@@ -22,14 +22,14 @@ function symbolsAt(checker: ts.TypeChecker, node: ts.Node): ts.Symbol[] {
   return symbol === undefined ? [] : [resolveAlias(checker, symbol)];
 }
 
-function implementsClause(clause: ts.HeritageClause): boolean {
+function isImplementsClause(clause: ts.HeritageClause): boolean {
   return clause.token === ts.SyntaxKind.ImplementsKeyword;
 }
 
 function ownClauses(node: ts.Node): readonly ts.HeritageClause[] {
   const cls = ts.isClassDeclaration(node) || ts.isClassExpression(node) ? node : undefined;
   const clauses = cls?.heritageClauses ?? [];
-  return clauses.filter(implementsClause);
+  return clauses.filter(isImplementsClause);
 }
 
 function mentioned(checker: ts.TypeChecker, clause: ts.HeritageClause): ts.Symbol[] {
@@ -64,7 +64,7 @@ function cachedCounts(program: ts.Program): Map<ts.Symbol, number> {
   return cached;
 }
 
-function soleImplementer(program: ts.Program, symbol: ts.Symbol): boolean {
+function isSoleImplementer(program: ts.Program, symbol: ts.Symbol): boolean {
   return cachedCounts(program).get(symbol) === 1;
 }
 
@@ -91,7 +91,7 @@ function reportLonely(
 ): void {
   const { id } = node;
   const singles = symbolsAt(checker, declarationName(esMap, node)).filter((symbol) =>
-    soleImplementer(program, symbol),
+    isSoleImplementer(program, symbol),
   );
   singles.forEach(() => context.report({ node: id, messageId: 'singleImplementation' }));
 }

@@ -10,7 +10,7 @@ const FAILURE_TEXT = 'mermaid の描画に失敗したため、元のコード�
  * ブロック + 警告文に落とす。結果に含まれない (未解決の) プレースホルダは
  * そのまま残す。
  */
-function unresolved(html: string): boolean {
+function isUnresolved(html: string): boolean {
   return html.includes('mermaid-placeholder');
 }
 
@@ -18,7 +18,7 @@ export function applyMermaidResults(
   html: string,
   results: ReadonlyMap<string, MermaidOutcome>,
 ): string {
-  return unresolved(html) ? replacePlaceholders(html, results) : html;
+  return isUnresolved(html) ? replacePlaceholders(html, results) : html;
 }
 
 function replacePlaceholders(html: string, results: ReadonlyMap<string, MermaidOutcome>): string {

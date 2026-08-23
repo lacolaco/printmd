@@ -17,13 +17,13 @@ function declaredName(node: TSESTree.MethodDefinition): string {
 }
 
 /** 構文の get/set アクセサ、または getXxx / setXxx 命名のメソッドか */
-function looksAccessor(node: TSESTree.MethodDefinition): boolean {
+function isAccessorLike(node: TSESTree.MethodDefinition): boolean {
   const { kind } = node;
   const isSyntaxAccessor = kind === 'get' || kind === 'set';
   return isSyntaxAccessor || NAMING_PATTERN.test(declaredName(node));
 }
 
-function booleanFlagged(type: ts.Type): boolean {
+function isBooleanish(type: ts.Type): boolean {
   const { flags } = type;
   return (flags & (ts.TypeFlags.BooleanLike | ts.TypeFlags.Boolean)) !== 0;
 }
@@ -42,16 +42,16 @@ function firstParameterType(
 }
 
 /** ブール型フィールドの例外: getter は返り値、setter は第 1 引数がブール型なら許す */
-function exempted(
+function isExempted(
   checker: ts.TypeChecker,
   declaration: ts.SignatureDeclaration,
   isSetter: boolean,
 ): boolean {
   const type = isSetter ? firstParameterType(checker, declaration) : resultOf(checker, declaration);
-  return booleanFlagged(type);
+  return isBooleanish(type);
 }
 
-function writesValue(node: TSESTree.MethodDefinition): boolean {
+function isWriting(node: TSESTree.MethodDefinition): boolean {
   const { kind } = node;
   return kind === 'set' || declaredName(node).startsWith('set');
 }
@@ -66,13 +66,13 @@ function flagViolation(
 }
 
 /** boolean を返す問い合わせ (get アクセサ・メソッド) か。setter は対象外 */
-function yieldsBool(
+function isBoolQuery(
   checker: ts.TypeChecker,
   declaration: ts.SignatureDeclaration,
   node: TSESTree.MethodDefinition,
 ): boolean {
   const { kind } = node;
-  return kind !== 'set' && booleanFlagged(resultOf(checker, declaration));
+  return kind !== 'set' && isBooleanish(resultOf(checker, declaration));
 }
 
 function auditShape(
@@ -81,8 +81,8 @@ function auditShape(
   declaration: ts.SignatureDeclaration,
   node: TSESTree.MethodDefinition,
 ): void {
-  const accessorLike = looksAccessor(node);
-  const excepted = accessorLike && exempted(checker, declaration, writesValue(node));
+  const accessorLike = isAccessorLike(node);
+  const excepted = accessorLike && isExempted(checker, declaration, isWriting(node));
   reportUnlessExcepted(context, node, accessorLike && !excepted);
 }
 
@@ -92,7 +92,7 @@ function enforceIsPrefix(
   declaration: ts.SignatureDeclaration,
   node: TSESTree.MethodDefinition,
 ): void {
-  const bool = yieldsBool(checker, declaration, node);
+  const bool = isBoolQuery(checker, declaration, node);
   requireMarker(context, node, bool && !IS_PATTERN.test(declaredName(node)));
 }
 
@@ -100,6 +100,35 @@ function requireMarker(context: Context, node: TSESTree.MethodDefinition, violat
   if (violated) {
     flagViolation(context, node, 'boolNeedsIs');
   }
+}
+
+function fnLabel(node: TSESTree.FunctionDeclaration): string {
+  return node.id?.name ?? '';
+}
+
+function denounce(context: Context, node: TSESTree.FunctionDeclaration, violated: boolean): void {
+  if (violated) {
+    const { id } = node;
+    context.report({ node: id ?? node, messageId: 'boolNeedsIs' });
+  }
+}
+
+function inspectDeclaration(
+  context: Context,
+  checker: ts.TypeChecker,
+  esMap: Services['esTreeNodeToTSNodeMap'],
+  node: TSESTree.FunctionDeclaration,
+): void {
+  const declaration = esMap.get(node) as ts.SignatureDeclaration;
+  const bool = isBooleanish(resultOf(checker, declaration));
+  denounce(context, node, bool && !IS_PATTERN.test(fnLabel(node)));
+}
+
+function observeDeclarations(context: Context, services: Services) {
+  const { program, esTreeNodeToTSNodeMap } = services;
+  const checker = program.getTypeChecker();
+  return (node: TSESTree.FunctionDeclaration): void =>
+    inspectDeclaration(context, checker, esTreeNodeToTSNodeMap, node);
 }
 
 function checkMethod(
@@ -133,7 +162,8 @@ function makeListener(context: Context, services: Services) {
 /**
  * getter と setter は使わない (デメテルの法則)。構文の get/set アクセサと、
  * getXxx / setXxx 命名のメソッドによるカプセル化を禁止する。
- * ブール型のフィールド (getter の返り値・setter の第 1 引数がブール型) は例外
+ * ブール型のフィールド (getter の返り値・setter の第 1 引数がブール型) は例外。
+ * boolean を返す問い合わせ (メソッド・モジュール関数) は is 開始を強制する
  */
 export const noGetterSetter = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
   meta: {
@@ -148,6 +178,9 @@ export const noGetterSetter = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds
   defaultOptions: [],
   create(context) {
     const services = ESLintUtils.getParserServices(context);
-    return { MethodDefinition: makeListener(context, services) };
+    return {
+      MethodDefinition: makeListener(context, services),
+      FunctionDeclaration: observeDeclarations(context, services),
+    };
   },
 });

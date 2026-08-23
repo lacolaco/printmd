@@ -133,5 +133,12 @@ tester.run('no-getter-setter', noGetterSetter, {
 }`,
       errors: [{ messageId: 'boolNeedsIs' }],
     },
+    {
+      name: 'boolean を返すモジュール関数も is 開始でないため禁止',
+      code: `export function vacant(items: readonly string[]): boolean {
+  return items.length === 0;
+}`,
+      errors: [{ messageId: 'boolNeedsIs' }],
+    },
   ],
 });
