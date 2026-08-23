@@ -29,8 +29,11 @@ const TARGET_DEF_TYPES: ReadonlySet<string> = new Set(['Parameter', 'Variable', 
 /** 対象は関数内で宣言された引数・ローカル変数・catch 変数 (モジュールスコープは除く) */
 function isTargetVariable(variable: TSESLint.Scope.Variable): boolean {
   const def = variable.defs[0];
-  const isTargetDef = def !== undefined && TARGET_DEF_TYPES.has(def.type);
-  return isTargetDef && variable.scope.variableScope.type === 'function';
+  return (
+    def !== undefined &&
+    TARGET_DEF_TYPES.has(def.type) &&
+    variable.scope.variableScope.type === 'function'
+  );
 }
 
 function appendUsage(usage: Usage, kind: keyof Usage | null, id: TSESTree.Node): void {
