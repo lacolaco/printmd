@@ -52,6 +52,15 @@ tester.run('no-getter-setter', noGetterSetter, {
   }
 }`,
     },
+    {
+      name: 'is で始まる boolean の問い合わせメソッドは許可',
+      code: `export class Door {
+  private opened = false;
+  isOpen(): boolean {
+    return this.opened;
+  }
+}`,
+    },
   ],
   invalid: [
     {
@@ -93,6 +102,36 @@ tester.run('no-getter-setter', noGetterSetter, {
   }
 }`,
       errors: [{ messageId: 'noGetterSetter' }],
+    },
+    {
+      name: 'boolean を返す get アクセサが is 開始でないのは禁止',
+      code: `export class Door {
+  private state = false;
+  get open(): boolean {
+    return this.state;
+  }
+}`,
+      errors: [{ messageId: 'boolNeedsIs' }],
+    },
+    {
+      name: 'boolean を返す問い合わせメソッドが is 開始でないのは禁止',
+      code: `export class Cache {
+  private readonly keys = new Set<string>();
+  has(key: string): boolean {
+    return this.keys.has(key);
+  }
+}`,
+      errors: [{ messageId: 'boolNeedsIs' }],
+    },
+    {
+      name: 'boolean を返す getXxx メソッドは is 開始でないため禁止',
+      code: `export class Door {
+  private state = false;
+  getOpen(): boolean {
+    return this.state;
+  }
+}`,
+      errors: [{ messageId: 'boolNeedsIs' }],
     },
   ],
 });

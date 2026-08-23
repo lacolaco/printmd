@@ -47,7 +47,7 @@ export class Zoom {
     this.index.update((i) => Math.min(ZOOMS.length - 1, Math.max(0, i + delta)));
   }
 
-  atLimit(delta: -1 | 1): boolean {
+  isAtLimit(delta: -1 | 1): boolean {
     return delta === -1 ? this.index() === 0 : this.index() === ZOOMS.length - 1;
   }
 }
