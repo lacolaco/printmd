@@ -1,14 +1,16 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
-import { isComponentClass, isAngularModule } from '../support/angular-utils';
+import { isAngularComponent } from '../support/angular-utils';
 import { FUNCTION_TYPES } from '../support/ast-utils';
 
 type MessageIds = 'noNewInProps';
 
 type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>[0]['create']>[0];
 
+type Services = ReturnType<typeof ESLintUtils.getParserServices>;
+
 /** new を包むプロパティ初期化子を探す。関数境界を跨いだら遅延生成なので対象外 */
-function ownerOf(node: TSESTree.Node | undefined): TSESTree.PropertyDefinition | undefined {
-  return node === undefined ? undefined : within(node);
+function ownerOf(node: TSESTree.Node | null | undefined): TSESTree.PropertyDefinition | undefined {
+  return node === undefined || node === null ? undefined : within(node);
 }
 
 function within(node: TSESTree.Node): TSESTree.PropertyDefinition | undefined {
@@ -26,10 +28,10 @@ function enclosing(
   return property.parent.parent as TSESTree.ClassDeclaration | TSESTree.ClassExpression;
 }
 
-function audit(context: Context, angular: boolean, node: TSESTree.NewExpression): void {
+function audit(context: Context, services: Services, node: TSESTree.NewExpression): void {
   const { parent } = node;
-  const owner = angular ? ownerOf(parent) : undefined;
-  condemn(context, node, owner !== undefined && isComponentClass(enclosing(owner)));
+  const owner = ownerOf(parent);
+  condemn(context, node, owner !== undefined && isAngularComponent(services, enclosing(owner)));
 }
 
 function condemn(context: Context, node: TSESTree.NewExpression, violated: boolean): void {
@@ -53,8 +55,7 @@ export const noNewInComponentProps = ESLintUtils.RuleCreator.withoutDocs<[], Mes
   },
   defaultOptions: [],
   create(context) {
-    const { sourceCode } = context;
-    const angular = isAngularModule(sourceCode.ast);
-    return { NewExpression: (node) => audit(context, angular, node) };
+    const services = ESLintUtils.getParserServices(context);
+    return { NewExpression: (node) => audit(context, services, node) };
   },
 });

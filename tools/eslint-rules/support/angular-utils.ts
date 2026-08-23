@@ -1,36 +1,37 @@
-import type { TSESTree } from '@typescript-eslint/utils';
+import type { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
+import type * as ts from 'typescript';
+import { lookupSymbol, resolveAlias } from './ts-utils';
 
-function decoratorLabel(decorator: TSESTree.Decorator): string {
-  const { expression } = decorator;
+type Services = ReturnType<typeof ESLintUtils.getParserServices>;
+
+function calleeName(expression: TSESTree.Node): TSESTree.Node | undefined {
   const call = expression.type === 'CallExpression' ? expression : undefined;
-  return call?.callee.type === 'Identifier' ? call.callee.name : '';
+  const callee = call?.callee;
+  return callee?.type === 'MemberExpression' ? callee.property : callee;
 }
 
-export function isComponentClass(
+function resolved(services: Services, node: TSESTree.Node): ts.Symbol | undefined {
+  const { program, esTreeNodeToTSNodeMap } = services;
+  const checker = program.getTypeChecker();
+  const raw = lookupSymbol(checker, esTreeNodeToTSNodeMap.get(node));
+  return raw === undefined ? undefined : resolveAlias(checker, raw);
+}
+
+function originOf(symbol: ts.Symbol | undefined): string {
+  return symbol?.declarations?.[0]?.getSourceFile().fileName ?? '';
+}
+
+/** デコレータが @angular/core の Component か。別名 import や名前空間 import も追跡する */
+function isFromCore(services: Services, decorator: TSESTree.Decorator): boolean {
+  const target = calleeName(decorator.expression);
+  const symbol = target === undefined ? undefined : resolved(services, target);
+  const { name } = symbol ?? { name: '' };
+  return name === 'Component' && originOf(symbol).includes('@angular/core');
+}
+
+export function isAngularComponent(
+  services: Services,
   node: TSESTree.ClassDeclaration | TSESTree.ClassExpression,
 ): boolean {
-  return node.decorators.some((decorator) => decoratorLabel(decorator) === 'Component');
-}
-
-function textOf(name: TSESTree.Identifier | TSESTree.StringLiteral): string {
-  return name.type === 'Identifier' ? name.name : name.value;
-}
-
-function importedName(specifier: TSESTree.ImportClause): string {
-  const named = specifier.type === 'ImportSpecifier' ? specifier.imported : undefined;
-  return named === undefined ? '' : textOf(named);
-}
-
-/** @angular/core から Component を import している文か */
-function isCoreImport(statement: TSESTree.ProgramStatement): boolean {
-  const imp =
-    statement.type === 'ImportDeclaration' && statement.source.value === '@angular/core'
-      ? statement
-      : undefined;
-  return (imp?.specifiers ?? []).some((specifier) => importedName(specifier) === 'Component');
-}
-
-/** このモジュールが Angular のコンポーネントを定義しうるか */
-export function isAngularModule(program: TSESTree.Program): boolean {
-  return program.body.some((statement) => isCoreImport(statement));
+  return node.decorators.some((decorator) => isFromCore(services, decorator));
 }

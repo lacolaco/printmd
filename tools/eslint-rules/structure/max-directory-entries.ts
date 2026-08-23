@@ -11,9 +11,6 @@ const ENTRY_LIMIT = 9;
 
 const HEAD = { line: 1, column: 0 };
 
-/** 同一実行内で 1 ディレクトリ 1 回だけ報告する */
-const reported = new Set<string>();
-
 /** spec は元ファイルの影なので数えない。数えるのは TS ファイルとサブディレクトリ */
 function isCounted(entry: fs.Dirent): boolean {
   const source = entry.name.endsWith('.ts') && !entry.name.endsWith('.spec.ts');
@@ -29,18 +26,11 @@ function audit(context: Context, limit: number): void {
   const { filename } = context;
   const dir = path.dirname(filename);
   const count = tally(dir);
-  flag(context, dir, count, limit, !reported.has(dir) && count > limit);
+  flag(context, count, limit, count > limit);
 }
 
-function flag(
-  context: Context,
-  dir: string,
-  count: number,
-  limit: number,
-  violated: boolean,
-): void {
+function flag(context: Context, count: number, limit: number, violated: boolean): void {
   if (violated) {
-    reported.add(dir);
     const data = { count: String(count), limit: String(limit) };
     context.report({ loc: HEAD, messageId: 'tooManyEntries', data });
   }

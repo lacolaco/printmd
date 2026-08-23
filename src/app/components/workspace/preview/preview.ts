@@ -42,12 +42,15 @@ export class Preview {
   private readonly sheetsHost = viewChild.required<ElementRef<HTMLElement>>('sheetsHost');
   private renderer: SheetRenderer | null = null;
 
-  /** ここは DOM 書き込みのみ (計測は pagination の computed が担う) */
+  /** ここは DOM 書き込みのみ (計測は pagination の computed が担う)。signal は先に読む (例外時も依存を登録する) */
+  private readonly repaint = effect(() => {
+    const doc = this.store.renderedDocument();
+    const pagination = this.viewer.pagination();
+    this.renderer = renewRenderer(this.renderer, this.sheetsHost().nativeElement);
+    this.renderer.render(doc, pagination);
+  });
+
   constructor() {
-    effect(() => {
-      this.renderer = renewRenderer(this.renderer, this.sheetsHost().nativeElement);
-      this.renderer.render(this.store.renderedDocument(), this.viewer.pagination());
-    });
     // 張り替え間では最後の observer が残るため、破棄時にも切断する
     inject(DestroyRef).onDestroy(() => this.renderer?.dispose());
   }

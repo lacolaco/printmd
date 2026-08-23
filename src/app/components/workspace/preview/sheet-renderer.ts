@@ -49,6 +49,7 @@ export class SheetRenderer {
   constructor(private readonly host: HTMLElement) {}
 
   render(doc: RenderedDocument | null, pagination: Pagination | null): void {
+    this.dispose();
     this.host.replaceChildren();
     this.populate(doc, pagination);
   }

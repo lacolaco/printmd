@@ -1,9 +1,11 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
-import { isComponentClass, isAngularModule } from '../support/angular-utils';
+import { isAngularComponent } from '../support/angular-utils';
 
 type MessageIds = 'noPrivateMethod';
 
 type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>[0]['create']>[0];
+
+type Services = ReturnType<typeof ESLintUtils.getParserServices>;
 
 type Member = TSESTree.MethodDefinition | TSESTree.PropertyDefinition;
 
@@ -23,9 +25,9 @@ function isMethodShaped(node: Member): boolean {
   return node.type === 'MethodDefinition' ? node.kind !== 'constructor' : fn;
 }
 
-function checkMember(context: Context, angular: boolean, node: Member): void {
-  const hidden = angular && isHidden(node) && isMethodShaped(node);
-  condemn(context, node, hidden && isComponentClass(enclosingClass(node)));
+function checkMember(context: Context, services: Services, node: Member): void {
+  const hidden = isHidden(node) && isMethodShaped(node);
+  condemn(context, node, hidden && isAngularComponent(services, enclosingClass(node)));
 }
 
 function condemn(context: Context, node: Member, violated: boolean): void {
@@ -51,9 +53,8 @@ export const noPrivateComponentMethods = ESLintUtils.RuleCreator.withoutDocs<[],
   },
   defaultOptions: [],
   create(context) {
-    const { sourceCode } = context;
-    const angular = isAngularModule(sourceCode.ast);
-    const listener = (node: Member): void => checkMember(context, angular, node);
+    const services = ESLintUtils.getParserServices(context);
+    const listener = (node: Member): void => checkMember(context, services, node);
     return { MethodDefinition: listener, PropertyDefinition: listener };
   },
 });

@@ -6,7 +6,14 @@ RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
 RuleTester.it = it;
 
-const tester = new RuleTester();
+const tester = new RuleTester({
+  languageOptions: {
+    parserOptions: {
+      projectService: { allowDefaultProject: ['*.ts'] },
+      tsconfigRootDir: __dirname,
+    },
+  },
+});
 
 tester.run('no-new-in-component-props', noNewInComponentProps, {
   valid: [

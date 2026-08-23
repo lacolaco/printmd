@@ -6,7 +6,14 @@ RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
 RuleTester.it = it;
 
-const tester = new RuleTester();
+const tester = new RuleTester({
+  languageOptions: {
+    parserOptions: {
+      projectService: { allowDefaultProject: ['*.ts'] },
+      tsconfigRootDir: __dirname,
+    },
+  },
+});
 
 tester.run('no-private-component-methods', noPrivateComponentMethods, {
   valid: [
@@ -60,6 +67,15 @@ export class Panel {
 @Component({})
 export class Panel {
   #prepare(): void {}
+}`,
+      errors: [{ messageId: 'noPrivateMethod' }],
+    },
+    {
+      name: '名前空間 import 経由の Component でも禁止',
+      code: `import * as core from '@angular/core';
+@core.Component({})
+export class Panel {
+  private prepare(): void {}
 }`,
       errors: [{ messageId: 'noPrivateMethod' }],
     },
