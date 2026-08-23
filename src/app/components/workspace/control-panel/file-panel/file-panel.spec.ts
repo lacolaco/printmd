@@ -90,7 +90,10 @@ describe('FilePanel 取り込みと並べ替えの経路', () => {
     const input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
       'input[type="file"]',
     )!;
-    Object.defineProperty(input, 'files', { value: [new File(['# B'], 'b.md')], configurable: true });
+    Object.defineProperty(input, 'files', {
+      value: [new File(['# B'], 'b.md')],
+      configurable: true,
+    });
     input.dispatchEvent(new Event('change'));
     await fixture.whenStable();
     expect(store.files().map((f) => f.name)).toEqual(['a.md', 'b.md']);

@@ -40,6 +40,8 @@ export class FileAddInput {
   }
 
   private emitIfSelected(files: readonly File[]): void {
-    if (hasItems(files)) this.selected.emit(files);
+    if (hasItems(files)) {
+      this.selected.emit(files);
+    }
   }
 }

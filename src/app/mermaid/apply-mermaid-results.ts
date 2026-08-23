@@ -32,7 +32,9 @@ function replacePlaceholder(
   placeholder: Element,
   results: ReadonlyMap<string, MermaidOutcome>,
 ): void {
-  ifDefined(results.get(placeholder.id), (outcome) => placeholder.replaceWith(buildMermaidFigure(outcome)));
+  ifDefined(results.get(placeholder.id), (outcome) =>
+    placeholder.replaceWith(buildMermaidFigure(outcome)),
+  );
 }
 
 function buildMermaidFigure(outcome: MermaidOutcome): HTMLElement {

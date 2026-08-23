@@ -43,6 +43,8 @@ export class App {
   }
 
   private importDroppedFiles(files: FileList | undefined): void {
-    if (files !== undefined && files.length > 0) this.store.addFiles([...files]);
+    if (files !== undefined && files.length > 0) {
+      this.store.addFiles([...files]);
+    }
   }
 }

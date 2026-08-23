@@ -37,7 +37,9 @@ function isTargetVariable(variable: TSESLint.Scope.Variable): boolean {
 }
 
 function appendUsage(usage: Usage, kind: keyof Usage | null, id: TSESTree.Node): void {
-  if (kind !== null) usage[kind].push(id);
+  if (kind !== null) {
+    usage[kind].push(id);
+  }
 }
 
 function markUsage(usage: Usage, id: TSESTree.Node): void {

@@ -109,9 +109,7 @@ describe('EditorStore', () => {
     await whenRendered();
     store.toggleBreak(store.blocks()[1].id);
     const container = store.renderedDocument()!.container;
-    expect(
-      [...container.children].some((el) => el.classList.contains('forced-break')),
-    ).toBe(false);
+    expect([...container.children].some((el) => el.classList.contains('forced-break'))).toBe(false);
   });
 
   it('toggleBreak は同じ ID の追加/削除を繰り返せる', () => {
@@ -130,7 +128,6 @@ describe('EditorStore', () => {
     expect(store.breaks().size).toBe(1);
     expect(store.files()).toHaveLength(1);
   });
-
 });
 
 describe('EditorStore 変換の競合', () => {

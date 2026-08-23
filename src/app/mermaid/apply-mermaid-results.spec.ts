@@ -20,7 +20,8 @@ describe('applyMermaidResults', () => {
 
   it('SVG に紛れ込んだスクリプトとイベント属性を除去してから埋め込む', () => {
     const html = '<div class="mermaid-placeholder" id="m0"></div>';
-    const svg = '<svg><script>alert(1)</script><g onload="alert(2)"><text>安全な本文</text></g></svg>';
+    const svg =
+      '<svg><script>alert(1)</script><g onload="alert(2)"><text>安全な本文</text></g></svg>';
     const out = applyMermaidResults(html, new Map([['m0', { svg }]]));
     expect(out).not.toContain('<script');
     expect(out).not.toContain('onload');

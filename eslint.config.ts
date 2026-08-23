@@ -2,6 +2,7 @@ import eslint from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import angular from 'angular-eslint';
+import stylistic from '@stylistic/eslint-plugin';
 import { callOrPass } from './tools/eslint-rules/call-or-pass';
 import { ifOnlyAtStart } from './tools/eslint-rules/if-only-at-start';
 import { inlineShortTemplates } from './tools/eslint-rules/inline-short-templates';
@@ -11,6 +12,7 @@ export default defineConfig([
   {
     files: ['**/*.ts'],
     plugins: {
+      '@stylistic': stylistic,
       printmd: {
         rules: {
           'call-or-pass': callOrPass,
@@ -29,6 +31,8 @@ export default defineConfig([
     files: ['src/**/*.ts', 'tools/**/*.ts'],
     ignores: ['**/*.spec.ts'],
     rules: {
+      curly: ['error', 'all'],
+      '@stylistic/max-statements-per-line': ['error', { max: 1 }],
       'printmd/call-or-pass': 'error',
       'printmd/if-only-at-start': 'error',
       'printmd/max-function-lines': ['error', { maxLines: 5 }],

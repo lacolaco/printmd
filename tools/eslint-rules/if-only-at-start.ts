@@ -36,7 +36,9 @@ function reportMisplacedIf(context: Context, node: TSESTree.IfStatement): void {
 }
 
 function reportUnlessCompliant(context: Context, node: TSESTree.IfStatement): void {
-  if (!isCompliant(node)) reportMisplacedIf(context, node);
+  if (!isCompliant(node)) {
+    reportMisplacedIf(context, node);
+  }
 }
 
 /**

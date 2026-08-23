@@ -15,15 +15,22 @@ function countLogicLines(sourceCode: TSESLint.SourceCode, body: TSESTree.Node): 
 }
 
 type FunctionNode =
-  | TSESTree.FunctionDeclaration
-  | TSESTree.FunctionExpression
-  | TSESTree.ArrowFunctionExpression;
+  TSESTree.FunctionDeclaration | TSESTree.FunctionExpression | TSESTree.ArrowFunctionExpression;
 
 type Context = TSESLint.RuleContext<MessageIds, Options>;
 
-function reportIfTooLong(context: Context, maxLines: number, node: FunctionNode, lines: number): void {
+function reportIfTooLong(
+  context: Context,
+  maxLines: number,
+  node: FunctionNode,
+  lines: number,
+): void {
   if (lines > maxLines) {
-    context.report({ node, messageId: 'tooLong', data: { lines: String(lines), max: String(maxLines) } });
+    context.report({
+      node,
+      messageId: 'tooLong',
+      data: { lines: String(lines), max: String(maxLines) },
+    });
   }
 }
 
@@ -32,6 +39,14 @@ function makeListener(context: Context, maxLines: number, sourceCode: TSESLint.S
     const { body } = node;
     reportIfTooLong(context, maxLines, node, countLogicLines(sourceCode, body));
   };
+}
+
+function makeVisitor(listener: (node: FunctionNode) => void): TSESLint.RuleListener {
+  return {
+    FunctionDeclaration: listener,
+    FunctionExpression: listener,
+    ArrowFunctionExpression: listener,
+  } as TSESLint.RuleListener;
 }
 
 /** 5 行ルール: 関数・メソッドの本体はロジックのある行が maxLines 行以内 (既定 5) */
@@ -54,7 +69,6 @@ export const maxFunctionLines = ESLintUtils.RuleCreator.withoutDocs<Options, Mes
   create(context) {
     const { sourceCode } = context;
     const maxLines = maxLinesOption(context, DEFAULT_MAX_LINES);
-    const listener = makeListener(context, maxLines, sourceCode);
-    return { FunctionDeclaration: listener, FunctionExpression: listener, ArrowFunctionExpression: listener };
+    return makeVisitor(makeListener(context, maxLines, sourceCode));
   },
 });

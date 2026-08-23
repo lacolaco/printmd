@@ -30,7 +30,10 @@ function pushNewGroup(groups: MutableFileGroup[], block: Block): MutableFileGrou
   return next;
 }
 
-function lastGroupMatching(groups: readonly MutableFileGroup[], block: Block): MutableFileGroup | undefined {
+function lastGroupMatching(
+  groups: readonly MutableFileGroup[],
+  block: Block,
+): MutableFileGroup | undefined {
   const last = groups.at(-1);
   return last !== undefined && last.fileIndex === block.fileIndex ? last : undefined;
 }

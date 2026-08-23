@@ -13,7 +13,9 @@ const GUTTER_PX = 48;
 function indexOfLargestZoomAtMost(fit: number): number {
   let index = 0;
   ZOOMS.forEach((zoom, i) => {
-    if (zoom <= fit) index = i;
+    if (zoom <= fit) {
+      index = i;
+    }
   });
   return index;
 }

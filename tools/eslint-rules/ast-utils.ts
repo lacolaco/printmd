@@ -1,9 +1,7 @@
 import type { TSESTree } from '@typescript-eslint/utils';
 
 export type FunctionNode =
-  | TSESTree.FunctionDeclaration
-  | TSESTree.FunctionExpression
-  | TSESTree.ArrowFunctionExpression;
+  TSESTree.FunctionDeclaration | TSESTree.FunctionExpression | TSESTree.ArrowFunctionExpression;
 
 export const FUNCTION_TYPES: ReadonlySet<string> = new Set([
   'FunctionDeclaration',

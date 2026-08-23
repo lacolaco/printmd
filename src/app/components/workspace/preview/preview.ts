@@ -6,7 +6,6 @@ import { EditorStore } from '../../../state/editor-store';
 import { ViewerState } from '../../../state/viewer-state';
 import { COLUMN_STEP_MM } from '../../../page-geometry';
 
-
 /**
  * プレビュー: CSS 多段組を流用したページ分割。変換済み文書の要素を段幅 178mm の
  * 多段組コンテナへ複製し、段 i だけを見せる窓 (178mm × 265mm, overflow
@@ -107,26 +106,42 @@ export class Preview {
   private appendSheets(doc: RenderedDocument, pagination: Pagination): void {
     const host = this.sheetsHost().nativeElement;
     const { total } = pagination;
-    for (let index = 0; index < total; index++) this.appendSheet(host, index, doc, pagination);
+    for (let index = 0; index < total; index++) {
+      this.appendSheet(host, index, doc, pagination);
+    }
   }
 
-  private appendSheet(host: HTMLElement, index: number, doc: RenderedDocument, pagination: Pagination): void {
+  private appendSheet(
+    host: HTMLElement,
+    index: number,
+    doc: RenderedDocument,
+    pagination: Pagination,
+  ): void {
     const sheet = createSheet(index);
     host.append(sheet);
     this.scheduleFill(sheet, doc, pagination);
   }
 
   private scheduleFill(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
-    if (this.observer !== null) this.observer.observe(sheet);
-    else this.fillSheet(sheet, doc, pagination);
+    if (this.observer !== null) {
+      this.observer.observe(sheet);
+    } else {
+      this.fillSheet(sheet, doc, pagination);
+    }
   }
 
   /** シートへ段組クローンの窓を実体化する。実体化済みなら何もしない */
   private fillSheet(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
-    if (isEmptySheet(sheet)) this.materializeSheet(sheet, doc, pagination);
+    if (isEmptySheet(sheet)) {
+      this.materializeSheet(sheet, doc, pagination);
+    }
   }
 
-  private materializeSheet(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
+  private materializeSheet(
+    sheet: HTMLElement,
+    doc: RenderedDocument,
+    pagination: Pagination,
+  ): void {
     const index = Number(sheet.dataset['page']) - 1;
     ifDefined(segmentForPage(pagination, index), (segment) =>
       sheet.append(buildSheetWindow(doc, segment, columnFor(segment, index))),
@@ -153,7 +168,11 @@ function segmentForPage(pagination: Pagination, index: number): PageSegment | un
   return pagination.segments.find((s) => index >= s.firstPage && index < s.firstPage + s.pages);
 }
 
-function buildSheetWindow(doc: RenderedDocument, segment: PageSegment, column: number): HTMLElement {
+function buildSheetWindow(
+  doc: RenderedDocument,
+  segment: PageSegment,
+  column: number,
+): HTMLElement {
   const clip = document.createElement('div');
   clip.className = 'clip';
   clip.append(buildWindowClone(doc, segment, column));
@@ -164,7 +183,11 @@ function buildSheetWindow(doc: RenderedDocument, segment: PageSegment, column: n
  * セグメントのクローンを、セグメント内の段位置ぶん左へずらした状態で作る。
  * 紙面の複製は読み上げ・フォーカスの対象から外す (本文は原稿と印刷対象が担う)
  */
-function buildWindowClone(doc: RenderedDocument, segment: PageSegment, column: number): HTMLElement {
+function buildWindowClone(
+  doc: RenderedDocument,
+  segment: PageSegment,
+  column: number,
+): HTMLElement {
   const mc = buildSegmentClone(doc, segment.start, segment.end);
   mc.style.marginLeft = `${-(column * COLUMN_STEP_MM)}mm`;
   mc.setAttribute('inert', '');
