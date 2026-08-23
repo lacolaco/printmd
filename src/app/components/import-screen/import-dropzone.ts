@@ -1,30 +1,27 @@
 import { Component, inject } from '@angular/core';
 import { EditorStore, type ImportSource } from '../../state/editor-store';
 
-/** デモ原稿 (public/demo/ に同梱)。ガイド + 著作権消滅作品の長文。取得と検証を閉じる */
-class Demo {
-  private readonly names = ['printmd-guide.md', 'hashire-merosu.md'];
+/** デモ原稿 1 冊。それ自体が取り込み入力 (ImportSource) として振る舞う */
+class DemoManuscript {
+  constructor(readonly name: string) {}
 
-  sources(): ImportSource[] {
-    return this.names.map((name) => this.entry(name));
-  }
-
-  private entry(name: string): ImportSource {
-    return { name, text: () => this.load(name) };
-  }
-
-  private async load(name: string): Promise<string> {
-    const response = await fetch(`/demo/${name}`);
-    this.assert(response.ok, name);
+  async text(): Promise<string> {
+    const response = await fetch(`/demo/${this.name}`);
+    this.assert(response.ok);
     return response.text();
   }
 
-  private assert(ok: boolean, name: string): void {
+  private assert(ok: boolean): void {
     if (!ok) {
-      throw new Error(`demo fetch failed: ${name}`);
+      throw new Error(`demo fetch failed: ${this.name}`);
     }
   }
 }
+
+/** public/demo/ に同梱。ガイド + 著作権消滅作品の長文 */
+const DEMOS: readonly ImportSource[] = ['printmd-guide.md', 'hashire-merosu.md'].map(
+  (name) => new DemoManuscript(name),
+);
 
 /**
  * 空状態の取り込み面。最初の一手 (ドロップ / クリック選択) とアプリの用途を
@@ -87,6 +84,6 @@ export class ImportDropzone {
   protected loadDemo(event: Event): void {
     // label 内のボタンなので、既定動作 (ファイル選択ダイアログ) を抑止する
     event.preventDefault();
-    this.store.addFiles(new Demo().sources());
+    this.store.addFiles(DEMOS);
   }
 }
