@@ -2,9 +2,10 @@ import { Service, computed, inject, linkedSignal, resource, signal } from '@angu
 import type { Block, FileFragment, RenderedDocument } from '../markdown/block-extractor';
 import { buildRenderedDocument } from '../markdown/block-extractor';
 import { applyMermaidResults } from '../mermaid/apply-mermaid-results';
+import { hasItems } from '../collections';
 import { groupBlocks } from './block-groups';
 import { MermaidRenderer, type MermaidOutcome } from '../mermaid/mermaid-renderer';
-import { renderMarkdown } from '../markdown/render-markdown';
+import { renderMarkdown, type MermaidBlock } from '../markdown/render-markdown';
 
 /** 取り込んだ原稿ファイル。content は不変 (原稿は書き換えない) */
 export interface ManuscriptFile {
@@ -62,7 +63,7 @@ export class EditorStore {
   private readonly renderedResource = resource({
     params: () => this.filesSignal(),
     loader: async ({ params: files }) => {
-      if (files.length === 0) return null;
+      if (!hasItems(files)) return null;
       const epoch = ++this.renderEpoch;
       await this.renderNewFragments(files);
       this.evictStaleFragments(epoch, files);
@@ -73,7 +74,7 @@ export class EditorStore {
   private async renderNewFragments(files: readonly ManuscriptFile[]): Promise<void> {
     const toRender = files.filter((file) => !this.fragmentCache.has(file.content));
     const rendered = toRender.map((file) => ({ file, ...renderMarkdown(file.content) }));
-    const results = await this.mermaidRenderer.render(rendered.flatMap((r) => r.mermaidBlocks));
+    const results = await this.mermaidRenderer.render(collectMermaidBlocks(rendered));
     this.storeFragments(rendered, results);
   }
 
@@ -211,6 +212,12 @@ function reordered(
 
 function isValidMove(length: number, from: number, to: number): boolean {
   return from !== to && from >= 0 && to >= 0 && from < length && to < length;
+}
+
+function collectMermaidBlocks(
+  rendered: readonly { mermaidBlocks: readonly MermaidBlock[] }[],
+): readonly MermaidBlock[] {
+  return rendered.flatMap((r) => r.mermaidBlocks);
 }
 
 function toggled(current: ReadonlySet<string>, blockId: string): ReadonlySet<string> {

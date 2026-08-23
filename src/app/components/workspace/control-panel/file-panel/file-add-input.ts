@@ -1,4 +1,5 @@
 import { Component, output } from '@angular/core';
+import { hasItems } from '../../../../collections';
 
 /** 追加取り込みの入力面。ファイル選択とドロップを受けて選ばれたファイルを通知する */
 @Component({
@@ -30,13 +31,13 @@ export class FileAddInput {
   protected onDrop(event: DragEvent): void {
     event.preventDefault();
     const files = [...(event.dataTransfer?.files ?? [])];
-    if (files.length > 0) this.selected.emit(files);
+    if (hasItems(files)) this.selected.emit(files);
   }
 
   protected onFileInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const files = [...(input.files ?? [])];
-    if (files.length > 0) this.selected.emit(files);
+    if (hasItems(files)) this.selected.emit(files);
     input.value = '';
   }
 }

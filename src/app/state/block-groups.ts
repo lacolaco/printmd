@@ -29,15 +29,31 @@ function groupFor(groups: MutableFileGroup[], block: Block): MutableFileGroup {
   return next;
 }
 
+function depthFor(block: Block, group: MutableFileGroup): number {
+  return block.kind === 'heading' ? (block.level ?? 1) : group.headingLevel + 1;
+}
+
+function updateHeadingLevel(group: MutableFileGroup, block: Block): void {
+  if (block.kind === 'heading') group.headingLevel = block.level ?? 1;
+}
+
+function pushRow(group: MutableFileGroup, block: Block, depth: number): void {
+  group.rows.push({ block, depth });
+}
+
 function appendBlock(groups: MutableFileGroup[], block: Block): void {
   const group = groupFor(groups, block);
-  if (block.kind === 'heading') group.headingLevel = block.level ?? 1;
-  const depth = block.kind === 'heading' ? (block.level ?? 1) : group.headingLevel + 1;
-  group.rows.push({ block, depth });
+  const depth = depthFor(block, group);
+  updateHeadingLevel(group, block);
+  pushRow(group, block, depth);
+}
+
+function nonEmptyGroups(groups: readonly MutableFileGroup[]): readonly FileGroup[] {
+  return groups.filter((group) => group.rows.length > 0);
 }
 
 export function groupBlocks(blocks: readonly Block[]): readonly FileGroup[] {
   const groups: MutableFileGroup[] = [];
   blocks.forEach((block) => appendBlock(groups, block));
-  return groups.filter((group) => group.rows.length > 0);
+  return nonEmptyGroups(groups);
 }

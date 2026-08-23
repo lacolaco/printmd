@@ -48,11 +48,15 @@ function buildFailedFigure(code: string): HTMLElement {
   return figure;
 }
 
-function buildFailedCodeBlock(code: string): HTMLElement {
-  const pre = document.createElement('pre');
+function createCodeElement(code: string): HTMLElement {
   const el = document.createElement('code');
   el.textContent = code;
-  pre.append(el);
+  return el;
+}
+
+function buildFailedCodeBlock(code: string): HTMLElement {
+  const pre = document.createElement('pre');
+  pre.append(createCodeElement(code));
   return pre;
 }
 

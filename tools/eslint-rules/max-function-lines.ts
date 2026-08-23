@@ -1,5 +1,6 @@
 import type { Rule, SourceCode } from 'eslint';
 import type { Node } from 'estree';
+import { maxLinesOption } from './options';
 
 const DEFAULT_MAX_LINES = 5;
 
@@ -36,8 +37,7 @@ export const maxFunctionLines: Rule.RuleModule = {
     ],
   },
   create(context) {
-    const options = (context.options[0] ?? {}) as { maxLines?: number };
-    const maxLines = options.maxLines ?? DEFAULT_MAX_LINES;
+    const maxLines = maxLinesOption(context, DEFAULT_MAX_LINES);
     const listener = (node: Rule.Node) => check(context, maxLines, node);
     return { FunctionDeclaration: listener, FunctionExpression: listener, ArrowFunctionExpression: listener };
   },

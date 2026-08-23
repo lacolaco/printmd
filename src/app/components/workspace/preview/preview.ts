@@ -92,11 +92,14 @@ export class Preview {
 
   private appendSheets(doc: RenderedDocument, pagination: Pagination): void {
     const host = this.sheetsHost().nativeElement;
-    for (let index = 0; index < pagination.total; index++) {
-      const sheet = createSheet(index);
-      host.append(sheet);
-      this.scheduleFill(sheet, doc, pagination);
-    }
+    const total = pageTotal(pagination);
+    for (let index = 0; index < total; index++) this.appendSheet(host, index, doc, pagination);
+  }
+
+  private appendSheet(host: HTMLElement, index: number, doc: RenderedDocument, pagination: Pagination): void {
+    const sheet = createSheet(index);
+    host.append(sheet);
+    this.scheduleFill(sheet, doc, pagination);
   }
 
   private scheduleFill(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
@@ -110,7 +113,7 @@ export class Preview {
     const index = Number(sheet.dataset['page']) - 1;
     const segment = segmentForPage(pagination, index);
     if (segment !== undefined) {
-      sheet.append(buildSheetWindow(doc, segment, index - segment.firstPage));
+      sheet.append(buildSheetWindow(doc, segment, columnFor(segment, index)));
     }
   }
 }
@@ -120,6 +123,14 @@ function createSheet(index: number): HTMLElement {
   sheet.className = 'sheet';
   sheet.dataset['page'] = String(index + 1);
   return sheet;
+}
+
+function pageTotal(pagination: Pagination): number {
+  return pagination.total;
+}
+
+function columnFor(segment: PageSegment, index: number): number {
+  return index - segment.firstPage;
 }
 
 function segmentForPage(pagination: Pagination, index: number): PageSegment | undefined {

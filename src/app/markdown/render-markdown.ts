@@ -1,6 +1,6 @@
 import DOMPurify from 'dompurify';
 import hljs from 'highlight.js/lib/common';
-import MarkdownIt from 'markdown-it';
+import MarkdownIt, { type Token } from 'markdown-it';
 import taskLists from 'markdown-it-task-lists';
 
 /** 遅延して SVG 化する mermaid コードブロック。placeholder の id で HTML 側と対応する */
@@ -60,9 +60,13 @@ function pushMermaidPlaceholder(env: RenderEnv, code: string): string {
   return `<div class="mermaid-placeholder" id="${id}"></div>`;
 }
 
+function tokenAt(tokens: readonly Token[], idx: number): Token {
+  return tokens[idx];
+}
+
 const defaultFence = md.renderer.rules['fence']!.bind(md.renderer.rules);
 md.renderer.rules['fence'] = (tokens, idx, options, env, self) => {
-  const token = tokens[idx];
+  const token = tokenAt(tokens, idx);
   if (token.info.trim() !== 'mermaid') {
     return defaultFence(tokens, idx, options, env, self);
   }

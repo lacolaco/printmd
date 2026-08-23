@@ -58,9 +58,13 @@ function isMermaidFigure(el: Element): boolean {
   return el.tagName === 'FIGURE' && el.classList.contains('mermaid');
 }
 
+function tagNameOf(el: Element): string {
+  return el.tagName;
+}
+
 function toKind(el: Element): BlockKind {
   if (isMermaidFigure(el)) return 'mermaid';
-  return KIND_BY_TAG[el.tagName] ?? 'other';
+  return KIND_BY_TAG[tagNameOf(el)] ?? 'other';
 }
 
 function toLevel(el: Element): number | null {
@@ -69,8 +73,12 @@ function toLevel(el: Element): number | null {
 }
 
 function toLabel(el: Element): string {
-  if (el.tagName === 'HR') return '———';
   if (isMermaidFigure(el)) return 'mermaid 図';
+  return textLabel(el);
+}
+
+function textLabel(el: Element): string {
+  if (el.tagName === 'HR') return '———';
   const text = (el.textContent ?? '').trim().replaceAll(/\s+/g, ' ');
   return text.length > LABEL_MAX_LENGTH ? text.slice(0, LABEL_MAX_LENGTH) : text;
 }
@@ -79,12 +87,21 @@ function toLabel(el: Element): string {
  * 複数ファイルの HTML 断片を 1 つの変換済み文書の要素へ結合し、トップレベル要素に
  * id="f{fileIndex}b{blockIndex}" を付与する。ID の連番はファイルごとに振り直す。
  */
-export function buildRenderedDocument(fragments: readonly FileFragment[]): RenderedDocument {
+function createContainer(): HTMLElement {
   const container = document.createElement('div');
   container.className = 'markdown-body';
+  return container;
+}
+
+export function buildRenderedDocument(fragments: readonly FileFragment[]): RenderedDocument {
+  const container = createContainer();
   const blocks: Block[] = [];
   fragments.forEach((fragment) => appendFragmentBlocks(container, blocks, fragment));
   return { container, blocks };
+}
+
+function htmlOf(fragment: FileFragment): string {
+  return fragment.html;
 }
 
 /** 1 ファイル分の HTML 断片を container へ追記し、生成した Block を blocks へ積む */
@@ -94,16 +111,21 @@ function appendFragmentBlocks(
   fragment: FileFragment,
 ): void {
   const temp = document.createElement('div');
-  temp.innerHTML = fragment.html;
+  temp.innerHTML = htmlOf(fragment);
   [...temp.children].forEach((el, blockIndex) => blocks.push(toBlock(fragment, el, blockIndex)));
   container.append(...temp.childNodes);
 }
 
+/** 著者が書いた id (アンカー) を潰さないよう、ブロック ID は data 属性で持つ */
+function markBlockId(el: Element, id: string): void {
+  el.setAttribute('data-block-id', id);
+}
+
 /** トップレベル要素 1 つぶんの Block を組み立て、data-block-id を付与する */
 function toBlock(fragment: FileFragment, el: Element, blockIndex: number): Block {
-  const id = `f${fragment.fileIndex}b${blockIndex}`;
-  // 著者が書いた id (アンカー) を潰さないよう、ブロック ID は data 属性で持つ
-  el.setAttribute('data-block-id', id);
+  const { fileIndex } = fragment;
+  const id = `f${fileIndex}b${blockIndex}`;
+  markBlockId(el, id);
   const meta = { kind: toKind(el), label: toLabel(el), level: toLevel(el) };
   return { id, ...meta, ...toBlockOrigin(fragment, blockIndex) };
 }

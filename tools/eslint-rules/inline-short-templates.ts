@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { Rule } from 'eslint';
+import { maxLinesOption } from './options';
 
 const DEFAULT_MAX_LINES = 20;
 
@@ -32,11 +33,19 @@ function buildInlineTemplateBody(content: string, escaped: string, column: numbe
   return `\n${indent}${escaped.split('\n').join(`\n${indent}`)}\n${' '.repeat(column)}`;
 }
 
+function indentColumnOf(node: Rule.Node): number {
+  return node.loc?.start.column ?? 2;
+}
+
 function toInlineTemplateFix(fixer: Rule.RuleFixer, node: Rule.Node, content: string): Rule.Fix {
-  const column = node.loc?.start.column ?? 2;
+  const column = indentColumnOf(node);
   const escaped = escapeForTemplateLiteral(content);
   const body = buildInlineTemplateBody(content, escaped, column);
   return fixer.replaceText(node, `template: \`${body}\``);
+}
+
+function lineCountOf(content: string): number {
+  return content.split('\n').length;
 }
 
 function reportIfShortEnough(
@@ -45,17 +54,23 @@ function reportIfShortEnough(
   node: Rule.Node,
   content: string,
 ): void {
-  const lines = content.split('\n').length;
+  const lines = lineCountOf(content);
   if (lines > maxLines) return;
   const data = { lines: String(lines), max: String(maxLines) };
   const fix: Rule.ReportFixer = (fixer) => toInlineTemplateFix(fixer, node, content);
   context.report({ node, messageId: 'inline', data, fix });
 }
 
+function templateUrlOf(node: Rule.Node): string | null {
+  if (node.type !== 'Property') return null;
+  const value = node.value;
+  return value.type === 'Literal' && typeof value.value === 'string' ? value.value : null;
+}
+
 function checkTemplateUrl(context: Rule.RuleContext, maxLines: number, node: Rule.Node): void {
-  if (node.type !== 'Property') return;
-  if (node.value.type !== 'Literal' || typeof node.value.value !== 'string') return;
-  const content = readTemplateFile(context, node.value.value);
+  const templateUrl = templateUrlOf(node);
+  if (templateUrl === null) return;
+  const content = readTemplateFile(context, templateUrl);
   if (content === null) return;
   reportIfShortEnough(context, maxLines, node, content);
 }
@@ -83,8 +98,7 @@ export const inlineShortTemplates: Rule.RuleModule = {
     ],
   },
   create(context) {
-    const options = (context.options[0] ?? {}) as { maxLines?: number };
-    const maxLines = options.maxLines ?? DEFAULT_MAX_LINES;
+    const maxLines = maxLinesOption(context, DEFAULT_MAX_LINES);
     return {
       [TEMPLATE_URL_SELECTOR]: (node: Rule.Node) => checkTemplateUrl(context, maxLines, node),
     };

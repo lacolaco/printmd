@@ -26,7 +26,7 @@ export class PrintRoot {
     const doc = this.store.renderedDocument();
     const breaks = this.store.breaks();
     const host = this.host.nativeElement;
-    host.replaceChildren();
+    resetHost(host);
     this.appendPrintDocument(host, doc, breaks);
   }
 
@@ -39,4 +39,8 @@ export class PrintRoot {
     applyForcedBreaks(doc.container, doc.blocks, breaks);
     host.append(doc.container);
   }
+}
+
+function resetHost(host: HTMLElement): void {
+  host.replaceChildren();
 }
