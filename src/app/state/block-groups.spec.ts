@@ -43,7 +43,13 @@ describe('groupBlocks', () => {
   it('ファイル境界で見出しレベルを持ち越さない', () => {
     const groups = groupBlocks([
       block({ id: 'f0b0', kind: 'heading', level: 3 }),
-      block({ id: 'f1b0', kind: 'paragraph', fileIndex: 1, fileName: 'b.md', isFileBoundary: true }),
+      block({
+        id: 'f1b0',
+        kind: 'paragraph',
+        fileIndex: 1,
+        fileName: 'b.md',
+        isFileBoundary: true,
+      }),
     ]);
     expect(groups[1].rows[0].depth).toBe(1);
   });

@@ -7,7 +7,8 @@ import type { ManuscriptFile } from '../../../../state/editor-store';
   selector: 'app-file-row-item',
   imports: [CdkDragHandle],
   host: {
-    class: 'flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2 py-1.5 text-sm',
+    class:
+      'flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2 py-1.5 text-sm',
   },
   template: `
     <span class="cursor-grab text-stone-500" aria-hidden="true" cdkDragHandle>⠿</span>

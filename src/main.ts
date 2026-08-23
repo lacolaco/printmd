@@ -6,5 +6,4 @@ import { applyPageGeometryCssVariables } from './app/page-geometry';
 // 画面 CSS のページ寸法は page-geometry.ts を単一の情報源とする
 applyPageGeometryCssVariables(document.documentElement);
 
-bootstrapApplication(App, appConfig)
-  .catch((err) => console.error(err));
+bootstrapApplication(App, appConfig).catch((err) => console.error(err));

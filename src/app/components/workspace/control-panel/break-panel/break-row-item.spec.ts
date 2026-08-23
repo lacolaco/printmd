@@ -18,7 +18,11 @@ function block(partial: Partial<Block> & Pick<Block, 'id' | 'kind'>): Block {
 
 @Component({
   imports: [BreakRowItem],
-  template: `<app-break-row-item [row]="row()" [checked]="checked()" (toggled)="toggles = toggles + 1" />`,
+  template: `<app-break-row-item
+    [row]="row()"
+    [checked]="checked()"
+    (toggled)="toggles = toggles + 1"
+  />`,
 })
 class Host {
   readonly row = signal<BlockRow>({ block: block({ id: 'f0b0', kind: 'paragraph' }), depth: 1 });
@@ -48,10 +52,7 @@ describe('BreakRowItem', () => {
   });
 
   it('checked 入力がチェック状態に反映される', () => {
-    const fixture = render(
-      { block: block({ id: 'f0b0', kind: 'paragraph' }), depth: 1 },
-      true,
-    );
+    const fixture = render({ block: block({ id: 'f0b0', kind: 'paragraph' }), depth: 1 }, true);
     const checkbox = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
       'input[type="checkbox"]',
     );
@@ -60,9 +61,7 @@ describe('BreakRowItem', () => {
 
   it('階層深さがインデント幅になり、上限で頭打ちになる', () => {
     const shallow = render({ block: block({ id: 'f0b0', kind: 'paragraph' }), depth: 2 });
-    expect(
-      shallow.nativeElement.querySelector('label').style.paddingLeft,
-    ).toBe('18px');
+    expect(shallow.nativeElement.querySelector('label').style.paddingLeft).toBe('18px');
     const deep = render({ block: block({ id: 'f0b1', kind: 'paragraph' }), depth: 9 });
     expect(deep.nativeElement.querySelector('label').style.paddingLeft).toBe('54px');
   });

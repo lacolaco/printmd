@@ -7,8 +7,7 @@ import { FilePanel } from './file-panel/file-panel';
   selector: 'app-control-panel',
   imports: [BreakPanel, FilePanel],
   host: {
-    class:
-      'app-panel block w-full shrink-0 overflow-y-auto p-4 md:w-90 md:border-l',
+    class: 'app-panel block w-full shrink-0 overflow-y-auto p-4 md:w-90 md:border-l',
     role: 'complementary',
     'aria-label': '調整パネル',
   },

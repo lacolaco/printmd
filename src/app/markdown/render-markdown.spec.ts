@@ -28,7 +28,9 @@ describe('renderMarkdown', () => {
     const { html } = renderMarkdown('- [x] 完了\n- [ ] 未完了');
     expect(html).toContain('class="task-list-item"');
     expect(html).toMatch(/<input class="task-list-item-checkbox" checked="" disabled=""/);
-    expect(html).toMatch(/<li class="task-list-item"><input class="task-list-item-checkbox" disabled=""/);
+    expect(html).toMatch(
+      /<li class="task-list-item"><input class="task-list-item-checkbox" disabled=""/,
+    );
   });
 
   it('mermaid フェンスをプレースホルダに差し替え、コードを別途返す', () => {
@@ -64,7 +66,9 @@ describe('renderMarkdown', () => {
   });
 
   it('生 HTML の GFM 相当サブセットを通す', () => {
-    const { html } = renderMarkdown('<b>太字</b> と <details><summary>開閉</summary>中身</details>');
+    const { html } = renderMarkdown(
+      '<b>太字</b> と <details><summary>開閉</summary>中身</details>',
+    );
     expect(html).toContain('<b>太字</b>');
     expect(html).toContain('<summary>開閉</summary>');
   });

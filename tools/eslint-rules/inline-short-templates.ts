@@ -56,7 +56,12 @@ function lineCountOf(content: string): number {
   return content.split('\n').length;
 }
 
-function reportInline(context: Context, maxLines: number, node: TSESTree.Node, content: string): void {
+function reportInline(
+  context: Context,
+  maxLines: number,
+  node: TSESTree.Node,
+  content: string,
+): void {
   const lines = lineCountOf(content);
   const data = { lines: String(lines), max: String(maxLines) };
   const fix: TSESLint.ReportFixFunction = (fixer) => toInlineTemplateFix(fixer, node, content);

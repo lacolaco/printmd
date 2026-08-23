@@ -24,9 +24,7 @@ describe('BreakPanel', () => {
   });
 
   it('主要ブロックのチェック行を表示し、チェックで改ページを指定する', async () => {
-    await store.addFiles([
-      { name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文の段落') },
-    ]);
+    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文の段落') }]);
     const fixture = TestBed.createComponent(BreakPanel);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -43,9 +41,7 @@ describe('BreakPanel', () => {
   });
 
   it('段落を含む全ブロックの行を document 順に表示する', async () => {
-    await store.addFiles([
-      { name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文の段落') },
-    ]);
+    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# 見出し\n\n本文の段落') }]);
     const fixture = TestBed.createComponent(BreakPanel);
     fixture.detectChanges();
     await fixture.whenStable();

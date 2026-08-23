@@ -5,7 +5,9 @@ import { EditorStore, type ImportSource } from '../../state/editor-store';
 const DEMO_FILES = ['printmd-guide.md', 'hashire-merosu.md'];
 
 function assertDemoFetched(ok: boolean, name: string): void {
-  if (!ok) throw new Error(`demo fetch failed: ${name}`);
+  if (!ok) {
+    throw new Error(`demo fetch failed: ${name}`);
+  }
 }
 
 async function fetchDemoText(name: string): Promise<string> {
@@ -70,11 +72,15 @@ export class ImportDropzone {
   }
 
   private importFiles(files: FileList | null): void {
-    if (files !== null) this.store.addFiles([...files]);
+    if (files !== null) {
+      this.store.addFiles([...files]);
+    }
   }
 
   private importDroppedFiles(files: FileList | undefined): void {
-    if (files !== undefined && files.length > 0) this.store.addFiles([...files]);
+    if (files !== undefined && files.length > 0) {
+      this.store.addFiles([...files]);
+    }
   }
 
   /** 同梱のデモ原稿を通常の取り込み経路で読み込む */

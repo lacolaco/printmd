@@ -2,7 +2,8 @@ import { Service } from '@angular/core';
 import { hasItems } from '../collections';
 import type { MermaidBlock } from '../markdown/render-markdown';
 
-export type MermaidOutcome = { readonly svg: string } | { readonly failed: true; readonly code: string };
+export type MermaidOutcome =
+  { readonly svg: string } | { readonly failed: true; readonly code: string };
 
 /** テストで差し替えられるよう、必要な表面だけを切り出した mermaid の型 */
 export interface MermaidLike {

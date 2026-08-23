@@ -13,7 +13,10 @@ const statements = (n: number) => Array.from({ length: n }, (_, i) => `  x = ${i
 tester.run('max-function-lines', maxFunctionLines, {
   valid: [
     { name: 'ロジック 5 行の関数宣言は許可', code: `let x; function f() {\n${statements(5)}\n}` },
-    { name: 'ロジック 5 行のメソッドは許可', code: `let x; class C { m() {\n${statements(5)}\n} }` },
+    {
+      name: 'ロジック 5 行のメソッドは許可',
+      code: `let x; class C { m() {\n${statements(5)}\n} }`,
+    },
     {
       name: '入れ子の閉じ括弧だけの行は数えない (for/for/if/return/return = ちょうど 5 行)',
       code: `function f(xs: number[][]) {

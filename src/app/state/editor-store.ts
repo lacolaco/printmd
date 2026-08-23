@@ -61,8 +61,7 @@ export class EditorStore {
    */
   private readonly renderedResource = resource({
     params: () => this.filesSignal(),
-    loader: async ({ params: files }) =>
-      hasItems(files) ? this.renderDocument(files) : null,
+    loader: async ({ params: files }) => (hasItems(files) ? this.renderDocument(files) : null),
   });
 
   private async renderDocument(files: readonly ManuscriptFile[]): Promise<RenderedDocument> {
@@ -101,7 +100,9 @@ export class EditorStore {
   }
 
   private deleteFragmentUnlessKept(keep: ReadonlySet<string>, key: string): void {
-    if (!keep.has(key)) this.fragmentCache.delete(key);
+    if (!keep.has(key)) {
+      this.fragmentCache.delete(key);
+    }
   }
 
   private buildDocumentFromCache(files: readonly ManuscriptFile[]): RenderedDocument {
@@ -243,7 +244,9 @@ function collectMermaidBlocks(
 }
 
 function addUnlessDeleted(next: Set<string>, blockId: string): void {
-  if (!next.delete(blockId)) next.add(blockId);
+  if (!next.delete(blockId)) {
+    next.add(blockId);
+  }
 }
 
 function toggled(current: ReadonlySet<string>, blockId: string): ReadonlySet<string> {

@@ -69,7 +69,9 @@ function appendClonedChildren(
 }
 
 function appendIfDifferent(mc: HTMLElement, parent: HTMLElement): void {
-  if (parent !== mc) mc.append(parent);
+  if (parent !== mc) {
+    mc.append(parent);
+  }
 }
 
 function attachClone(mc: HTMLElement, parent: HTMLElement): HTMLElement {

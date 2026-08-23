@@ -60,7 +60,10 @@ describe('ImportDropzone 取り込み経路', () => {
     const input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
       'input[type="file"]',
     )!;
-    Object.defineProperty(input, 'files', { value: [new File(['# A'], 'a.md')], configurable: true });
+    Object.defineProperty(input, 'files', {
+      value: [new File(['# A'], 'a.md')],
+      configurable: true,
+    });
     input.dispatchEvent(new Event('change'));
     await fixture.whenStable();
     expect(store.files().map((f) => f.name)).toEqual(['a.md']);
@@ -95,9 +98,7 @@ describe('ImportDropzone 取り込み経路', () => {
       const store = TestBed.inject(EditorStore);
       const fixture = TestBed.createComponent(ImportDropzone);
       fixture.detectChanges();
-      (fixture.nativeElement as HTMLElement)
-        .querySelector<HTMLButtonElement>('button')!
-        .click();
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button')!.click();
       await fixture.whenStable();
       expect(store.files().map((f) => f.name)).toEqual(['printmd-guide.md', 'hashire-merosu.md']);
     } finally {
@@ -106,14 +107,15 @@ describe('ImportDropzone 取り込み経路', () => {
   });
 
   it('デモ取得が失敗したファイルは取り込まない', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: false })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ ok: false })),
+    );
     try {
       const store = TestBed.inject(EditorStore);
       const fixture = TestBed.createComponent(ImportDropzone);
       fixture.detectChanges();
-      (fixture.nativeElement as HTMLElement)
-        .querySelector<HTMLButtonElement>('button')!
-        .click();
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button')!.click();
       await fixture.whenStable();
       expect(store.files()).toEqual([]);
     } finally {
