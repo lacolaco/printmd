@@ -1,7 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { Toolbar, ToolbarWidget } from '@angular/aria/toolbar';
 import { EditorStore } from '../state/editor-store';
-import { ViewerState, ZOOMS } from '../state/viewer-state';
+import { ViewerState } from '../state/viewer-state';
 
 /**
  * アプリヘッダ。ロゴ / 表示状態 (頁数・ズーム) / 印刷の終端動作を持つ 1 本の帯
@@ -12,7 +12,7 @@ import { ViewerState, ZOOMS } from '../state/viewer-state';
   template: `
     <header class="app-header flex h-12 shrink-0 items-center gap-3 border-b px-4">
       <h1 class="app-logo text-base font-bold tracking-tight">printmd</h1>
-      @if (store.hasFiles()) {
+      @if (store.nonEmpty()) {
         <div
           class="absolute left-1/2 flex -translate-x-1/2 items-center gap-2 text-xs text-stone-700"
           ngToolbar
@@ -24,26 +24,26 @@ import { ViewerState, ZOOMS } from '../state/viewer-state';
             class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
             ngToolbarWidget
             value="zoom-out"
-            [disabled]="viewer.zoomIndex() === 0"
+            [disabled]="viewer.zoom.atLimit(-1)"
             aria-label="縮小"
-            (click)="viewer.zoomBy(-1)"
+            (click)="viewer.zoom.by(-1)"
           >
             −
           </button>
-          <span class="w-10 text-center">{{ viewer.zoomLabel() }}</span>
+          <span class="w-10 text-center">{{ viewer.zoom.label() }}</span>
           <button
             class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
             ngToolbarWidget
             value="zoom-in"
-            [disabled]="viewer.zoomIndex() === maxZoomIndex"
+            [disabled]="viewer.zoom.atLimit(1)"
             aria-label="拡大"
-            (click)="viewer.zoomBy(1)"
+            (click)="viewer.zoom.by(1)"
           >
             ＋
           </button>
         </div>
       }
-      @if (store.hasFiles()) {
+      @if (store.nonEmpty()) {
         <button
           type="button"
           class="app-print-button ml-auto rounded-sm px-3 py-1 text-xs font-medium"
@@ -58,7 +58,6 @@ import { ViewerState, ZOOMS } from '../state/viewer-state';
 export class Header {
   protected readonly store = inject(EditorStore);
   protected readonly viewer = inject(ViewerState);
-  protected readonly maxZoomIndex = ZOOMS.length - 1;
 
   protected readonly statusLabel = computed(() => {
     const count = this.viewer.pageCount();

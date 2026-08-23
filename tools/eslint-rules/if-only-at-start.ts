@@ -4,7 +4,7 @@ import { FUNCTION_TYPES, enclosingFunctions } from './ast-utils';
 type MessageIds = 'notAtStart';
 
 /** else if の連鎖は先頭の if の一部と見なす */
-function isElseIfChain(node: TSESTree.IfStatement, parent: TSESTree.Node): boolean {
+function chainedElse(node: TSESTree.IfStatement, parent: TSESTree.Node): boolean {
   return parent.type === 'IfStatement' && parent.alternate === node;
 }
 
@@ -15,7 +15,7 @@ function functionBodyOf(parent: TSESTree.Node): readonly TSESTree.Statement[] | 
 }
 
 /** 関数本体の先頭かつ唯一の文であるか */
-function isOnlyStatementOfFunction(node: TSESTree.IfStatement, parent: TSESTree.Node): boolean {
+function soleStatement(node: TSESTree.IfStatement, parent: TSESTree.Node): boolean {
   const body = functionBodyOf(parent) ?? [];
   return body[0] === node && body.length === 1;
 }
@@ -24,7 +24,7 @@ function isOnlyStatementOfFunction(node: TSESTree.IfStatement, parent: TSESTree.
 function isCompliant(node: TSESTree.IfStatement): boolean {
   const { parent } = node;
   const insideFunction = enclosingFunctions(node).length > 0;
-  return !insideFunction || isElseIfChain(node, parent) || isOnlyStatementOfFunction(node, parent);
+  return !insideFunction || chainedElse(node, parent) || soleStatement(node, parent);
 }
 
 type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>[0]['create']>[0];
@@ -35,7 +35,7 @@ function reportMisplacedIf(context: Context, node: TSESTree.IfStatement): void {
   context.report({ loc: ifToken?.loc ?? loc, messageId: 'notAtStart' });
 }
 
-function reportUnlessCompliant(context: Context, node: TSESTree.IfStatement): void {
+function flagViolation(context: Context, node: TSESTree.IfStatement): void {
   if (!isCompliant(node)) {
     reportMisplacedIf(context, node);
   }
@@ -58,7 +58,7 @@ export const ifOnlyAtStart = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>
   create(context) {
     return {
       IfStatement(node) {
-        reportUnlessCompliant(context, node);
+        flagViolation(context, node);
       },
     };
   },

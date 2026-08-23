@@ -125,10 +125,10 @@ describe('Preview', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const viewer = TestBed.inject(ViewerState);
-    viewer.zoomBy(-1);
+    viewer.zoom.by(-1);
     fixture.detectChanges();
     const host = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[style]');
-    expect(viewer.zoomLabel()).toBe('75%');
+    expect(viewer.zoom.label()).toBe('75%');
     expect(host?.style.zoom).toBe('0.75');
   });
 

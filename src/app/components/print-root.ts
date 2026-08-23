@@ -19,18 +19,18 @@ export class PrintRoot {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor() {
-    effect(() => this.syncPrintDocument());
+    effect(() => this.sync());
   }
 
-  private syncPrintDocument(): void {
+  private sync(): void {
     const doc = this.store.renderedDocument();
     const breaks = this.store.breaks();
     const host = this.host.nativeElement;
     resetHost(host);
-    this.appendPrintDocument(host, doc, breaks);
+    this.mountDocument(host, doc, breaks);
   }
 
-  private appendPrintDocument(
+  private mountDocument(
     host: HTMLElement,
     doc: RenderedDocument | null,
     breaks: ReadonlySet<string>,

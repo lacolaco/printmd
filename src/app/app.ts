@@ -13,11 +13,11 @@ import { EditorStore } from './state/editor-store';
   template: `
     <div
       class="app-ui flex h-dvh flex-col"
-      (dragover)="onWindowDragOver($event)"
-      (drop)="onWindowDrop($event)"
+      (dragover)="permitDrag($event)"
+      (drop)="acceptDrop($event)"
     >
       <app-header />
-      @if (store.hasFiles()) {
+      @if (store.nonEmpty()) {
         <app-workspace class="min-h-0 flex-1" />
       } @else {
         <app-import-screen class="min-h-0 flex-1" />
@@ -33,11 +33,11 @@ export class App {
   protected readonly store = inject(EditorStore);
 
   /** ウィンドウ全体をドロップ先にする (誤ドロップでのページ遷移も防ぐ) */
-  protected onWindowDragOver(event: DragEvent): void {
+  protected permitDrag(event: DragEvent): void {
     event.preventDefault();
   }
 
-  protected onWindowDrop(event: DragEvent): void {
+  protected acceptDrop(event: DragEvent): void {
     event.preventDefault();
     this.importDroppedFiles(event.dataTransfer?.files);
   }

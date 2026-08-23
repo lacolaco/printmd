@@ -5,19 +5,19 @@ type MessageIds = 'noElse';
 type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>[0]['create']>[0];
 
 /** disable コメントを if の直前行に置けるよう、報告は if キーワードに出す */
-function reportElse(context: Context, node: TSESTree.IfStatement): void {
+function flagAlternate(context: Context, node: TSESTree.IfStatement): void {
   const { loc } = node;
   const ifToken = context.sourceCode.getFirstToken(node);
   context.report({ loc: ifToken?.loc ?? loc, messageId: 'noElse' });
 }
 
-function reportIfElse(
+function auditBranch(
   context: Context,
   node: TSESTree.IfStatement,
   alternate: TSESTree.Statement | null,
 ): void {
   if (alternate !== null) {
-    reportElse(context, node);
+    flagAlternate(context, node);
   }
 }
 
@@ -39,7 +39,7 @@ export const noElse = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
     return {
       IfStatement(node) {
         const { alternate } = node;
-        reportIfElse(context, node, alternate);
+        auditBranch(context, node, alternate);
       },
     };
   },

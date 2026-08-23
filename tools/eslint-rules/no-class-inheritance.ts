@@ -6,14 +6,14 @@ type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>
 
 type ClassNode = TSESTree.ClassDeclaration | TSESTree.ClassExpression;
 
-function reportExtends(context: Context, superClass: TSESTree.Node): void {
+function flagSuperClass(context: Context, superClass: TSESTree.Node): void {
   const { loc } = superClass;
   context.report({ loc, messageId: 'noExtends' });
 }
 
-function reportIfExtends(context: Context, superClass: TSESTree.Node | null): void {
+function checkHeritage(context: Context, superClass: TSESTree.Node | null): void {
   if (superClass !== null) {
-    reportExtends(context, superClass);
+    flagSuperClass(context, superClass);
   }
 }
 
@@ -31,7 +31,7 @@ export const noClassInheritance = ESLintUtils.RuleCreator.withoutDocs<[], Messag
   create(context) {
     const listener = (node: ClassNode): void => {
       const { superClass } = node;
-      reportIfExtends(context, superClass);
+      checkHeritage(context, superClass);
     };
     return { ClassDeclaration: listener, ClassExpression: listener };
   },

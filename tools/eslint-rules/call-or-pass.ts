@@ -1,11 +1,12 @@
 import { getFunctionHeadLocation } from '@eslint-community/eslint-utils';
 import { ESLintUtils, type TSESLint, type TSESTree } from '@typescript-eslint/utils';
 import {
+  allScopes,
   effectiveUse,
   enclosingFunctions,
   innermostOnly,
   isCallArgument,
-  isMemberReceiver,
+  usedAsReceiver,
   type FunctionNode,
 } from './ast-utils';
 
@@ -19,7 +20,7 @@ interface Usage {
 
 function classify(id: TSESTree.Node): keyof Usage | null {
   const { use, parent } = effectiveUse(id);
-  const member = parent !== undefined && isMemberReceiver(parent, use);
+  const member = parent !== undefined && usedAsReceiver(parent, use);
   const passed = parent !== undefined && isCallArgument(parent, use);
   return member ? 'member' : passed ? 'passed' : null;
 }
@@ -27,7 +28,7 @@ function classify(id: TSESTree.Node): keyof Usage | null {
 const TARGET_DEF_TYPES: ReadonlySet<string> = new Set(['Parameter', 'Variable', 'CatchClause']);
 
 /** 対象は関数内で宣言された引数・ローカル変数・catch 変数 (モジュールスコープは除く) */
-function isTargetVariable(variable: TSESLint.Scope.Variable): boolean {
+function isTarget(variable: TSESLint.Scope.Variable): boolean {
   const def = variable.defs[0];
   return (
     def !== undefined &&
@@ -36,20 +37,20 @@ function isTargetVariable(variable: TSESLint.Scope.Variable): boolean {
   );
 }
 
-function appendUsage(usage: Usage, kind: keyof Usage | null, id: TSESTree.Node): void {
+function append(usage: Usage, kind: keyof Usage | null, id: TSESTree.Node): void {
   if (kind !== null) {
     usage[kind].push(id);
   }
 }
 
-function markUsage(usage: Usage, id: TSESTree.Node): void {
-  appendUsage(usage, classify(id), id);
+function record(usage: Usage, id: TSESTree.Node): void {
+  append(usage, classify(id), id);
 }
 
-function collectUsage(variable: TSESLint.Scope.Variable): Usage {
+function usesOf(variable: TSESLint.Scope.Variable): Usage {
   const usage: Usage = { member: [], passed: [] };
   for (const reference of variable.references) {
-    markUsage(usage, reference.identifier);
+    record(usage, reference.identifier);
   }
   return usage;
 }
@@ -74,26 +75,27 @@ function findingAt(fn: FunctionNode, name: string, sourceCode: TSESLint.SourceCo
   return { loc, messageId: 'both', data: { name } };
 }
 
-function usageFindings(usage: Usage, name: string, sourceCode: TSESLint.SourceCode): Finding[] {
+function hasBoth(member: readonly TSESTree.Node[], passed: readonly TSESTree.Node[]): boolean {
+  return member.length > 0 && passed.length > 0;
+}
+
+function auditUsage(usage: Usage, name: string, sourceCode: TSESLint.SourceCode): Finding[] {
   const { member, passed } = usage;
-  const { length: memberCount } = member;
-  const { length: passedCount } = passed;
-  const mixed = memberCount > 0 && passedCount > 0 ? mixedFunctions(member, passed) : [];
+  const mixed = hasBoth(member, passed) ? mixedFunctions(member, passed) : [];
   return mixed.map((fn) => findingAt(fn, name, sourceCode));
 }
 
-function variableFindings(
+function checkVariable(
   variable: TSESLint.Scope.Variable,
   sourceCode: TSESLint.SourceCode,
 ): Finding[] {
   const { name } = variable;
-  return isTargetVariable(variable) ? usageFindings(collectUsage(variable), name, sourceCode) : [];
+  return isTarget(variable) ? auditUsage(usesOf(variable), name, sourceCode) : [];
 }
 
-function collectFindings(sourceCode: TSESLint.SourceCode): Finding[] {
-  const { scopeManager } = sourceCode;
-  const scopes = scopeManager?.scopes ?? [];
-  return scopes.flatMap((scope) => scope.variables.flatMap((v) => variableFindings(v, sourceCode)));
+function allFindings(sourceCode: TSESLint.SourceCode): Finding[] {
+  const scopes = allScopes(sourceCode);
+  return scopes.flatMap((scope) => scope.variables.flatMap((v) => checkVariable(v, sourceCode)));
 }
 
 /**
@@ -112,7 +114,7 @@ export const callOrPass = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
   create(context) {
     return {
       'Program:exit'() {
-        for (const finding of collectFindings(context.sourceCode)) {
+        for (const finding of allFindings(context.sourceCode)) {
           context.report(finding);
         }
       },

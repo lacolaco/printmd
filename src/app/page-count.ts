@@ -1,5 +1,5 @@
 import type { Block, RenderedDocument } from './markdown/block-extractor';
-import { COLUMN_GAP_MM, COLUMN_STEP_MM, MM_TO_PX } from './page-geometry';
+import { A4_MM, MM_TO_PX } from './page-geometry';
 
 /** 強制改ページで区切られた、連続するトップレベルブロックの範囲 [start, end) */
 export interface SegmentRange {
@@ -24,7 +24,7 @@ interface BreakAccumulator {
   start: number;
 }
 
-function collectBreak(
+function recordBreak(
   acc: BreakAccumulator,
   block: Block,
   index: number,
@@ -53,11 +53,11 @@ export function splitAtForcedBreaks(
   breaks: ReadonlySet<string>,
 ): SegmentRange[] {
   const acc: BreakAccumulator = { ranges: [], start: 0 };
-  blocks.forEach((block, index) => collectBreak(acc, block, index, breaks));
+  blocks.forEach((block, index) => recordBreak(acc, block, index, breaks));
   return closeAccumulator(acc, blocks.length);
 }
 
-function appendClonedChildren(
+function copyChildren(
   parent: HTMLElement,
   children: HTMLCollection,
   start: number,
@@ -68,14 +68,14 @@ function appendClonedChildren(
   }
 }
 
-function appendIfDifferent(mc: HTMLElement, parent: HTMLElement): void {
+function mountParent(mc: HTMLElement, parent: HTMLElement): void {
   if (parent !== mc) {
     mc.append(parent);
   }
 }
 
-function attachClone(mc: HTMLElement, parent: HTMLElement): HTMLElement {
-  appendIfDifferent(mc, parent);
+function assemble(mc: HTMLElement, parent: HTMLElement): HTMLElement {
+  mountParent(mc, parent);
   return mc;
 }
 
@@ -85,30 +85,26 @@ function attachClone(mc: HTMLElement, parent: HTMLElement): HTMLElement {
  * セグメントは先頭ブロックが .markdown-body > :first-child のマージン除去に
  * 当たらないようラッパで包む (先頭セグメントは文書先頭 = 除去が正)
  */
-function createSegmentContainer(container: HTMLElement): HTMLElement {
+function emptyStrip(container: HTMLElement): HTMLElement {
   const mc = container.cloneNode(false) as HTMLElement;
   mc.className = 'mc markdown-body';
   return mc;
 }
 
 export function buildSegmentClone(doc: RenderedDocument, start: number, end: number): HTMLElement {
-  const mc = createSegmentContainer(doc.container);
+  const mc = emptyStrip(doc.container);
   const parent = start === 0 ? mc : document.createElement('div');
-  appendClonedChildren(parent, doc.container.children, start, end);
-  return attachClone(mc, parent);
+  copyChildren(parent, doc.container.children, start, end);
+  return assemble(mc, parent);
 }
 
-function appendSegmentClone(
-  probe: HTMLElement,
-  doc: RenderedDocument,
-  range: SegmentRange,
-): HTMLElement {
+function cloneInto(probe: HTMLElement, doc: RenderedDocument, range: SegmentRange): HTMLElement {
   const mc = buildSegmentClone(doc, range.start, range.end);
   probe.append(mc);
   return mc;
 }
 
-function createProbeElement(): HTMLElement {
+function probeShell(): HTMLElement {
   const probe = document.createElement('div');
   probe.className = 'preview-probe';
   return probe;
@@ -118,14 +114,14 @@ function createProbe(
   doc: RenderedDocument,
   ranges: readonly SegmentRange[],
 ): { probe: HTMLElement; clones: HTMLElement[] } {
-  const probe = createProbeElement();
-  const clones = ranges.map((range) => appendSegmentClone(probe, doc, range));
+  const probe = probeShell();
+  const clones = ranges.map((range) => cloneInto(probe, doc, range));
   document.body.append(probe);
   return { probe, clones };
 }
 
 function pagesForScrollWidth(scrollWidth: number): number {
-  const raw = (scrollWidth + COLUMN_GAP_MM * MM_TO_PX) / (COLUMN_STEP_MM * MM_TO_PX);
+  const raw = (scrollWidth + A4_MM.column.gap * MM_TO_PX) / (A4_MM.column.step * MM_TO_PX);
   return Math.max(1, Math.round(raw));
 }
 
@@ -141,17 +137,17 @@ function accumulateSegment(acc: SegmentAccumulator, range: SegmentRange, clone: 
   acc.firstPage += pages;
 }
 
-function collectSegments(acc: SegmentAccumulator): { segments: PageSegment[]; total: number } {
+function summarize(acc: SegmentAccumulator): { segments: PageSegment[]; total: number } {
   return { segments: acc.segments, total: acc.firstPage };
 }
 
-function buildSegments(
+function tallySegments(
   ranges: readonly SegmentRange[],
   clones: readonly HTMLElement[],
 ): { segments: PageSegment[]; total: number } {
   const acc: SegmentAccumulator = { segments: [], firstPage: 0 };
   ranges.forEach((range, index) => accumulateSegment(acc, range, clones[index]));
-  return collectSegments(acc);
+  return summarize(acc);
 }
 
 /**
@@ -172,7 +168,7 @@ function finishMeasurement(
   ranges: readonly SegmentRange[],
   clones: readonly HTMLElement[],
 ): Pagination {
-  const result = buildSegments(ranges, clones);
+  const result = tallySegments(ranges, clones);
   probe.remove();
   return result;
 }
