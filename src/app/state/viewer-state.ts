@@ -60,7 +60,7 @@ export class ViewerState {
 
   readonly pageCount = computed(() => this.pagination()?.total ?? 0);
 
-  setZoom(delta: -1 | 1): void {
+  zoomBy(delta: -1 | 1): void {
     this.zoomIndex.update((i) => Math.min(ZOOMS.length - 1, Math.max(0, i + delta)));
   }
 }

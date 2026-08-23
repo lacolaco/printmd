@@ -125,7 +125,7 @@ describe('Preview', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const viewer = TestBed.inject(ViewerState);
-    viewer.setZoom(-1);
+    viewer.zoomBy(-1);
     fixture.detectChanges();
     const host = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[style]');
     expect(viewer.zoomLabel()).toBe('75%');
