@@ -7,6 +7,7 @@ import { callOrPass } from './tools/eslint-rules/call-or-pass';
 import { ifOnlyAtStart } from './tools/eslint-rules/if-only-at-start';
 import { inlineShortTemplates } from './tools/eslint-rules/inline-short-templates';
 import { maxFunctionLines } from './tools/eslint-rules/max-function-lines';
+import { noClassInheritance } from './tools/eslint-rules/no-class-inheritance';
 import { noElse } from './tools/eslint-rules/no-else';
 import { noSwitch } from './tools/eslint-rules/no-switch';
 
@@ -29,6 +30,7 @@ export default defineConfig([
           'if-only-at-start': ifOnlyAtStart,
           'inline-short-templates': inlineShortTemplates,
           'max-function-lines': maxFunctionLines,
+          'no-class-inheritance': noClassInheritance,
           'no-else': noElse,
           'no-switch': noSwitch,
         },
@@ -49,6 +51,7 @@ export default defineConfig([
       'printmd/call-or-pass': 'error',
       'printmd/if-only-at-start': 'error',
       'printmd/max-function-lines': ['error', { maxLines: 5 }],
+      'printmd/no-class-inheritance': 'error',
       'printmd/no-else': 'error',
       'printmd/no-switch': 'error',
       // requireDefaultForNonUnion は printmd/no-switch の default 禁止と意図的に矛盾させる。
