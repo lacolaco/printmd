@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { sourcesFrom } from '../../manuscript/manuscript';
 import { BreakPanel } from './control-panel/break-panel/break-panel';
 import { FilePanel } from './control-panel/file-panel/file-panel';
 import { Preview } from './preview/preview';
@@ -13,7 +14,11 @@ import { WorkspaceViewModel } from './workspace.vm';
   selector: 'app-workspace',
   imports: [BreakPanel, FilePanel, Preview],
   providers: [WorkspaceViewModel],
-  host: { class: 'relative flex min-h-0 md:flex-row' },
+  host: {
+    class: 'relative flex min-h-0 md:flex-row',
+    '(dragover)': 'permitDrag($event)',
+    '(drop)': 'acceptDrop($event)',
+  },
   template: `
     <main class="min-h-0 min-w-0 flex-1" aria-label="紙面プレビュー">
       <app-preview class="block h-full" />
@@ -43,4 +48,14 @@ import { WorkspaceViewModel } from './workspace.vm';
 })
 export class Workspace {
   protected readonly vm = inject(WorkspaceViewModel);
+
+  /** 作業画面をドロップ先にする (誤ドロップでのページ遷移も防ぐ) */
+  protected permitDrag(event: DragEvent): void {
+    event.preventDefault();
+  }
+
+  protected acceptDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.vm.add(sourcesFrom(event.dataTransfer?.files));
+  }
 }

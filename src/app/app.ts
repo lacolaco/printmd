@@ -4,20 +4,15 @@ import { Header } from './components/header/header';
 import { ImportDropzone } from './components/import-screen/import-dropzone';
 import { PrintRoot } from './components/print-root';
 import { Workspace } from './components/workspace/workspace';
-import { sourcesFrom } from './manuscript/manuscript';
 import { AppViewModel } from './app.vm';
 
-/** 画面骨格。ヘッダ / 画面の切替 / 印刷対象の配置と、ウィンドウ全体のドロップ受け */
+/** 画面骨格。ヘッダ / 画面の切替 / 印刷対象の配置 */
 @Component({
   selector: 'app-root',
   providers: [AppViewModel],
   imports: [Footer, Header, ImportDropzone, PrintRoot, Workspace],
   template: `
-    <div
-      class="app-ui flex h-dvh flex-col"
-      (dragover)="permitDrag($event)"
-      (drop)="acceptDrop($event)"
-    >
+    <div class="app-ui flex h-dvh flex-col">
       <app-header />
       @if (vm.nonEmpty()) {
         <app-workspace class="min-h-0 flex-1" />
@@ -35,14 +30,4 @@ import { AppViewModel } from './app.vm';
 })
 export class App {
   protected readonly vm = inject(AppViewModel);
-
-  /** ウィンドウ全体をドロップ先にする (誤ドロップでのページ遷移も防ぐ) */
-  protected permitDrag(event: DragEvent): void {
-    event.preventDefault();
-  }
-
-  protected acceptDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.vm.add(sourcesFrom(event.dataTransfer?.files));
-  }
 }

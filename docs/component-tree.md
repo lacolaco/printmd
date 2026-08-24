@@ -5,11 +5,11 @@
 
 ```mermaid
 flowchart TB
-  APP["App<br/><small>画面骨格: ヘッダ / 画面切替 / 印刷対象、<br/>ウィンドウ全体のドロップ受け</small>"]
+  APP["App<br/><small>画面骨格: ヘッダ / 画面切替 / 印刷対象</small>"]
   HEADER["Header<br/><small>ロゴ / 表示操作の帯 / 印刷 (コンテナ)</small>"]
   STATUS["PageStatus<br/><small>頁数文言の掲示 (プレーン)</small>"]
   ZOOMC["ZoomControl<br/><small>ズームの段送り操作面 (プレーン)</small>"]
-  WS["Workspace<br/><small>作業画面: md+ は 2 カラム、スマートフォン幅は<br/>シングルカラム + ボトムシート (開閉状態を所有)</small>"]
+  WS["Workspace<br/><small>作業画面: md+ は 2 カラム、スマートフォン幅は<br/>シングルカラム + ボトムシート (開閉状態を所有)。<br/>追加取り込みのドロップ受け</small>"]
   PREVIEW["Preview<br/><small>A4 シート面の結線。描画は<br/>SheetRenderer に委譲 (遅延実体化)</small>"]
   FILEP["FilePanel<br/><small>原稿の取り込み・並べ替え・削除<br/>(読み上げは FilePanelState)</small>"]
   BREAKP["BreakPanel<br/><small>全ブロックの改ページ指定一覧</small>"]
