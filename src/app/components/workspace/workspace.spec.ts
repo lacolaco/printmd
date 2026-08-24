@@ -25,7 +25,7 @@ describe('Workspace', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     const handle = el.querySelector<HTMLButtonElement>('.sheet-handle')!;
-    const panel = el.querySelector('app-control-panel')!;
+    const panel = el.querySelector('#control-panel-sheet')!;
     expect(handle.getAttribute('aria-expanded')).toBe('false');
     expect(panel.classList.contains('max-md:hidden')).toBe(true);
 

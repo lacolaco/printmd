@@ -1,10 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { ToolbarWidget } from '@angular/aria/toolbar';
-import { Zoom } from '../../pagination/zoom';
 
-/**
- * ズームの段送り操作。段の保有と判断は Zoom が担う
- */
+/** ズームの段送り操作面。表示と可否を受け取り、操作をイベントで返すだけ */
 @Component({
   selector: 'app-zoom-control',
   imports: [ToolbarWidget],
@@ -14,25 +11,29 @@ import { Zoom } from '../../pagination/zoom';
       class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
       ngToolbarWidget
       value="zoom-out"
-      [disabled]="!zoom.isSteppable(-1)"
+      [disabled]="!shrinkable()"
       aria-label="縮小"
-      (click)="zoom.stepBy(-1)"
+      (click)="shrink.emit()"
     >
       −
     </button>
-    <span class="w-10 text-center">{{ zoom.label() }}</span>
+    <span class="w-10 text-center">{{ label() }}</span>
     <button
       class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
       ngToolbarWidget
       value="zoom-in"
-      [disabled]="!zoom.isSteppable(1)"
+      [disabled]="!growable()"
       aria-label="拡大"
-      (click)="zoom.stepBy(1)"
+      (click)="grow.emit()"
     >
       ＋
     </button>
   `,
 })
 export class ZoomControl {
-  protected readonly zoom = inject(Zoom);
+  readonly label = input('');
+  readonly shrinkable = input(false);
+  readonly growable = input(false);
+  readonly shrink = output();
+  readonly grow = output();
 }

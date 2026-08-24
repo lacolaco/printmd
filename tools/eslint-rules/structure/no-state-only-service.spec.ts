@@ -41,12 +41,13 @@ export class Doc {
 }`,
     },
     {
-      name: '状態と操作を持つローカルステートは xxx.state.ts で許可',
-      filename: 'src/app/components/b.state.ts',
-      code: `import { Injectable, signal } from '@angular/core';
+      name: 'コンポーネント同居のビューモデルは許可',
+      filename: 'src/app/components/b.vm.ts',
+      code: `import { Injectable, computed, signal } from '@angular/core';
 @Injectable()
-export class PanelState {
+export class PanelViewModel {
   readonly opened = signal(false);
+  readonly label = computed(() => (this.opened() ? '開' : '閉'));
   toggle(): void {
     this.opened.update((open) => !open);
   }
@@ -95,17 +96,7 @@ export class ZoomState {
       errors: [{ messageId: 'globalState' }],
     },
     {
-      name: '導出だけのローカル State は禁止',
-      filename: 'src/app/components/b.state.ts',
-      code: `import { Injectable, computed } from '@angular/core';
-@Injectable()
-export class HeaderState {
-  readonly label = computed(() => '');
-}`,
-      errors: [{ messageId: 'derivedState' }],
-    },
-    {
-      name: '状態を保有する @Injectable は *.state.ts の XxxState に置く',
+      name: 'ビューモデルの形でない @Injectable は禁止',
       filename: 'src/app/components/c.ts',
       code: `import { Injectable, signal } from '@angular/core';
 @Injectable()
@@ -115,7 +106,17 @@ export class Panel {
     this.opened.update((open) => !open);
   }
 }`,
-      errors: [{ messageId: 'localMisplaced' }],
+      errors: [{ messageId: 'vmShape' }],
+    },
+    {
+      name: 'ViewModel と名乗ってもファイルが *.vm.ts でなければ禁止',
+      filename: 'src/app/components/c.ts',
+      code: `import { Injectable, computed } from '@angular/core';
+@Injectable()
+export class PanelViewModel {
+  readonly label = computed(() => '');
+}`,
+      errors: [{ messageId: 'vmShape' }],
     },
   ],
 });

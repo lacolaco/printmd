@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { sourcesFrom } from '../../manuscript/manuscript';
-import { Manuscripts } from '../../manuscript/manuscripts';
-import { Demo } from './demo';
+import { ImportDropzoneViewModel } from './import-dropzone.vm';
 
 /**
  * 空状態の取り込み面。最初の一手 (ドロップ / クリック選択) とアプリの用途を
@@ -9,6 +8,7 @@ import { Demo } from './demo';
  */
 @Component({
   selector: 'app-import-dropzone',
+  providers: [ImportDropzoneViewModel],
   template: `
     <label
       class="app-empty-drop flex h-full cursor-pointer flex-col items-center justify-center gap-3 text-sm"
@@ -37,12 +37,11 @@ import { Demo } from './demo';
   host: { class: 'block h-full' },
 })
 export class ImportDropzone {
-  private readonly manuscripts = inject(Manuscripts);
-  private readonly demo = inject(Demo);
+  protected readonly vm = inject(ImportDropzoneViewModel);
 
   protected readSelection(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.manuscripts.add(sourcesFrom(input.files));
+    this.vm.add(sourcesFrom(input.files));
     input.value = '';
   }
 
@@ -52,12 +51,12 @@ export class ImportDropzone {
 
   protected acceptDrop(event: DragEvent): void {
     event.preventDefault();
-    this.manuscripts.add(sourcesFrom(event.dataTransfer?.files));
+    this.vm.add(sourcesFrom(event.dataTransfer?.files));
   }
 
   protected loadDemo(event: Event): void {
     // label 内のボタンなので、既定動作 (ファイル選択ダイアログ) を抑止する
     event.preventDefault();
-    this.demo.load();
+    this.vm.loadDemo();
   }
 }

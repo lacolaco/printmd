@@ -18,6 +18,7 @@ import { noPrivateComponentMethods } from './tools/eslint-rules/angular/no-priva
 import { noSingleImplementationInterface } from './tools/eslint-rules/classes/no-single-implementation-interface';
 import { noSwitch } from './tools/eslint-rules/functions/no-switch';
 import { pureConditions } from './tools/eslint-rules/functions/pure-conditions';
+import { vmBoundary } from './tools/eslint-rules/angular/vm-boundary';
 import { noStateOnlyService } from './tools/eslint-rules/structure/no-state-only-service';
 
 /** 層の定義 (依存方向と層固有ルール)。層の追加・変更はこの配列だけを編集する */
@@ -96,6 +97,7 @@ export default defineConfig([
           'no-single-implementation-interface': noSingleImplementationInterface,
           'no-switch': noSwitch,
           'pure-conditions': pureConditions,
+          'vm-boundary': vmBoundary,
           'no-state-only-service': noStateOnlyService,
         },
       },
@@ -128,6 +130,7 @@ export default defineConfig([
       'printmd/no-single-implementation-interface': 'error',
       'printmd/no-switch': 'error',
       'printmd/pure-conditions': 'error',
+      'printmd/vm-boundary': 'error',
       'printmd/no-state-only-service': 'error',
       // requireDefaultForNonUnion は printmd/no-switch の default 禁止と意図的に矛盾させる。
       // 両立不能にすることで、union 型以外を対象とする switch は書けない

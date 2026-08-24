@@ -1,7 +1,6 @@
 import { Component, ElementRef, effect, inject } from '@angular/core';
 import { applyForcedBreaks, type RenderedDocument } from '../markdown/block-extractor';
-import { Breaks } from '../pagination/breaks';
-import { Document } from '../document';
+import { PrintRootViewModel } from './print-root.vm';
 
 /**
  * 印刷対象。印刷エンジンに渡される唯一の変換済み文書の実体をそのまま掲示する
@@ -12,19 +11,19 @@ import { Document } from '../document';
  */
 @Component({
   selector: 'app-print-root',
+  providers: [PrintRootViewModel],
   host: { class: 'print-root' },
   template: '',
 })
 export class PrintRoot {
-  private readonly document = inject(Document);
-  private readonly breaks = inject(Breaks);
+  private readonly vm = inject(PrintRootViewModel);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor() {
     effect(() => {
       const host = this.host.nativeElement;
       resetHost(host);
-      mountDocument(host, this.document.renderedDocument(), this.breaks.ids());
+      mountDocument(host, this.vm.rendered(), this.vm.marked());
     });
   }
 }

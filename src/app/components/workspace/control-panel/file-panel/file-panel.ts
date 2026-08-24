@@ -1,7 +1,6 @@
 import { CdkDrag, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, Injector, inject } from '@angular/core';
-import { Manuscripts } from '../../../../manuscript/manuscripts';
-import { FilePanelState } from './file-panel.state';
+import { FilePanelViewModel } from './file-panel.vm';
 import { FileAddInput } from './file-add-input';
 import { FileRowItem } from './file-row-item';
 import { focusLater } from './move-focus';
@@ -14,11 +13,11 @@ import { focusLater } from './move-focus';
 @Component({
   selector: 'app-file-panel',
   imports: [CdkDrag, CdkDropList, FileAddInput, FileRowItem],
-  providers: [FilePanelState],
+  providers: [FilePanelViewModel],
   template: `
     <section aria-label="原稿ファイル">
       <ul class="space-y-1" role="list" cdkDropList (cdkDropListDropped)="onListDrop($event)">
-        @for (file of manuscripts.files(); track file.id; let i = $index; let last = $last) {
+        @for (file of vm.files(); track file.id; let i = $index; let last = $last) {
           <li>
             <app-file-row-item
               cdkDrag
@@ -26,42 +25,38 @@ import { focusLater } from './move-focus';
               [first]="i === 0"
               [last]="last"
               (moved)="move(file.id, file.name, $event)"
-              (removed)="manuscripts.remove(file.id)"
+              (removed)="vm.remove(file.id)"
             />
           </li>
         }
       </ul>
-      <app-file-add-input (selected)="manuscripts.add($event)" />
+      <app-file-add-input (selected)="vm.add($event)" />
 
-      @if (manuscripts.warnings().length > 0) {
+      @if (vm.warnings().length > 0) {
         <ul class="mt-2 space-y-1" role="status">
-          @for (warning of manuscripts.warnings(); track warning) {
+          @for (warning of vm.warnings(); track warning) {
             <li class="rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-700">{{ warning }}</li>
           }
         </ul>
       }
-      <p class="sr-only" role="status" aria-live="polite">{{ local.message() }}</p>
+      <p class="sr-only" role="status" aria-live="polite">{{ vm.message() }}</p>
     </section>
   `,
 })
 export class FilePanel {
-  protected readonly manuscripts = inject(Manuscripts);
-  protected readonly local = inject(FilePanelState);
+  protected readonly vm = inject(FilePanelViewModel);
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly injector = inject(Injector);
 
   protected onListDrop(event: CdkDragDrop<unknown>): void {
-    if (this.manuscripts.isReorderable(event.previousIndex, event.currentIndex)) {
-      this.manuscripts.reorder(event.previousIndex, event.currentIndex);
-      this.local.moved(this.manuscripts.files()[event.currentIndex].name, event.currentIndex);
+    if (this.vm.isReorderable(event.previousIndex, event.currentIndex)) {
+      this.vm.reorder(event.previousIndex, event.currentIndex);
     }
   }
 
   protected move(id: number, name: string, delta: -1 | 1): void {
-    if (this.manuscripts.isMovable(id, delta)) {
-      this.manuscripts.nudge(id, delta);
-      const index = this.manuscripts.files().findIndex((file) => file.id === id);
-      this.local.moved(name, index);
+    if (this.vm.isMovable(id, delta)) {
+      this.vm.nudge(id, name, delta);
       focusLater(this.injector, this.elementRef.nativeElement, id, delta);
     }
   }

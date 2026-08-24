@@ -1,8 +1,8 @@
 import { Injectable, signal } from '@angular/core';
 
-/** Workspace のローカル状態。ボトムシートの開閉 */
+/** Workspace のビューモデル。ボトムシートの開閉状態を保有する */
 @Injectable()
-export class WorkspaceState {
+export class WorkspaceViewModel {
   private readonly opened = signal(false);
 
   readonly sheetOpen = this.opened.asReadonly();
