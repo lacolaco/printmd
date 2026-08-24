@@ -14,8 +14,8 @@ export class FilePanelViewModel {
   readonly warnings = this.manuscripts.warnings;
   readonly message = signal('');
 
-  add(sources: readonly ImportSource[]): void {
-    void this.manuscripts.add(sources);
+  add(sources: readonly ImportSource[]): Promise<void> {
+    return this.manuscripts.add(sources);
   }
 
   remove(id: number): void {
