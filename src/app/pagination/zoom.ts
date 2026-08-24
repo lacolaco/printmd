@@ -1,5 +1,5 @@
-import { computed, signal } from '@angular/core';
-import { A4, MM_TO_PX } from '../pagination/page-geometry';
+import { Service, computed, signal } from '@angular/core';
+import { A4, MM_TO_PX } from './page-geometry';
 
 export const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
 
@@ -35,17 +35,29 @@ function startupStep(): number {
     : defaultZoomIndex(window.innerWidth, window.matchMedia('(min-width: 768px)').matches);
 }
 
-/** ズーム段。100% = A4 実寸 */
+/** 段を delta ぶん送る (両端で頭打ち) */
+function stepped(step: number, delta: -1 | 1): number {
+  return Math.min(ZOOMS.length - 1, Math.max(0, step + delta));
+}
+
+function isAtLimit(step: number, delta: -1 | 1): boolean {
+  return delta === -1 ? step === 0 : step === ZOOMS.length - 1;
+}
+
+/** 表示倍率。100% = A4 実寸。段の保有と段送り・可否・表示文言を担う */
+@Service()
 export class Zoom {
-  private readonly index = signal(startupStep());
+  private readonly step = signal(startupStep());
+
+  readonly index = this.step.asReadonly();
   readonly value = computed(() => ZOOMS[this.index()]);
   readonly label = computed(() => `${Math.round(this.value() * 100)}%`);
 
-  by(delta: -1 | 1): void {
-    this.index.update((i) => Math.min(ZOOMS.length - 1, Math.max(0, i + delta)));
+  stepBy(delta: -1 | 1): void {
+    this.step.set(stepped(this.index(), delta));
   }
 
-  isAtLimit(delta: -1 | 1): boolean {
-    return delta === -1 ? this.index() === 0 : this.index() === ZOOMS.length - 1;
+  isSteppable(delta: -1 | 1): boolean {
+    return !isAtLimit(this.index(), delta);
   }
 }

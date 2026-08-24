@@ -3,11 +3,11 @@
 アプリ全体のリアクティブ構造。**構造 (signal / computed / effect / コンポーネント構成) を変えるコミットでは、この図も同じコミットで更新すること。**
 
 - 逆流 (effect からの signal 書き込み)・循環: なし
-- `renderedDocument` は resource: manuscripts を params とする async 導出 (Converter サービスが markdown 変換 + mermaid SVG 化 + キャッシュを担う)。`rendering` はその isLoading
-- `pagination` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
-- `marks` は linkedSignal: manuscripts に連動し、末尾への追記では維持・構造変更ではリセット
-- パネル内で完結するローカル UI state (dragOver / draggingIndex / Announcer の message) は省略
-- `Zoom` (index / value / label) は state/zoom.ts へ分離済みで、ViewerState が保持する
+- `renderedDocument` は resource: Manuscripts.files を params とする async 導出 (Converter サービスが markdown 変換 + mermaid SVG 化 + キャッシュを担う)。`rendering` はその isLoading
+- `Document.pagination` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
+- `Breaks.ids` は linkedSignal: Manuscripts.files に連動し、末尾への追記では維持・構造変更ではリセット
+- パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelState の message / WorkspaceState の sheetOpen) は省略
+- 表示倍率は `Zoom` (index / value / label / stepBy / isSteppable)。初期段の決定と段送りの算術は同居する純関数が担う
 
 ```mermaid
 flowchart LR
@@ -17,29 +17,35 @@ flowchart LR
     A3([ズーム − / ＋])
   end
 
-  subgraph Store["EditorStore"]
+  subgraph ManuscriptsS["Manuscripts"]
     S1((manuscripts))
-    S2((marks<br/>linkedSignal))
-    S4[["renderedDocument<br/>resource (async 導出)"]]
-    S3[/rendering<br/>= isLoading/]
     S5((notices))
     C1[/nonEmpty/]
+  end
+
+  subgraph BreaksS["Breaks"]
+    S2((ids<br/>linkedSignal))
+  end
+
+  subgraph DocumentS["Document"]
+    S4[["renderedDocument<br/>resource (async 導出)"]]
+    S3[/rendering<br/>= isLoading/]
     C2[/blocks/]
     C3[/blockGroups/]
     C4[/rowTotal/]
     C5[/multiSource/]
-  end
-
-  subgraph Viewer["ViewerState"]
-    V1((Zoom.index))
     V3[/pagination<br/>計測つき computed<br/>セグメント分割 + 実測/]
     V2[/pageCount<br/>= pagination.total/]
-    VC1[/Zoom.value/]
-    VC2[/Zoom.label/]
   end
 
-  subgraph HeaderC["Header"]
-    HC1[/statusLabel/]
+  subgraph ZoomS["Zoom"]
+    V1((index))
+    VC1[/value/]
+    VC2[/label/]
+  end
+
+  subgraph HeaderC["Header (PageStatus / ZoomControl)"]
+    HC1[/label<br/>PageStatus の computed/]
     T1{{ヘッダ: 頁数/ズーム/印刷}}
   end
 
@@ -67,14 +73,14 @@ flowchart LR
     D2[(sheets<br/>クローン群)]
   end
 
-  A1 -- "addFiles / removeFile /<br/>nudge / reorder" --> S1
+  A1 -- "add / remove /<br/>nudge / reorder" --> S1
   S1 -- "source 連動:<br/>追記=維持 / 構造変更=リセット" --> S2
-  A2 -- toggleBreak --> S2
-  A3 -- zoom.by --> V1
+  A2 -- toggle --> S2
+  A3 -- stepBy --> V1
 
   S1 -- "params → loader<br/>(Converter: markdown 変換 +<br/>mermaid SVG 化 + キャッシュ)" --> S4
   S4 --> S3
-  A1 -. "addFiles が警告を設定" .-> S5
+  A1 -. "add が警告を設定" .-> S5
 
   S1 --> C1
   S4 --> C2

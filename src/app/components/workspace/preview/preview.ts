@@ -1,6 +1,6 @@
 import { Component, DestroyRef, effect, inject, viewChild, type ElementRef } from '@angular/core';
-import { EditorStore } from '../../../state/editor-store';
-import { ViewerState } from '../../../state/viewer-state';
+import { Document } from '../../../document';
+import { Zoom } from '../../../pagination/zoom';
 import { SheetRenderer } from './sheet-renderer';
 
 /**
@@ -19,10 +19,10 @@ import { SheetRenderer } from './sheet-renderer';
         role="region"
         aria-label="紙面 (矢印キーでスクロール。各ページのブロック境界に改ページ指定ボタンがあります)"
       >
-        <div class="mx-auto w-fit" #sheetsHost [style.zoom]="viewer.zoom.value()"></div>
+        <div class="mx-auto w-fit" #sheetsHost [style.zoom]="zoom.value()"></div>
       </div>
       <!-- 読み上げはヘッダの status が担うため、こちらは視覚専用 -->
-      @if (store.rendering()) {
+      @if (document.rendering()) {
         <div
           class="app-rendering-indicator pointer-events-none absolute inset-x-0 top-4 flex justify-center"
           aria-hidden="true"
@@ -36,16 +36,16 @@ import { SheetRenderer } from './sheet-renderer';
   `,
 })
 export class Preview {
-  protected readonly store = inject(EditorStore);
-  protected readonly viewer = inject(ViewerState);
+  protected readonly document = inject(Document);
+  protected readonly zoom = inject(Zoom);
 
   private readonly sheetsHost = viewChild.required<ElementRef<HTMLElement>>('sheetsHost');
   private renderer: SheetRenderer | null = null;
 
   /** ここは DOM 書き込みのみ (計測は pagination の computed が担う)。signal は先に読む (例外時も依存を登録する) */
   private readonly repaint = effect(() => {
-    const doc = this.store.renderedDocument();
-    const pagination = this.viewer.pagination();
+    const doc = this.document.renderedDocument();
+    const pagination = this.document.pagination();
     this.renderer = renewRenderer(this.renderer, this.sheetsHost().nativeElement);
     this.renderer.render(doc, pagination);
   });

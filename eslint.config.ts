@@ -13,45 +13,55 @@ import { noCommonAffixes } from './tools/eslint-rules/classes/no-common-affixes'
 import { noDataClump } from './tools/eslint-rules/classes/no-data-clump';
 import { noElse } from './tools/eslint-rules/functions/no-else';
 import { noGetterSetter } from './tools/eslint-rules/classes/no-getter-setter';
-import { noNewInComponentProps } from './tools/eslint-rules/angular/no-new-in-component-props';
+import { noNewInProps } from './tools/eslint-rules/angular/no-new-in-props';
 import { noPrivateComponentMethods } from './tools/eslint-rules/angular/no-private-component-methods';
 import { noSingleImplementationInterface } from './tools/eslint-rules/classes/no-single-implementation-interface';
 import { noSwitch } from './tools/eslint-rules/functions/no-switch';
 import { pureConditions } from './tools/eslint-rules/functions/pure-conditions';
+import { noStateOnlyService } from './tools/eslint-rules/structure/no-state-only-service';
 
-/** 依存方向の定義。層の追加・変更はこの配列だけを編集する */
+/** 層の定義 (依存方向と層固有ルール)。層の追加・変更はこの配列だけを編集する */
 const LAYERS = [
-  {
-    files: ['src/app/state/**/*.ts'],
-    patterns: [
-      { group: ['**/components/**'], message: 'state は components に依存しない' },
-      { group: ['**/mermaid/**'], message: 'state は変換の実装に依存しない。Converter を経由する' },
-    ],
-  },
   {
     files: ['src/app/markdown/**/*.ts'],
     patterns: [
       {
-        group: ['**/state/**', '**/components/**', '**/mermaid/**'],
-        message: 'markdown 層は上位層と mermaid に依存しない',
+        group: ['**/components/**', '**/mermaid/**'],
+        message: 'markdown 層は components と mermaid に依存しない',
       },
     ],
   },
   {
     files: ['src/app/mermaid/**/*.ts'],
-    patterns: [
-      { group: ['**/state/**', '**/components/**'], message: 'mermaid 層は上位層に依存しない' },
-    ],
+    patterns: [{ group: ['**/components/**'], message: 'mermaid 層は components に依存しない' }],
   },
   {
     // src/app 直下のドメインモジュール。app.ts だけは画面骨格なので除外する
-    files: ['src/app/*.ts', 'src/app/pagination/**/*.ts', 'src/app/manuscript/**/*.ts'],
+    files: ['src/app/*.ts'],
     ignores: ['src/app/app.ts'],
     patterns: [
       {
-        group: ['**/state/**', '**/components/**'],
-        message: 'ドメインモジュールは上位層に依存しない',
+        group: ['**/components/**'],
+        message: 'ドメインモジュールは components に依存しない',
       },
+    ],
+  },
+  {
+    // ドメイン内の依存方向: manuscript ← pagination ← document
+    files: ['src/app/manuscript/**/*.ts'],
+    patterns: [
+      { group: ['**/components/**'], message: 'ドメインモジュールは components に依存しない' },
+      {
+        group: ['**/pagination/**', '**/document'],
+        message: 'manuscript はドメインの下層。pagination / document に依存しない',
+      },
+    ],
+  },
+  {
+    files: ['src/app/pagination/**/*.ts'],
+    patterns: [
+      { group: ['**/components/**'], message: 'ドメインモジュールは components に依存しない' },
+      { group: ['**/document'], message: 'pagination は document に依存しない' },
     ],
   },
 ];
@@ -81,11 +91,12 @@ export default defineConfig([
           'no-data-clump': noDataClump,
           'no-else': noElse,
           'no-getter-setter': noGetterSetter,
-          'no-new-in-component-props': noNewInComponentProps,
+          'no-new-in-props': noNewInProps,
           'no-private-component-methods': noPrivateComponentMethods,
           'no-single-implementation-interface': noSingleImplementationInterface,
           'no-switch': noSwitch,
           'pure-conditions': pureConditions,
+          'no-state-only-service': noStateOnlyService,
         },
       },
     },
@@ -112,11 +123,12 @@ export default defineConfig([
       'printmd/no-data-clump': 'error',
       'printmd/no-else': 'error',
       'printmd/no-getter-setter': 'error',
-      'printmd/no-new-in-component-props': 'error',
+      'printmd/no-new-in-props': 'error',
       'printmd/no-private-component-methods': 'error',
       'printmd/no-single-implementation-interface': 'error',
       'printmd/no-switch': 'error',
       'printmd/pure-conditions': 'error',
+      'printmd/no-state-only-service': 'error',
       // requireDefaultForNonUnion は printmd/no-switch の default 禁止と意図的に矛盾させる。
       // 両立不能にすることで、union 型以外を対象とする switch は書けない
       '@typescript-eslint/switch-exhaustiveness-check': [
@@ -125,7 +137,7 @@ export default defineConfig([
       ],
     },
   },
-  // 依存方向の規律: components → state → ドメイン (src/app 直下) → markdown / mermaid。
+  // 依存方向の規律: components → ドメイン (src/app 直下ほか) → markdown / mermaid。
   // 逆向きの import を層ごとに禁止する (型 import も含む)。spec はダブルの注入で層を跨げる
   ...LAYERS.map((layer) => ({
     files: layer.files,

@@ -2,7 +2,8 @@ import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../../../mermaid/mermaid-renderer';
-import { EditorStore } from '../../../../state/editor-store';
+import { Document } from '../../../../document';
+import { Manuscripts } from '../../../../manuscript/manuscripts';
 import { FilePanel } from './file-panel';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -16,11 +17,11 @@ class FakeMermaidRenderer extends MermaidRenderer {
 
 async function whenRendered(): Promise<void> {
   const appRef = TestBed.inject(ApplicationRef);
-  const store = TestBed.inject(EditorStore);
+  const documents = TestBed.inject(Document);
   for (let i = 0; i < 50; i++) {
     TestBed.tick();
     await appRef.whenStable();
-    if (!store.rendering()) return;
+    if (!documents.rendering()) return;
   }
 }
 
@@ -32,8 +33,8 @@ describe('FilePanel', () => {
   });
 
   it('ファイル行と追加チップを表示する', async () => {
-    const store = TestBed.inject(EditorStore);
-    await store.addFiles([
+    const manuscripts = TestBed.inject(Manuscripts);
+    await manuscripts.add([
       { name: 'a.md', text: () => Promise.resolve('# A') },
       { name: 'b.md', text: () => Promise.resolve('# B') },
     ]);
@@ -49,8 +50,8 @@ describe('FilePanel', () => {
   });
 
   it('キーボード移動後、同じファイルの移動ボタンへフォーカスを戻す', async () => {
-    const store = TestBed.inject(EditorStore);
-    await store.addFiles([
+    const manuscripts = TestBed.inject(Manuscripts);
+    await manuscripts.add([
       { name: 'a.md', text: () => Promise.resolve('# A') },
       { name: 'b.md', text: () => Promise.resolve('# B') },
     ]);
@@ -67,7 +68,7 @@ describe('FilePanel', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(store.files().map((f) => f.name)).toEqual(['b.md', 'a.md']);
+    expect(manuscripts.files().map((f) => f.name)).toEqual(['b.md', 'a.md']);
     const active = document.activeElement as HTMLElement | null;
     expect(active?.getAttribute('aria-label')).toContain('a.md');
   });
@@ -81,8 +82,8 @@ describe('FilePanel 取り込みと並べ替えの経路', () => {
   });
 
   it('ファイル選択 (input change) で取り込み、入力をリセットする', async () => {
-    const store = TestBed.inject(EditorStore);
-    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
+    const manuscripts = TestBed.inject(Manuscripts);
+    await manuscripts.add([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
     const fixture = TestBed.createComponent(FilePanel);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -96,13 +97,13 @@ describe('FilePanel 取り込みと並べ替えの経路', () => {
     });
     input.dispatchEvent(new Event('change'));
     await fixture.whenStable();
-    expect(store.files().map((f) => f.name)).toEqual(['a.md', 'b.md']);
+    expect(manuscripts.files().map((f) => f.name)).toEqual(['a.md', 'b.md']);
     expect(input.value).toBe('');
   });
 
   it('追加ラベルへのドロップで取り込み、既定動作を抑止する', async () => {
-    const store = TestBed.inject(EditorStore);
-    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
+    const manuscripts = TestBed.inject(Manuscripts);
+    await manuscripts.add([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
     const fixture = TestBed.createComponent(FilePanel);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -117,12 +118,12 @@ describe('FilePanel 取り込みと並べ替えの経路', () => {
     label.dispatchEvent(drop);
     expect(drop.defaultPrevented).toBe(true);
     await fixture.whenStable();
-    expect(store.files().map((f) => f.name)).toEqual(['a.md', 'b.md']);
+    expect(manuscripts.files().map((f) => f.name)).toEqual(['a.md', 'b.md']);
   });
 
   it('リストのドラッグドロップで並べ替え、読み上げ文を更新する', async () => {
-    const store = TestBed.inject(EditorStore);
-    await store.addFiles([
+    const manuscripts = TestBed.inject(Manuscripts);
+    await manuscripts.add([
       { name: 'a.md', text: () => Promise.resolve('# A') },
       { name: 'b.md', text: () => Promise.resolve('# B') },
     ]);
@@ -135,15 +136,15 @@ describe('FilePanel 取り込みと並べ替えの経路', () => {
     };
     panel.onListDrop({ previousIndex: 0, currentIndex: 1 });
     fixture.detectChanges();
-    expect(store.files().map((f) => f.name)).toEqual(['b.md', 'a.md']);
+    expect(manuscripts.files().map((f) => f.name)).toEqual(['b.md', 'a.md']);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
       'a.mdを2番目に移動しました',
     );
   });
 
   it('同じ位置へのドロップでは読み上げ文を出さない', async () => {
-    const store = TestBed.inject(EditorStore);
-    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
+    const manuscripts = TestBed.inject(Manuscripts);
+    await manuscripts.add([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
     const fixture = TestBed.createComponent(FilePanel);
     fixture.detectChanges();
     await fixture.whenStable();

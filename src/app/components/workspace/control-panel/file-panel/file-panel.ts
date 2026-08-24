@@ -1,7 +1,7 @@
 import { CdkDrag, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, Injector, inject } from '@angular/core';
-import { EditorStore } from '../../../../state/editor-store';
-import { Announcer } from './announcer';
+import { Manuscripts } from '../../../../manuscript/manuscripts';
+import { FilePanelState } from './file-panel.state';
 import { FileAddInput } from './file-add-input';
 import { FileRowItem } from './file-row-item';
 import { focusLater } from './move-focus';
@@ -14,11 +14,11 @@ import { focusLater } from './move-focus';
 @Component({
   selector: 'app-file-panel',
   imports: [CdkDrag, CdkDropList, FileAddInput, FileRowItem],
-  providers: [Announcer],
+  providers: [FilePanelState],
   template: `
     <section aria-label="原稿ファイル">
       <ul class="space-y-1" role="list" cdkDropList (cdkDropListDropped)="onListDrop($event)">
-        @for (file of store.files(); track file.id; let i = $index; let last = $last) {
+        @for (file of manuscripts.files(); track file.id; let i = $index; let last = $last) {
           <li>
             <app-file-row-item
               cdkDrag
@@ -26,42 +26,42 @@ import { focusLater } from './move-focus';
               [first]="i === 0"
               [last]="last"
               (moved)="move(file.id, file.name, $event)"
-              (removed)="store.removeFile(file.id)"
+              (removed)="manuscripts.remove(file.id)"
             />
           </li>
         }
       </ul>
-      <app-file-add-input (selected)="store.addFiles($event)" />
+      <app-file-add-input (selected)="manuscripts.add($event)" />
 
-      @if (store.warnings().length > 0) {
+      @if (manuscripts.warnings().length > 0) {
         <ul class="mt-2 space-y-1" role="status">
-          @for (warning of store.warnings(); track warning) {
+          @for (warning of manuscripts.warnings(); track warning) {
             <li class="rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-700">{{ warning }}</li>
           }
         </ul>
       }
-      <p class="sr-only" role="status" aria-live="polite">{{ announcer.message() }}</p>
+      <p class="sr-only" role="status" aria-live="polite">{{ local.message() }}</p>
     </section>
   `,
 })
 export class FilePanel {
-  protected readonly store = inject(EditorStore);
-  protected readonly announcer = inject(Announcer);
+  protected readonly manuscripts = inject(Manuscripts);
+  protected readonly local = inject(FilePanelState);
   private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly injector = inject(Injector);
 
   protected onListDrop(event: CdkDragDrop<unknown>): void {
-    if (this.store.isReorderable(event.previousIndex, event.currentIndex)) {
-      this.store.reorder(event.previousIndex, event.currentIndex);
-      this.announcer.moved(this.store.files()[event.currentIndex].name, event.currentIndex);
+    if (this.manuscripts.isReorderable(event.previousIndex, event.currentIndex)) {
+      this.manuscripts.reorder(event.previousIndex, event.currentIndex);
+      this.local.moved(this.manuscripts.files()[event.currentIndex].name, event.currentIndex);
     }
   }
 
   protected move(id: number, name: string, delta: -1 | 1): void {
-    if (this.store.isMovable(id, delta)) {
-      this.store.nudge(id, delta);
-      const index = this.store.files().findIndex((file) => file.id === id);
-      this.announcer.moved(name, index);
+    if (this.manuscripts.isMovable(id, delta)) {
+      this.manuscripts.nudge(id, delta);
+      const index = this.manuscripts.files().findIndex((file) => file.id === id);
+      this.local.moved(name, index);
       focusLater(this.injector, this.elementRef.nativeElement, id, delta);
     }
   }

@@ -2,7 +2,7 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
 import type { Block } from '../../../../markdown/block-extractor';
-import type { BlockRow } from '../../../../state/block-groups';
+import type { BlockRow } from '../../../../markdown/block-groups';
 import { BreakRowItem } from './break-row-item';
 
 function block(partial: Partial<Block> & Pick<Block, 'id' | 'kind'>): Block {

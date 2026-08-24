@@ -1,6 +1,6 @@
 import { Component, computed, input, output } from '@angular/core';
 import type { BlockKind } from '../../../../markdown/block-extractor';
-import type { BlockRow } from '../../../../state/block-groups';
+import type { BlockRow } from '../../../../markdown/block-groups';
 
 const KIND_LABELS: Readonly<Record<BlockKind, string>> = {
   heading: '見出し',

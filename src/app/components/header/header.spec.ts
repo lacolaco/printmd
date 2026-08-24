@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { MermaidRenderer, type MermaidLike } from '../mermaid/mermaid-renderer';
-import { EditorStore } from '../state/editor-store';
-import { ViewerState } from '../state/viewer-state';
+import { MermaidRenderer, type MermaidLike } from '../../mermaid/mermaid-renderer';
+import { Manuscripts } from '../../manuscript/manuscripts';
+import { Zoom } from '../../pagination/zoom';
 import { Header } from './header';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -23,6 +23,7 @@ describe('Header', () => {
 
   it('原稿がないときは表示操作も印刷ボタンも出さない (刷るものがない)', async () => {
     const fixture = TestBed.createComponent(Header);
+    fixture.componentRef.setInput('active', false);
     fixture.detectChanges();
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
@@ -30,11 +31,12 @@ describe('Header', () => {
     expect(el.querySelector('.app-print-button')).toBeNull();
   });
 
-  it('原稿があれば頁数とズームを表示し、ズーム操作が ViewerState に反映される', async () => {
-    const store = TestBed.inject(EditorStore);
-    await store.addFiles([{ name: 'a.md', text: () => Promise.resolve('# A\n\n本文') }]);
+  it('原稿があれば頁数とズームを表示し、ズーム操作が Zoom に反映される', async () => {
+    const manuscripts = TestBed.inject(Manuscripts);
+    await manuscripts.add([{ name: 'a.md', text: () => Promise.resolve('# A\n\n本文') }]);
 
     const fixture = TestBed.createComponent(Header);
+    fixture.componentRef.setInput('active', true);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -42,7 +44,7 @@ describe('Header', () => {
     expect(el.querySelector('[role="status"]')?.textContent).toContain('ページ');
     el.querySelector<HTMLButtonElement>('[aria-label="縮小"]')!.click();
     fixture.detectChanges();
-    expect(TestBed.inject(ViewerState).zoom.label()).toBe('75%');
+    expect(TestBed.inject(Zoom).label()).toBe('75%');
     expect(el.textContent).toContain('75%');
   });
 });

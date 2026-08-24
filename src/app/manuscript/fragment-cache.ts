@@ -1,3 +1,4 @@
+import { Service } from '@angular/core';
 import type { FileFragment } from '../markdown/block-extractor';
 import type { ManuscriptFile } from './manuscript';
 
@@ -7,6 +8,7 @@ import type { ManuscriptFile } from './manuscript';
  * 古い loader が古い keep 集合でキャッシュを追い出す競合がある (現行文書の
  * エントリを消して結果を壊す)。追い出しは最新世代だけが行う
  */
+@Service()
 export class FragmentCache {
   private readonly entries = new Map<string, string>();
   private epoch = 0;
