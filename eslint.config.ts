@@ -16,7 +16,7 @@ import { noGetterSetter } from './tools/eslint-rules/classes/no-getter-setter';
 import { noSingleImplementationInterface } from './tools/eslint-rules/classes/no-single-implementation-interface';
 import { noSwitch } from './tools/eslint-rules/functions/no-switch';
 import { pureConditions } from './tools/eslint-rules/functions/pure-conditions';
-import { componentBoundary } from './tools/eslint-rules/angular/component-boundary';
+import { componentSignature } from './tools/eslint-rules/angular/component-signature';
 import { vmSignature } from './tools/eslint-rules/angular/vm-signature';
 import { noStateOnlyService } from './tools/eslint-rules/structure/no-state-only-service';
 
@@ -88,7 +88,7 @@ export default defineConfig([
           'no-single-implementation-interface': noSingleImplementationInterface,
           'no-switch': noSwitch,
           'pure-conditions': pureConditions,
-          'component-boundary': componentBoundary,
+          'component-signature': componentSignature,
           'vm-signature': vmSignature,
           'no-state-only-service': noStateOnlyService,
         },
@@ -121,7 +121,7 @@ export default defineConfig([
       'printmd/no-single-implementation-interface': 'error',
       'printmd/no-switch': 'error',
       'printmd/pure-conditions': 'error',
-      'printmd/component-boundary': 'error',
+      'printmd/component-signature': 'error',
       'printmd/vm-signature': 'error',
       'printmd/no-state-only-service': 'error',
       // requireDefaultForNonUnion は printmd/no-switch の default 禁止と意図的に矛盾させる。

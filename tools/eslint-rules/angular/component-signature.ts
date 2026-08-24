@@ -109,7 +109,7 @@ function condemn(context: Context, node: TSESTree.Node, id: MessageIds | undefin
  * ビューモデルを持たない。private メソッドも持たない (ロジックは VM や協力
  * オブジェクトへ)
  */
-export const componentBoundary = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
+export const componentSignature = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
   meta: {
     type: 'suggestion',
     messages: {

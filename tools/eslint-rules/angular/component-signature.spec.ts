@@ -1,6 +1,6 @@
 import { RuleTester } from '@typescript-eslint/rule-tester';
 import { afterAll, describe, it } from 'vitest';
-import { componentBoundary } from './component-boundary';
+import { componentSignature } from './component-signature';
 
 RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
@@ -15,7 +15,7 @@ const tester = new RuleTester({
   },
 });
 
-tester.run('component-boundary', componentBoundary, {
+tester.run('component-signature', componentSignature, {
   valid: [
     {
       name: 'コンポーネントの protected ハンドラと private 注入フィールドは許可',
