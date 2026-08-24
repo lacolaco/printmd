@@ -37,13 +37,31 @@ const LAYERS = [
   },
   {
     // src/app 直下のドメインモジュール。app.ts だけは画面骨格なので除外する
-    files: ['src/app/*.ts', 'src/app/pagination/**/*.ts', 'src/app/manuscript/**/*.ts'],
+    files: ['src/app/*.ts'],
     ignores: ['src/app/app.ts'],
     patterns: [
       {
         group: ['**/components/**'],
         message: 'ドメインモジュールは components に依存しない',
       },
+    ],
+  },
+  {
+    // ドメイン内の依存方向: manuscript ← pagination ← document
+    files: ['src/app/manuscript/**/*.ts'],
+    patterns: [
+      { group: ['**/components/**'], message: 'ドメインモジュールは components に依存しない' },
+      {
+        group: ['**/pagination/**', '**/document'],
+        message: 'manuscript はドメインの下層。pagination / document に依存しない',
+      },
+    ],
+  },
+  {
+    files: ['src/app/pagination/**/*.ts'],
+    patterns: [
+      { group: ['**/components/**'], message: 'ドメインモジュールは components に依存しない' },
+      { group: ['**/document'], message: 'pagination は document に依存しない' },
     ],
   },
 ];
@@ -126,7 +144,6 @@ export default defineConfig([
     ignores: [...(layer.ignores ?? []), '**/*.spec.ts'],
     rules: {
       'no-restricted-imports': ['error', { patterns: layer.patterns }],
-      ...(layer.rules ?? {}),
     },
   })),
   {

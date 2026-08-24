@@ -71,6 +71,18 @@ export class CounterHolder {
       errors: [{ messageId: 'stateOnly' }],
     },
     {
+      name: 'providedIn 付き @Injectable はグローバル扱いで State クラスを禁止',
+      code: `import { Injectable, signal } from '@angular/core';
+@Injectable({ providedIn: 'root' })
+export class CounterState {
+  readonly count = signal(0);
+  bump(): void {
+    this.count.update((v) => v + 1);
+  }
+}`,
+      errors: [{ messageId: 'globalState' }],
+    },
+    {
       name: 'グローバルな State クラスは禁止',
       code: `import { Service, signal } from '@angular/core';
 @Service()

@@ -47,5 +47,5 @@ flowchart TB
 ```
 
 - 画面領域の責務で階層化: App は骨格、Workspace / ImportScreen が画面、ControlPanel が右カラムを所有する
-- コンポーネント間の疎通はドメインサービス (Manuscripts / Breaks / Document / Zoom) の購読と命令で行う。input/output は FileAddInput の selected など最小限
+- コンポーネント間の疎通はドメインサービス (Manuscripts / Breaks / Document / Zoom) の購読と命令で行う。input/output は Header の active (原稿有無の判断は App が持つ) や FileAddInput の selected など最小限
 - リアクティブ構造は [signal-graph.md](./signal-graph.md) を参照

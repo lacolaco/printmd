@@ -118,14 +118,14 @@ describe('ドメインサービスの統合', () => {
     expect([...container.children].some((el) => el.classList.contains('forced-break'))).toBe(false);
   });
 
-  it('toggleBreak は同じ ID の追加/削除を繰り返せる', () => {
+  it('toggle は同じ ID の追加/削除を繰り返せる', () => {
     breaks.toggle('f0b0');
     expect(breaks.ids().has('f0b0')).toBe(true);
     breaks.toggle('f0b0');
     expect(breaks.ids().has('f0b0')).toBe(false);
   });
 
-  it('存在しない ID の removeFile では改ページ指定を消さない', async () => {
+  it('存在しない ID の remove では改ページ指定を消さない', async () => {
     await manuscripts.add([file('a.md', '# A')]);
     await whenRendered();
     breaks.toggle(documents.blocks()[0].id);

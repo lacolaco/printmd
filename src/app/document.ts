@@ -28,7 +28,7 @@ export class Document {
   readonly rendering = this.pipeline.isLoading;
 
   /**
-   * container は唯一の DOM 実体で、印刷対象 (Printer) がそのまま掲示し、
+   * container は唯一の DOM 実体で、印刷対象 (PrintRoot) がそのまま掲示し、
    * プレビューは複製して使う。強制改ページのクラス付与はここでは行わない
    * (消費者が描画時に applyForcedBreaks を適用する)
    */

@@ -1,6 +1,5 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
-import type * as ts from 'typescript';
-import { isDecorated, originOf, resolvedSymbol } from '../support/angular-utils';
+import { fromCore, isDecorated } from '../support/angular-utils';
 
 type MessageIds = 'stateOnly' | 'globalState' | 'derivedState' | 'localMisplaced';
 
@@ -18,30 +17,11 @@ function propValue(member: TSESTree.ClassElement): TSESTree.Node | undefined {
   return member.type === 'PropertyDefinition' ? (member.value ?? undefined) : undefined;
 }
 
-function calledTarget(expression: TSESTree.Node | undefined): TSESTree.Node | undefined {
-  return expression?.type === 'CallExpression' ? expression.callee : undefined;
-}
-
-function isCoreSource(symbol: ts.Symbol | undefined, names: readonly string[]): boolean {
-  const { name } = symbol ?? { name: '' };
-  return names.includes(name) && originOf(symbol).includes('@angular/core');
-}
-
-function isSourced(
-  services: Services,
-  expression: TSESTree.Node | undefined,
-  names: readonly string[],
-): boolean {
-  const callee = calledTarget(expression);
-  return callee !== undefined && isCoreSource(resolvedSymbol(services, callee), names);
-}
-
-function isStateful(
-  services: Services,
-  cls: TSESTree.ClassDeclaration,
-  names: readonly string[],
-): boolean {
-  return cls.body.body.some((member) => isSourced(services, propValue(member), names));
+/** プロパティ初期化子のうち @angular/core の呼び出しであるものの名前一覧 */
+function reactives(services: Services, cls: TSESTree.ClassDeclaration): readonly string[] {
+  const values = cls.body.body.map((member) => propValue(member));
+  const names = values.map((v) => (v === undefined ? undefined : fromCore(services, v)));
+  return names.filter((name): name is string => name !== undefined);
 }
 
 /** 公開メソッド (操作) を 1 つでも持つか */
@@ -51,11 +31,29 @@ function isOperative(cls: TSESTree.ClassDeclaration): boolean {
   );
 }
 
-/** true = @Service (グローバル)、false = @Injectable (ローカル)、undefined = 対象外 */
+function isProvidedIn(decorator: TSESTree.Decorator): boolean {
+  const call = decorator.expression.type === 'CallExpression' ? decorator.expression : undefined;
+  const arg = call?.arguments[0];
+  const props = arg?.type === 'ObjectExpression' ? arg.properties : [];
+  return props.some(
+    (p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'providedIn',
+  );
+}
+
+/** @Injectable({providedIn}) はローカル提供ではなくグローバル */
+function isRooted(cls: TSESTree.ClassDeclaration): boolean {
+  return cls.decorators.some((decorator) => isProvidedIn(decorator));
+}
+
+function scoped(service: boolean, local: boolean, rooted: boolean): boolean | undefined {
+  return service || (local && rooted) ? true : local ? false : undefined;
+}
+
+/** true = グローバル (@Service / providedIn 付き @Injectable)、false = ローカル、undefined = 対象外 */
 function classify(services: Services, cls: TSESTree.ClassDeclaration): boolean | undefined {
   const service = isDecorated(services, cls, 'Service');
   const local = !service && isDecorated(services, cls, 'Injectable');
-  return service ? true : local ? false : undefined;
+  return scoped(service, local, isRooted(cls));
 }
 
 function isTitled(cls: TSESTree.ClassDeclaration): boolean {
@@ -92,8 +90,9 @@ function verdict(
   filename: string,
   global: boolean,
 ): MessageIds | undefined {
-  const owning = isStateful(services, cls, OWNED);
-  const idle = isStateful(services, cls, MUTABLE) && !isOperative(cls);
+  const found = reactives(services, cls);
+  const owning = found.some((name) => OWNED.includes(name));
+  const idle = found.some((name) => MUTABLE.includes(name)) && !isOperative(cls);
   return global ? onGlobal(idle, isTitled(cls)) : onLocal(owning, idle, isTitled(cls), filename);
 }
 

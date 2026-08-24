@@ -17,12 +17,15 @@ function resolved(services: Services, node: TSESTree.Node): ts.Symbol | undefine
   return raw === undefined ? undefined : resolveAlias(checker, raw);
 }
 
-/** デコレータが @angular/core の expected か。別名 import や名前空間 import も追跡する */
-function isFromCore(services: Services, decorator: TSESTree.Decorator, expected: string): boolean {
-  const target = calleeName(decorator.expression);
+/**
+ * 呼び出し形の式が @angular/core の export なら、その解決済みの名前を返す。
+ * 別名 import や名前空間 import も追跡する
+ */
+export function fromCore(services: Services, expression: TSESTree.Node): string | undefined {
+  const target = calleeName(expression);
   const symbol = target === undefined ? undefined : resolved(services, target);
   const { name } = symbol ?? { name: '' };
-  return name === expected && originOf(symbol).includes('@angular/core');
+  return originOf(symbol).includes('@angular/core') ? name : undefined;
 }
 
 export function isDecorated(
@@ -30,7 +33,7 @@ export function isDecorated(
   node: TSESTree.ClassDeclaration | TSESTree.ClassExpression,
   expected: string,
 ): boolean {
-  return node.decorators.some((decorator) => isFromCore(services, decorator, expected));
+  return node.decorators.some((decorator) => fromCore(services, decorator.expression) === expected);
 }
 
 /** クラスメンバー (parent = ClassBody) からその所属クラスを得る */
@@ -61,7 +64,9 @@ export function isManaged(
   services: Services,
   node: TSESTree.ClassDeclaration | TSESTree.ClassExpression,
 ): boolean {
-  return MANAGED_DECORATORS.some((expected) => isDecorated(services, node, expected));
+  return node.decorators.some((d) =>
+    MANAGED_DECORATORS.includes(fromCore(services, d.expression) ?? ''),
+  );
 }
 
 export function isAngularComponent(
