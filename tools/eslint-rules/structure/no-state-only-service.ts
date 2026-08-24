@@ -1,14 +1,11 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
 import { fromCore, isDecorated } from '../support/angular-utils';
 
-type MessageIds = 'stateOnly' | 'globalState' | 'derivedState' | 'localMisplaced';
+type MessageIds = 'stateOnly' | 'globalState' | 'vmShape';
 
 type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>[0]['create']>[0];
 
 type Services = ReturnType<typeof ESLintUtils.getParserServices>;
-
-/** 状態の保有と見なす初期化子。computed は導出であり状態ではない */
-const OWNED: readonly string[] = ['signal', 'linkedSignal', 'resource'];
 
 /** 操作を要求する初期化子。resource は自走するため操作を要さない */
 const MUTABLE: readonly string[] = ['signal', 'linkedSignal'];
@@ -61,27 +58,14 @@ function isTitled(cls: TSESTree.ClassDeclaration): boolean {
   return name.endsWith('State');
 }
 
-function isColocated(filename: string): boolean {
-  return filename.endsWith('.state.ts');
-}
-
-function isStrayed(titled: boolean, owning: boolean, filename: string): boolean {
-  return (titled && !isColocated(filename)) || (owning && !titled);
+/** ローカル (@Injectable) はビューモデル: XxxViewModel を *.vm.ts に置く */
+function isShapedVm(cls: TSESTree.ClassDeclaration, filename: string): boolean {
+  const { name } = cls.id ?? { name: '' };
+  return name.endsWith('ViewModel') && filename.endsWith('.vm.ts');
 }
 
 function onGlobal(idle: boolean, titled: boolean): MessageIds | undefined {
   return titled ? 'globalState' : idle ? 'stateOnly' : undefined;
-}
-
-function onLocal(
-  owning: boolean,
-  idle: boolean,
-  titled: boolean,
-  filename: string,
-): MessageIds | undefined {
-  const posing = titled && !owning;
-  const strayed = isStrayed(titled, owning, filename);
-  return posing ? 'derivedState' : strayed ? 'localMisplaced' : idle ? 'stateOnly' : undefined;
 }
 
 function verdict(
@@ -91,9 +75,8 @@ function verdict(
   global: boolean,
 ): MessageIds | undefined {
   const found = reactives(services, cls);
-  const owning = found.some((name) => OWNED.includes(name));
   const idle = found.some((name) => MUTABLE.includes(name)) && !isOperative(cls);
-  return global ? onGlobal(idle, isTitled(cls)) : onLocal(owning, idle, isTitled(cls), filename);
+  return global ? onGlobal(idle, isTitled(cls)) : isShapedVm(cls, filename) ? undefined : 'vmShape';
 }
 
 function audit(context: Context, services: Services, cls: TSESTree.ClassDeclaration): void {
@@ -111,8 +94,8 @@ function condemn(context: Context, node: TSESTree.Node, id: MessageIds | undefin
 
 /**
  * 責務単位の凝集を強制する。状態だけのサービス (操作のないミュータブル状態) と
- * グローバルな State クラスを禁じ、ローカルステート XxxState は状態を保有して
- * コンポーネント同居の *.state.ts に置く
+ * グローバルな State クラスを禁じ、コンポーネント提供の @Injectable は
+ * 1-1 対応するビューモデル XxxViewModel として *.vm.ts に置く
  */
 export const noStateOnlyService = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
   meta: {
@@ -120,10 +103,7 @@ export const noStateOnlyService = ESLintUtils.RuleCreator.withoutDocs<[], Messag
     messages: {
       stateOnly: '状態だけでサービス化しない。状態とそれを操作するロジックを同じ責務単位に置く',
       globalState: 'グローバルな State クラスを置かない。状態はドメインサービスが保有する',
-      derivedState:
-        '状態を保有しないクラスは State と名乗らない。導出はサービスかコンポーネントの computed に置く',
-      localMisplaced:
-        '状態を保有する @Injectable はコンポーネント同居の *.state.ts の XxxState に置く',
+      vmShape: 'コンポーネント提供の @Injectable は、対応する XxxViewModel として *.vm.ts に置く',
     },
     schema: [],
   },

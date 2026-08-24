@@ -1,27 +1,30 @@
 import { Component, inject } from '@angular/core';
 import { Footer } from './components/footer';
 import { Header } from './components/header/header';
-import { ImportScreen } from './components/import-screen/import-screen';
+import { ImportDropzone } from './components/import-screen/import-dropzone';
 import { PrintRoot } from './components/print-root';
 import { Workspace } from './components/workspace/workspace';
 import { sourcesFrom } from './manuscript/manuscript';
-import { Manuscripts } from './manuscript/manuscripts';
+import { AppViewModel } from './app.vm';
 
 /** 画面骨格。ヘッダ / 画面の切替 / 印刷対象の配置と、ウィンドウ全体のドロップ受け */
 @Component({
   selector: 'app-root',
-  imports: [Footer, Header, ImportScreen, PrintRoot, Workspace],
+  providers: [AppViewModel],
+  imports: [Footer, Header, ImportDropzone, PrintRoot, Workspace],
   template: `
     <div
       class="app-ui flex h-dvh flex-col"
       (dragover)="permitDrag($event)"
       (drop)="acceptDrop($event)"
     >
-      <app-header [active]="manuscripts.nonEmpty()" />
-      @if (manuscripts.nonEmpty()) {
+      <app-header />
+      @if (vm.nonEmpty()) {
         <app-workspace class="min-h-0 flex-1" />
       } @else {
-        <app-import-screen class="min-h-0 flex-1" />
+        <main class="min-h-0 flex-1" aria-label="原稿の取り込み">
+          <app-import-dropzone class="block h-full" />
+        </main>
       }
       <app-footer />
     </div>
@@ -31,7 +34,7 @@ import { Manuscripts } from './manuscript/manuscripts';
   `,
 })
 export class App {
-  protected readonly manuscripts = inject(Manuscripts);
+  protected readonly vm = inject(AppViewModel);
 
   /** ウィンドウ全体をドロップ先にする (誤ドロップでのページ遷移も防ぐ) */
   protected permitDrag(event: DragEvent): void {
@@ -40,6 +43,6 @@ export class App {
 
   protected acceptDrop(event: DragEvent): void {
     event.preventDefault();
-    this.manuscripts.add(sourcesFrom(event.dataTransfer?.files));
+    this.vm.add(sourcesFrom(event.dataTransfer?.files));
   }
 }
