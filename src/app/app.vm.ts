@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Manuscripts } from './manuscript/manuscripts';
+import { Manuscripts } from './shared/manuscript/manuscripts';
 
 /** App のビューモデル。画面切替の問い合わせ */
 @Injectable()

@@ -24,44 +24,38 @@ import { noStateOnlyService } from './tools/eslint-rules/structure/no-state-only
 /** 層の定義 (依存方向と層固有ルール)。層の追加・変更はこの配列だけを編集する */
 const LAYERS = [
   {
-    files: ['src/app/markdown/**/*.ts'],
+    // shared は feature に依存しない
+    files: ['src/app/shared/**/*.ts'],
+    patterns: [{ group: ['**/feature/**'], message: 'shared は feature に依存しない' }],
+  },
+  {
+    files: ['src/app/shared/markdown/**/*.ts'],
     patterns: [
       {
-        group: ['**/components/**', '**/mermaid/**'],
-        message: 'markdown 層は components と mermaid に依存しない',
+        group: ['**/feature/**', '**/mermaid/**'],
+        message: 'markdown 層は feature と mermaid に依存しない',
       },
     ],
   },
   {
-    files: ['src/app/mermaid/**/*.ts'],
-    patterns: [{ group: ['**/components/**'], message: 'mermaid 層は components に依存しない' }],
+    files: ['src/app/shared/mermaid/**/*.ts'],
+    patterns: [{ group: ['**/feature/**'], message: 'mermaid 層は feature に依存しない' }],
   },
   {
-    // src/app 直下のドメインモジュール。app.ts だけは画面骨格なので除外する
-    files: ['src/app/*.ts'],
-    ignores: ['src/app/app.ts'],
+    // shared 内の依存方向: manuscript ← pagination ← document
+    files: ['src/app/shared/manuscript/**/*.ts'],
     patterns: [
-      {
-        group: ['**/components/**'],
-        message: 'ドメインモジュールは components に依存しない',
-      },
-    ],
-  },
-  {
-    // ドメイン内の依存方向: manuscript ← pagination ← document
-    files: ['src/app/manuscript/**/*.ts'],
-    patterns: [
-      { group: ['**/components/**'], message: 'ドメインモジュールは components に依存しない' },
+      { group: ['**/feature/**'], message: 'shared は feature に依存しない' },
       {
         group: ['**/pagination/**', '**/document'],
-        message: 'manuscript はドメインの下層。pagination / document に依存しない',
+        message: 'manuscript は shared の下層。pagination / document に依存しない',
       },
     ],
   },
   {
-    files: ['src/app/pagination/**/*.ts'],
+    files: ['src/app/shared/pagination/**/*.ts'],
     patterns: [
-      { group: ['**/components/**'], message: 'ドメインモジュールは components に依存しない' },
+      { group: ['**/feature/**'], message: 'shared は feature に依存しない' },
       { group: ['**/document'], message: 'pagination は document に依存しない' },
     ],
   },
@@ -141,7 +135,7 @@ export default defineConfig([
       ],
     },
   },
-  // 依存方向の規律: components → ドメイン (src/app 直下ほか) → markdown / mermaid。
+  // 依存方向の規律: feature → shared (ドメイン) → markdown / mermaid。
   // 逆向きの import を層ごとに禁止する (型 import も含む)。spec はダブルの注入で層を跨げる
   ...LAYERS.map((layer) => ({
     files: layer.files,

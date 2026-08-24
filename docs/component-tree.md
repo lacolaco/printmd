@@ -1,6 +1,6 @@
 # コンポーネントツリー
 
-各コンポーネントの配置と責務。`src/app/components/` のディレクトリ構造はこのツリーの親子関係をそのまま写す (親コンポーネントのディレクトリ配下に子コンポーネントを置く。App 直下の葉は components/ 直下)。コンポーネントの協力オブジェクト (SheetRenderer / Demo など、コンポーネントではないクラス) は、それを使うコンポーネントと同じディレクトリに置く。状態とその操作は責務単位のドメインサービス (Manuscripts / Breaks / Document / Zoom) が一体で保有し、ドメインのディレクトリに置く。コンテナのビューモデルは同じディレクトリの `xxx.vm.ts` に同居する。
+各コンポーネントの配置と責務。トップレベルは `src/app/feature/` (機能 = header / workspace / import / print / footer) と `src/app/shared/` (機能横断のドメイン) の 2 つ。feature 内のディレクトリ構造はこのツリーの親子関係をそのまま写し、コンポーネントの協力オブジェクト (SheetRenderer / Demo など) とコンテナのビューモデル (`xxx.vm.ts`) は、それを使うコンポーネントと同じディレクトリに置く。状態とその操作は責務単位のドメインサービス (Manuscripts / Breaks / Document / Zoom) が一体で保有し、shared のドメインディレクトリに置く。
 **コンポーネントの追加・削除・責務変更のコミットでは、この図と docs/signal-graph.md を同じコミットで更新すること** (CLAUDE.md の生きたドキュメント規則)。
 
 ```mermaid
