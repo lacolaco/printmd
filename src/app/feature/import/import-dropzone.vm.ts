@@ -8,7 +8,7 @@ import type { ImportSource } from '../../shared/manuscript/manuscript';
 export class ImportDropzoneViewModel {
   private readonly manuscripts = inject(Manuscripts);
   /** ガイド + 著作権消滅作品の長文 (public/demo/ に同梱) */
-  private readonly catalog = ['printmd-guide.md', 'hashire-merosu.md'].map(
+  private readonly demoManuscripts = ['printmd-guide.md', 'hashire-merosu.md'].map(
     (name) => new DemoManuscript(name),
   );
 
@@ -17,6 +17,6 @@ export class ImportDropzoneViewModel {
   }
 
   loadDemo(): Promise<void> {
-    return this.manuscripts.add(this.catalog);
+    return this.manuscripts.add(this.demoManuscripts);
   }
 }
