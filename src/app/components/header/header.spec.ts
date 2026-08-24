@@ -23,7 +23,6 @@ describe('Header', () => {
 
   it('原稿がないときは表示操作も印刷ボタンも出さない (刷るものがない)', async () => {
     const fixture = TestBed.createComponent(Header);
-    fixture.componentRef.setInput('active', false);
     fixture.detectChanges();
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
@@ -36,7 +35,6 @@ describe('Header', () => {
     await manuscripts.add([{ name: 'a.md', text: () => Promise.resolve('# A\n\n本文') }]);
 
     const fixture = TestBed.createComponent(Header);
-    fixture.componentRef.setInput('active', true);
     fixture.detectChanges();
     await fixture.whenStable();
 

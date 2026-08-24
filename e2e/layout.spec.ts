@@ -18,7 +18,7 @@ test('狭い画面 + 200% ズームでもパネルが画面外へ押し出され
   const docScrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(docScrollWidth).toBeLessThanOrEqual(1280);
   // パネルは画面内
-  const panel = page.locator('app-control-panel');
+  const panel = page.locator('#control-panel-sheet');
   const box = (await panel.boundingBox())!;
   expect(box.x + box.width).toBeLessThanOrEqual(1280);
   // 紙面はスクローラ内で横スクロールになる

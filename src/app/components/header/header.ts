@@ -1,5 +1,6 @@
-import { Component, input } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Toolbar } from '@angular/aria/toolbar';
+import { HeaderViewModel } from './header.vm';
 import { PageStatus } from './page-status';
 import { ZoomControl } from './zoom-control';
 
@@ -9,18 +10,25 @@ import { ZoomControl } from './zoom-control';
 @Component({
   selector: 'app-header',
   imports: [Toolbar, PageStatus, ZoomControl],
+  providers: [HeaderViewModel],
   template: `
     <header class="app-header flex h-12 shrink-0 items-center gap-3 border-b px-4">
       <h1 class="app-logo text-base font-bold tracking-tight">printmd</h1>
-      @if (active()) {
+      @if (vm.active()) {
         <div
           class="absolute left-1/2 flex -translate-x-1/2 items-center gap-2 text-xs text-stone-700"
           ngToolbar
           aria-label="表示操作"
         >
-          <app-page-status />
+          <app-page-status [label]="vm.status()" />
           <span aria-hidden="true" class="opacity-40">|</span>
-          <app-zoom-control />
+          <app-zoom-control
+            [label]="vm.zoomLabel()"
+            [shrinkable]="vm.isSteppable(-1)"
+            [growable]="vm.isSteppable(1)"
+            (shrink)="vm.stepBy(-1)"
+            (grow)="vm.stepBy(1)"
+          />
         </div>
         <button
           type="button"
@@ -34,8 +42,7 @@ import { ZoomControl } from './zoom-control';
   `,
 })
 export class Header {
-  /** 表示操作と印刷を出すか。原稿の有無の判断は親 (App) が持つ */
-  readonly active = input(false);
+  protected readonly vm = inject(HeaderViewModel);
 
   protected print(): void {
     window.print();

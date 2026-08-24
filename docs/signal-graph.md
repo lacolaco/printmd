@@ -6,7 +6,7 @@
 - `renderedDocument` は resource: Manuscripts.files を params とする async 導出 (Converter サービスが markdown 変換 + mermaid SVG 化 + キャッシュを担う)。`rendering` はその isLoading
 - `Document.pagination` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
 - `Breaks.ids` は linkedSignal: Manuscripts.files に連動し、末尾への追記では維持・構造変更ではリセット
-- パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelState の message / WorkspaceState の sheetOpen) は省略
+- パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelViewModel の message / WorkspaceViewModel の sheetOpen) は省略
 - 表示倍率は `Zoom` (index / value / label / stepBy / isSteppable)。初期段の決定と段送りの算術は同居する純関数が担う
 
 ```mermaid
@@ -45,7 +45,7 @@ flowchart LR
   end
 
   subgraph HeaderC["Header (PageStatus / ZoomControl)"]
-    HC1[/label<br/>PageStatus の computed/]
+    HC1[/status<br/>HeaderViewModel/]
     T1{{ヘッダ: 頁数/ズーム/印刷}}
   end
 

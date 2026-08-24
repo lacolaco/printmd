@@ -1,7 +1,8 @@
 import { Component, inject } from '@angular/core';
-import { ControlPanel } from './control-panel/control-panel';
+import { BreakPanel } from './control-panel/break-panel/break-panel';
+import { FilePanel } from './control-panel/file-panel/file-panel';
 import { Preview } from './preview/preview';
-import { WorkspaceState } from './workspace.state';
+import { WorkspaceViewModel } from './workspace.vm';
 
 /**
  * 作業画面。デスクトップ (md+) は紙面 + 右カラムの 2 カラム、
@@ -10,8 +11,8 @@ import { WorkspaceState } from './workspace.state';
  */
 @Component({
   selector: 'app-workspace',
-  imports: [ControlPanel, Preview],
-  providers: [WorkspaceState],
+  imports: [BreakPanel, FilePanel, Preview],
+  providers: [WorkspaceViewModel],
   host: { class: 'relative flex min-h-0 md:flex-row' },
   template: `
     <main class="min-h-0 min-w-0 flex-1" aria-label="紙面プレビュー">
@@ -21,21 +22,25 @@ import { WorkspaceState } from './workspace.state';
       <button
         type="button"
         class="sheet-handle flex w-full items-center justify-center gap-2 border-t py-2 text-sm font-medium md:hidden"
-        [attr.aria-expanded]="local.sheetOpen()"
+        [attr.aria-expanded]="vm.sheetOpen()"
         aria-controls="control-panel-sheet"
-        (click)="local.toggle()"
+        (click)="vm.toggle()"
       >
         調整パネル
-        <span aria-hidden="true">{{ local.sheetOpen() ? '▾' : '▴' }}</span>
+        <span aria-hidden="true">{{ vm.sheetOpen() ? '▾' : '▴' }}</span>
       </button>
-      <app-control-panel
+      <aside
         id="control-panel-sheet"
-        class="max-md:max-h-[60vh] max-md:shadow-2xl"
-        [class]="{ 'max-md:hidden': !local.sheetOpen() }"
-      />
+        class="app-panel block w-full shrink-0 overflow-y-auto p-4 max-md:max-h-[60vh] max-md:shadow-2xl md:w-90 md:border-l"
+        [class]="{ 'max-md:hidden': !vm.sheetOpen() }"
+        aria-label="調整パネル"
+      >
+        <app-file-panel />
+        <app-break-panel />
+      </aside>
     </div>
   `,
 })
 export class Workspace {
-  protected readonly local = inject(WorkspaceState);
+  protected readonly vm = inject(WorkspaceViewModel);
 }
