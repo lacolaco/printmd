@@ -51,24 +51,6 @@ export function originOf(symbol: ts.Symbol | undefined): string {
   return symbol?.declarations?.[0]?.getSourceFile().fileName ?? '';
 }
 
-const MANAGED_DECORATORS: readonly string[] = [
-  'Component',
-  'Directive',
-  'Pipe',
-  'Injectable',
-  'Service',
-];
-
-/** Angular が生成を管理するクラス (協力オブジェクトは DI から受け取るべき対象) か */
-export function isManaged(
-  services: Services,
-  node: TSESTree.ClassDeclaration | TSESTree.ClassExpression,
-): boolean {
-  return node.decorators.some((d) =>
-    MANAGED_DECORATORS.includes(fromCore(services, d.expression) ?? ''),
-  );
-}
-
 export function isAngularComponent(
   services: Services,
   node: TSESTree.ClassDeclaration | TSESTree.ClassExpression,
