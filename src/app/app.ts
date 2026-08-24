@@ -1,9 +1,9 @@
 import { Component, inject } from '@angular/core';
-import { Footer } from './components/footer';
-import { Header } from './components/header/header';
-import { ImportDropzone } from './components/import-screen/import-dropzone';
-import { PrintRoot } from './components/print-root';
-import { Workspace } from './components/workspace/workspace';
+import { Footer } from './feature/footer/footer';
+import { Header } from './feature/header/header';
+import { ImportDropzone } from './feature/import/import-dropzone';
+import { PrintRoot } from './feature/print/print-root';
+import { Workspace } from './feature/workspace/workspace';
 import { AppViewModel } from './app.vm';
 
 /** 画面骨格。ヘッダ / 画面の切替 / 印刷対象の配置 */

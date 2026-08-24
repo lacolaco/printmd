@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './app';
-import { MermaidRenderer, type MermaidLike } from './mermaid/mermaid-renderer';
-import { Manuscripts } from './manuscript/manuscripts';
+import { MermaidRenderer, type MermaidLike } from './shared/mermaid/mermaid-renderer';
+import { Manuscripts } from './shared/manuscript/manuscripts';
 
 class FakeMermaidRenderer extends MermaidRenderer {
   protected override loadModule(): Promise<MermaidLike> {

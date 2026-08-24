@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { A4, MM_TO_PX } from '../src/app/pagination/page-geometry';
+import { A4, MM_TO_PX } from '../src/app/shared/pagination/page-geometry';
 
 /** Markdown 文字列をファイル入力へ流し込み、プレビューの構築を待つ */
 export async function importMarkdown(page: Page, name: string, content: string): Promise<void> {
