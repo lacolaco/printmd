@@ -9,7 +9,7 @@ export class AppViewModel {
 
   readonly nonEmpty = this.manuscripts.nonEmpty;
 
-  add(sources: readonly ImportSource[]): void {
-    void this.manuscripts.add(sources);
+  add(sources: readonly ImportSource[]): Promise<void> {
+    return this.manuscripts.add(sources);
   }
 }

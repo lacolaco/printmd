@@ -9,8 +9,8 @@ export class ImportDropzoneViewModel {
   private readonly manuscripts = inject(Manuscripts);
   private readonly demo = inject(Demo);
 
-  add(sources: readonly ImportSource[]): void {
-    void this.manuscripts.add(sources);
+  add(sources: readonly ImportSource[]): Promise<void> {
+    return this.manuscripts.add(sources);
   }
 
   loadDemo(): void {

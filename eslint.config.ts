@@ -123,6 +123,7 @@ export default defineConfig([
       'printmd/no-class-inheritance': 'error',
       'printmd/no-common-affixes': 'error',
       'printmd/no-data-clump': 'error',
+      'no-void': 'error',
       'printmd/no-else': 'error',
       'printmd/no-getter-setter': 'error',
       'printmd/no-new-in-props': 'error',
