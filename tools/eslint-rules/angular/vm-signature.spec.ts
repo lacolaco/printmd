@@ -79,6 +79,15 @@ export class PanelViewModel {
       errors: [{ messageId: 'querySignature' }],
     },
     {
+      name: 'readonly でない query は禁止',
+      code: `import { Injectable, type Signal, signal } from '@angular/core';
+@Injectable()
+export class PanelViewModel {
+  opened: Signal<boolean> = signal(false).asReadonly();
+}`,
+      errors: [{ messageId: 'querySignature' }],
+    },
+    {
       name: 'Signal 以外の型の query は禁止',
       code: `import { Injectable } from '@angular/core';
 @Injectable()

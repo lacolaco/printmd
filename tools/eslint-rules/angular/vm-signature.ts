@@ -48,9 +48,9 @@ function isHidden(member: TSESTree.PropertyDefinition | TSESTree.MethodDefinitio
 }
 
 function onProp(context: Context, member: TSESTree.PropertyDefinition): void {
-  const { typeAnnotation } = member;
+  const { typeAnnotation, readonly } = member;
   const annotation = typeAnnotation?.typeAnnotation;
-  const passed = isExempt(member) || isQuery(annotation);
+  const passed = isExempt(member) || (readonly === true && isQuery(annotation));
   condemn(context, member, passed ? undefined : 'querySignature');
 }
 
@@ -77,7 +77,7 @@ export const vmSignature = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
     type: 'suggestion',
     messages: {
       querySignature:
-        'ビューモデルの query は Signal / WritableSignal を明示した readonly プロパティに限る',
+        'ビューモデルの query は Signal / WritableSignal を明示した readonly プロパティに限る (readonly 必須)',
       commandSignature: 'ビューモデルの command は void か Promise<void> を明示したメソッドに限る',
     },
     schema: [],
