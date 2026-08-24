@@ -44,7 +44,7 @@ flowchart LR
     VC2[/label/]
   end
 
-  subgraph HeaderC["Header (PageStatus / ZoomControl)"]
+  subgraph HeaderC["Header (ZoomControl)"]
     HC1[/status<br/>HeaderViewModel/]
     T1{{ヘッダ: 頁数/ズーム/印刷}}
   end
