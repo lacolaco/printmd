@@ -1,7 +1,7 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
 import { fromCore, isAngularComponent, originOf, resolvedSymbol } from '../support/angular-utils';
 
-type MessageIds = 'foreignInject' | 'mixedRole';
+type MessageIds = 'foreignInject' | 'mixedRole' | 'privateMethod';
 
 type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>[0]['create']>[0];
 
@@ -9,6 +9,26 @@ type Services = ReturnType<typeof ESLintUtils.getParserServices>;
 
 /** input/output 駆動 (プレーン) の印 */
 const IO: readonly string[] = ['input', 'output', 'model'];
+
+type Member = TSESTree.MethodDefinition | TSESTree.PropertyDefinition;
+
+function isHidden(member: Member): boolean {
+  const { accessibility, key } = member;
+  return accessibility === 'private' || key.type === 'PrivateIdentifier';
+}
+
+/** メソッド、またはメソッドとして振る舞う関数フィールド (アロー関数等) か */
+function isBehavioral(member: Member): boolean {
+  const { value } = member;
+  const fn = value?.type === 'ArrowFunctionExpression' || value?.type === 'FunctionExpression';
+  return member.type === 'MethodDefinition' ? member.kind !== 'constructor' : fn;
+}
+
+function isBuried(member: TSESTree.ClassElement): boolean {
+  const { type } = member;
+  const scoped = type === 'MethodDefinition' || type === 'PropertyDefinition';
+  return scoped && isHidden(member as Member) && isBehavioral(member as Member);
+}
 
 function propCall(member: TSESTree.ClassElement): TSESTree.CallExpression | undefined {
   const value = member.type === 'PropertyDefinition' ? member.value : null;
@@ -53,7 +73,8 @@ function ownerName(cls: TSESTree.ClassDeclaration): string {
 function vet(context: Context, services: Services, member: TSESTree.ClassElement, owner: string) {
   const target = injectedToken(services, member);
   const foreign = target !== undefined && isForeign(services, target, owner);
-  condemn(context, member, foreign ? 'foreignInject' : undefined);
+  const fault = foreign ? 'foreignInject' : isBuried(member) ? 'privateMethod' : undefined;
+  condemn(context, member, fault as MessageIds | undefined);
 }
 
 function isMixed(services: Services, members: readonly TSESTree.ClassElement[]): boolean {
@@ -83,17 +104,20 @@ function condemn(context: Context, node: TSESTree.Node, id: MessageIds | undefin
 }
 
 /**
- * コンポーネントの注入面を 1-1 のビューモデルに限る。ElementRef など
- * フレームワーク基盤は例外。input/output 駆動のプレーンなコンポーネントは
- * ビューモデルを持たない
+ * コンポーネントの形を規律する。注入は 1-1 のビューモデルに限り (ElementRef など
+ * フレームワーク基盤は例外)、input/output 駆動のプレーンなコンポーネントは
+ * ビューモデルを持たない。private メソッドも持たない (ロジックは VM や協力
+ * オブジェクトへ)
  */
-export const vmBoundary = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
+export const componentBoundary = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
   meta: {
     type: 'suggestion',
     messages: {
       foreignInject:
         'コンポーネントが注入してよいのは自身と 1-1 対応する XxxViewModel だけ (フレームワーク基盤は除く)',
       mixedRole: 'input/output を使うコンポーネントはビューモデルを持たない (プレーンに徹する)',
+      privateMethod:
+        'コンポーネントに private メソッドを置かない。ロジックはビューモデルや協力オブジェクトへ移す',
     },
     schema: [],
   },
