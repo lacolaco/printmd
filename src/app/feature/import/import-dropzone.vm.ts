@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { bundledDemoManuscripts } from './demo-manuscript';
+import { bundled } from './demo-manuscript';
 import { Manuscripts } from '../../shared/manuscript/manuscripts';
 import type { ImportSource } from '../../shared/manuscript/manuscript';
 
@@ -13,6 +13,6 @@ export class ImportDropzoneViewModel {
   }
 
   loadDemo(): Promise<void> {
-    return this.manuscripts.add(bundledDemoManuscripts());
+    return this.manuscripts.add(bundled());
   }
 }
