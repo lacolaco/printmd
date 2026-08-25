@@ -1,4 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { importMarkdown, selectPaper } from './support';
+import { B5 } from '../src/app/shared/paper/paper-catalog';
+import { MM_TO_PX } from '../src/app/shared/paper/paper-format';
 
 // 画面の強制改ページは CSS の break-before に頼らずセグメント分割で表現している
 // (Firefox は段への強制改行を実装せず、Safari 安定版は break-before: column を
@@ -48,4 +51,29 @@ test('ファイル境界で次のファイルが新しいシートの先頭か�
   expect(Math.abs(boundary!.left)).toBeLessThan(1);
   // シートのクローンは自セグメントのブロックだけを持つ
   expect(boundary!.hasPrevFileContent).toBe(false);
+});
+
+/**
+ * 窓の下でストリップをずらす量は、選んだ書式の段の刻みでなければならない。
+ * A4 固定の刻みが残っていると 2 ページ目の窓が段の途中を見せる
+ */
+test('段送りの量が選んだ書式の刻みに一致する (B5)', async ({ page }) => {
+  await page.goto('/');
+  await importMarkdown(page, 'long.md', `# 長い原稿\n\n${'本文の段落である。'.repeat(300)}\n`);
+  await selectPaper(page, B5);
+  await page.locator('.sheet[data-page="2"] .mc').waitFor();
+
+  const shift = await page.evaluate(() => {
+    const offsetIn = (pageNo: string) => {
+      const sheet = document.querySelector(`.sheet[data-page="${pageNo}"]`)!;
+      const mc = sheet.querySelector('.mc')!.getBoundingClientRect();
+      const clip = sheet.querySelector('.clip')!.getBoundingClientRect();
+      return mc.left - clip.left;
+    };
+    const host = document.querySelector('.sheet')!.parentElement!;
+    const zoom = Number(getComputedStyle(host).zoom) || 1;
+    return (offsetIn('1') - offsetIn('2')) / zoom;
+  });
+
+  expect(shift).toBeCloseTo(B5.step * MM_TO_PX, -1);
 });

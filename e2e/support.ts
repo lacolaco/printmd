@@ -1,6 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { MM_TO_PX, type PaperFormat } from '../src/app/shared/paper/paper-format';
+import { PAPERS } from '../src/app/shared/paper/paper-catalog';
 
 /** Markdown 文字列をファイル入力へ流し込み、プレビューの構築を待つ */
 export async function importMarkdown(page: Page, name: string, content: string): Promise<void> {
@@ -13,23 +14,43 @@ export async function importMarkdown(page: Page, name: string, content: string):
 }
 
 /**
- * ヘッダの用紙セレクタで書式を選び、紙面の再構築を待つ。
- * 待機条件は再描画後のシートの実寸にする (CSS 変数は状態の更新より先に書かれるため、
- * それを待っても古いシートのまま返りうる)。セレクタと Paper の結線は単体テストが持つ
+ * ヘッダの用紙セレクタで書式を選び、紙面が組み直されるまで待つ。
+ * 既に目的の書式が選ばれていても、セレクタと紙面の結線を毎回踏むために別の書式を経由する
  */
 export async function selectPaper(page: Page, paper: PaperFormat): Promise<void> {
+  const detour = PAPERS.find((other) => other.id !== paper.id)!;
+  if ((await page.locator('header select').inputValue()) === paper.id) {
+    await switchPaper(page, detour);
+  }
+  await switchPaper(page, paper);
+}
+
+/**
+ * シートの寸法は CSS 変数だけで即座に変わるため、それを待っても古い紙面のまま
+ * 返りうる。既存のシートへ印をつけ、印ごと差し替わったことを関門にする
+ * (SheetRenderer は描画のたびにシートを作り直す)
+ */
+async function switchPaper(page: Page, paper: PaperFormat): Promise<void> {
+  await page.evaluate(() =>
+    document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
+  );
   await page.selectOption('header select', paper.id);
   await expect(page.locator('header select')).toHaveValue(paper.id);
-  await expect.poll(() => sheetWidthPx(page)).toBeCloseTo(paper.page.width * MM_TO_PX, -1);
+  await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);
+  await page.locator('.sheet').first().waitFor();
+  await expect
+    .poll(async () => (await sheetSizePx(page)).width)
+    .toBeCloseTo(paper.page.width * MM_TO_PX, -1);
 }
 
 /** 1 枚目のシートの、表示倍率を戻した実寸 (CSS px) */
-async function sheetWidthPx(page: Page): Promise<number> {
+export async function sheetSizePx(page: Page): Promise<{ width: number; height: number }> {
   return page.evaluate(() => {
     const sheet = document.querySelector('.sheet');
-    if (sheet === null) return 0;
+    if (sheet === null) return { width: 0, height: 0 };
     const zoom = Number(getComputedStyle(sheet.parentElement!).zoom) || 1;
-    return sheet.getBoundingClientRect().width / zoom;
+    const box = sheet.getBoundingClientRect();
+    return { width: box.width / zoom, height: box.height / zoom };
   });
 }
 

@@ -6,8 +6,10 @@ import {
   printPdfPageTexts,
   readPageCount,
   selectPaper,
+  sheetSizePx,
 } from './support';
 import { PAPERS } from '../src/app/shared/paper/paper-catalog';
+import { MM_TO_PX } from '../src/app/shared/paper/paper-format';
 
 /**
  * 中核保証の検証: プレビューが見せるページ割りと、印刷 (PDF 化) の実出力が
@@ -87,9 +89,10 @@ test('選んだ用紙書式が印刷 PDF の紙寸法になる', async ({ page }
       width: paper.page.width,
       height: paper.page.height,
     });
-    // 画面のシートも同じ紙の縦横比になる (表示倍率に依らない比較)
-    const sheet = (await page.locator('.sheet').first().boundingBox())!;
-    expect(sheet.height / sheet.width).toBeCloseTo(paper.page.height / paper.page.width, 2);
+    // 画面のシートも同じ紙の実寸で組まれている (縦横比は 3 書式でほぼ同じなので寸法で見る)
+    const sheet = await sheetSizePx(page);
+    expect(sheet.width).toBeCloseTo(paper.page.width * MM_TO_PX, -1);
+    expect(sheet.height).toBeCloseTo(paper.page.height * MM_TO_PX, -1);
   }
 });
 
