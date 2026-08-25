@@ -1,4 +1,4 @@
-import { Service, signal } from '@angular/core';
+import { DOCUMENT, Service, inject, signal } from '@angular/core';
 import { FALLBACK, PAPERS } from './paper-catalog';
 import { PaperStyles } from './paper-styles';
 import type { PaperFormat } from './paper-format';
@@ -10,7 +10,7 @@ import type { PaperFormat } from './paper-format';
 @Service()
 export class Paper {
   private readonly selected = signal<PaperFormat>(FALLBACK);
-  private readonly styles = new PaperStyles(document);
+  private readonly styles = new PaperStyles(inject(DOCUMENT));
 
   /** 現在の用紙書式 */
   readonly format = this.selected.asReadonly();
