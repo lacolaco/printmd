@@ -1,6 +1,6 @@
 import { Component, output, type OutputEmitterRef } from '@angular/core';
 import { isNonEmpty } from '../../../shared/collections';
-import { sourcesFrom, type ImportSource } from '../../../shared/manuscript/manuscript';
+import { sourcesFrom, type ImportSource } from '../../../shared/manuscript/import-source';
 
 /** 追加取り込みの入力面。ファイル選択とドロップを受けて選ばれたファイルを通知する */
 @Component({

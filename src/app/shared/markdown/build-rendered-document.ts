@@ -1,16 +1,5 @@
 import { RenderedDocument } from './rendered-document';
-
-export type BlockKind =
-  | 'heading'
-  | 'paragraph'
-  | 'table'
-  | 'code'
-  | 'mermaid'
-  | 'blockquote'
-  | 'list'
-  | 'hr'
-  | 'html'
-  | 'other';
+import type { Block, BlockKind, FileFragment } from './block';
 
 const KIND_BY_TAG: Readonly<Record<string, BlockKind>> = {
   H1: 'heading',
@@ -29,25 +18,6 @@ const KIND_BY_TAG: Readonly<Record<string, BlockKind>> = {
 };
 
 const LABEL_MAX_LENGTH = 28;
-
-/** 改ページ調整パネルに表示する 1 ブロックの情報 */
-export interface Block {
-  readonly id: string;
-  readonly kind: BlockKind;
-  readonly label: string;
-  readonly level: number | null;
-  readonly fileIndex: number;
-  readonly fileName: string;
-  /** 2 番目以降のファイルの先頭ブロックか (常に強制改ページになる境界) */
-  readonly isFileBoundary: boolean;
-}
-
-/** 1 ファイル分の変換済み HTML (mermaid の SVG 化・置換は呼び出し側で完了している前提) */
-export interface FileFragment {
-  readonly fileIndex: number;
-  readonly fileName: string;
-  readonly html: string;
-}
 
 function isMermaidFigure(el: Element): boolean {
   // mermaid 由来かは applyMermaidResults が付ける class で判定する
@@ -87,7 +57,7 @@ function stampId(el: Element, id: string): void {
  * 複数ファイルの HTML 断片を 1 つの変換済み文書の要素へ結合し、トップレベル要素に
  * id="f{fileIndex}b{blockIndex}" を付与する。ID の連番はファイルごとに振り直す
  */
-class Assembler {
+class Assembly {
   private readonly container = document.createElement('div');
   private readonly blocks: Block[] = [];
 
@@ -130,9 +100,7 @@ class Assembler {
 }
 
 export function buildRenderedDocument(fragments: readonly FileFragment[]): RenderedDocument {
-  const assembler = new Assembler();
-  fragments.forEach((fragment) => assembler.add(fragment));
-  return assembler.result();
+  const assembly = new Assembly();
+  fragments.forEach((fragment) => assembly.add(fragment));
+  return assembly.result();
 }
-
-export { RenderedDocument } from './rendered-document';

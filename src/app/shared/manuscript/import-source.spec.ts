@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PickedFile, sourcesFrom } from './manuscript';
+import { PickedFile, sourcesFrom } from './import-source';
 
 describe('PickedFile', () => {
   it('File の name をそのまま返す', () => {

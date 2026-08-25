@@ -1,5 +1,5 @@
 import { Injectable, inject, type Signal } from '@angular/core';
-import type { RenderedDocument } from '../../shared/markdown/block-extractor';
+import type { RenderedDocument } from '../../shared/markdown/rendered-document';
 import { Breaks } from '../../shared/pagination/breaks';
 import { ConversionPipeline } from '../../shared/conversion-pipeline';
 

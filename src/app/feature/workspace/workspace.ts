@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { sourcesFrom } from '../../shared/manuscript/manuscript';
+import { sourcesFrom } from '../../shared/manuscript/import-source';
 import { BreakPanel } from './break-panel/break-panel';
 import { FilePanel } from './file-panel/file-panel';
 import { Preview } from './preview/preview';

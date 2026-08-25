@@ -1,5 +1,5 @@
 import { Service } from '@angular/core';
-import type { FileFragment } from '../markdown/block-extractor';
+import type { FileFragment } from '../markdown/block';
 import type { ManuscriptFile } from './manuscript';
 
 /**

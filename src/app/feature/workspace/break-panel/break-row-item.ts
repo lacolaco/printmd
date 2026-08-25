@@ -1,5 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
-import type { BlockKind } from '../../../shared/markdown/block-extractor';
+import type { BlockKind } from '../../../shared/markdown/block';
 import type { BlockRow } from '../../../shared/markdown/block-groups';
 
 const KIND_LABELS: Readonly<Record<BlockKind, string>> = {

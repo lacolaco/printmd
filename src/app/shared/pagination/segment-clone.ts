@@ -1,4 +1,4 @@
-import type { RenderedDocument } from '../markdown/block-extractor';
+import type { RenderedDocument } from '../markdown/rendered-document';
 
 function copyChildren(
   parent: HTMLElement,

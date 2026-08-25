@@ -38,7 +38,7 @@ export async function previewHeadingPages(page: Page): Promise<Record<string, nu
         groups[groups.length - 1].push(el);
       });
       const probe = document.createElement('div');
-      probe.className = 'preview-probe';
+      probe.className = 'measuring-area';
       const clones = groups.map((group, index) => {
         const mc = doc.cloneNode(false) as HTMLElement;
         mc.className = 'mc markdown-body';

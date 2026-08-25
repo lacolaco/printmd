@@ -6,26 +6,19 @@ function pagesForScrollWidth(scrollWidth: number): number {
   return Math.max(1, Math.round(raw));
 }
 
-export class Tally {
+/** 実測したセグメントを順に受け取り、ページ組を組み立てる */
+export class PaginationBuilder {
   private readonly segments: PageSegment[] = [];
   private firstPage = 0;
 
-  absorb(range: SegmentRange, clone: HTMLElement): void {
+  /** 段組ストリップの実測幅から、このセグメントのページ数と開始ページを決める */
+  add(range: SegmentRange, clone: HTMLElement): void {
     const pages = pagesForScrollWidth(clone.scrollWidth);
     this.segments.push({ ...range, pages, firstPage: this.firstPage });
     this.firstPage += pages;
   }
 
-  result(): Pagination {
+  build(): Pagination {
     return { segments: this.segments, total: this.firstPage };
   }
-}
-
-export function tallySegments(
-  ranges: readonly SegmentRange[],
-  clones: readonly HTMLElement[],
-): Pagination {
-  const tally = new Tally();
-  ranges.forEach((range, index) => tally.absorb(range, clones[index]));
-  return tally.result();
 }

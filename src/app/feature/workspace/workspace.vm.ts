@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, type Signal } from '@angular/core';
 import { Manuscripts } from '../../shared/manuscript/manuscripts';
-import type { ImportSource } from '../../shared/manuscript/manuscript';
+import type { ImportSource } from '../../shared/manuscript/import-source';
 
 /** Workspace のビューモデル。ボトムシートの開閉状態と、ドロップ取り込みの命令 */
 @Injectable()

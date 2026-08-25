@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, type Signal } from '@angular/core';
 import { Manuscripts } from '../../../shared/manuscript/manuscripts';
-import type { ImportSource, ManuscriptFile } from '../../../shared/manuscript/manuscript';
+import type { ManuscriptFile } from '../../../shared/manuscript/manuscript';
+import type { ImportSource } from '../../../shared/manuscript/import-source';
 
 /**
  * FilePanel のビューモデル。原稿一覧の query と取り込み・並べ替え・削除の command、

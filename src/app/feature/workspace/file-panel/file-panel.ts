@@ -3,7 +3,7 @@ import { Component, ElementRef, Injector, inject } from '@angular/core';
 import { FilePanelViewModel } from './file-panel.vm';
 import { FileAddInput } from './file-add-input';
 import { FileRowItem } from './file-row-item';
-import { focusLater } from './move-focus';
+import { focusLater } from './focus-later';
 
 /**
  * 原稿ファイルの取り込みと並べ替え。並べ替えはドラッグとキーボード

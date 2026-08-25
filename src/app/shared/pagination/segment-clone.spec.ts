@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildRenderedDocument } from '../markdown/block-extractor';
+import { buildRenderedDocument } from '../markdown/build-rendered-document';
 import { buildSegmentClone } from './segment-clone';
 
 const doc = () =>
@@ -35,5 +35,25 @@ describe('buildSegmentClone', () => {
   it('空範囲を渡すと子を持たないコンテナになる', () => {
     const mc = buildSegmentClone(doc(), 1, 1);
     expect(mc.querySelectorAll('[data-block-id]')).toHaveLength(0);
+  });
+
+  it('先頭セグメントはブロックを直接持つ (文書先頭のマージン除去を受ける)', () => {
+    const mc = buildSegmentClone(doc(), 0, 3);
+    expect(mc.classList.contains('mc')).toBe(true);
+    expect(mc.classList.contains('markdown-body')).toBe(true);
+    expect([...mc.children].map((el) => el.getAttribute('data-block-id'))).toEqual([
+      'f0b0',
+      'f0b1',
+      'f0b2',
+    ]);
+  });
+
+  it('2 番目以降のセグメントはラッパで包む (改ページ後の上マージンを印刷と同様に保持する)', () => {
+    const mc = buildSegmentClone(doc(), 3, 5);
+    expect(mc.children).toHaveLength(1);
+    expect(mc.firstElementChild!.getAttribute('data-block-id')).toBeNull();
+    expect(
+      [...mc.firstElementChild!.children].map((el) => el.getAttribute('data-block-id')),
+    ).toEqual(['f1b0', 'f1b1']);
   });
 });

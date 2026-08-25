@@ -1,4 +1,4 @@
-import type { ImportSource } from '../../shared/manuscript/manuscript';
+import type { ImportSource } from '../../shared/manuscript/import-source';
 
 /** デモ原稿 1 冊。それ自体が取り込み入力 (ImportSource) として振る舞う */
 export class DemoManuscript implements ImportSource {
