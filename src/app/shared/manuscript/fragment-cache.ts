@@ -13,14 +13,17 @@ export class FragmentCache {
   private readonly entries = new Map<string, string>();
   private epoch = 0;
 
+  /** 変換の 1 世代を開始し、追い出し判定に使う世代番号を返す */
   begin(): number {
     return ++this.epoch;
   }
 
+  /** この内容の断片が変換済みか */
   isCached(content: string): boolean {
     return this.entries.has(content);
   }
 
+  /** 変換済み断片を内容をキーに保存する */
   put(content: string, html: string): void {
     this.entries.set(content, html);
   }
@@ -30,6 +33,7 @@ export class FragmentCache {
     return { fileIndex, fileName: file.name, html: this.entries.get(file.content) ?? '' };
   }
 
+  /** 世代が最新のままなら、keep に無い断片を追い出す */
   evict(epoch: number, keep: ReadonlySet<string>): void {
     if (epoch === this.epoch) {
       this.prune(keep);

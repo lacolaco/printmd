@@ -49,14 +49,19 @@ function isAtLimit(step: number, delta: -1 | 1): boolean {
 export class Zoom {
   private readonly step = signal(startupStep());
 
+  /** 現在の段 (ZOOMS の添字) */
   readonly index = this.step.asReadonly();
+  /** 表示倍率 (1 = A4 実寸) */
   readonly value = computed(() => ZOOMS[this.index()]);
+  /** 表示用の百分率文言 */
   readonly label = computed(() => `${Math.round(this.value() * 100)}%`);
 
+  /** 段を delta ぶん送る (両端で頭打ち) */
   stepBy(delta: -1 | 1): void {
     this.step.set(stepped(this.index(), delta));
   }
 
+  /** delta 方向へまだ段を送れるか */
   isSteppable(delta: -1 | 1): boolean {
     return !isAtLimit(this.index(), delta);
   }

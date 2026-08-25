@@ -16,10 +16,14 @@ export class Manuscripts {
   private readonly list = signal<readonly ManuscriptFile[]>([]);
   private readonly notices = signal<readonly string[]>([]);
 
+  /** 取り込み済みの原稿ファイル列 (紙面の順) */
   readonly files = this.list.asReadonly();
+  /** 直近の取り込みで生じた警告文 */
   readonly warnings = this.notices.asReadonly();
+  /** 原稿が 1 つでもあるか。画面切替とヘッダの表示判断に使う */
   readonly isNonEmpty = computed(() => this.files().length > 0);
 
+  /** 取り込み入力を読み出して末尾へ追加する。警告は上書きで掲示する */
   async add(sources: readonly ImportSource[]): Promise<void> {
     if (isNonEmpty(sources)) {
       const { files, warnings } = await this.importer.read(sources);
@@ -34,15 +38,18 @@ export class Manuscripts {
     }
   }
 
+  /** 指定 ID の原稿を除く。無ければ何もしない */
   remove(id: number): void {
     const current = this.files();
     this.replaceIfChanged(current, removedFrom(current, id));
   }
 
+  /** 指定 ID の原稿を delta 方向へ 1 つ動かせるか */
   isMovable(id: number, delta: -1 | 1): boolean {
     return new FileOrder(this.files()).isNudgeable(id, delta);
   }
 
+  /** from から to への並べ替えが位置を変えるか */
   isReorderable(from: number, to: number): boolean {
     return new FileOrder(this.files()).isMovable(from, to);
   }
@@ -53,6 +60,7 @@ export class Manuscripts {
     this.reorder(index, index + delta);
   }
 
+  /** from の原稿を to へ動かす。位置が変わらなければ何もしない */
   reorder(from: number, to: number): void {
     const current = this.files();
     this.replaceIfChanged(current, new FileOrder(current).reordered(from, to));

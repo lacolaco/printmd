@@ -17,6 +17,7 @@ function importWarnings(nonMarkdownCount: number, failedNames: readonly string[]
 export class Importer {
   private serial = 1;
 
+  /** 取り込み入力を読み出す。Markdown だけを通し、読めなかったものは警告文にする */
   async read(
     sources: readonly ImportSource[],
   ): Promise<{ files: ManuscriptFile[]; warnings: string[] }> {

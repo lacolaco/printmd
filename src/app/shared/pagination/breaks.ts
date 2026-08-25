@@ -33,8 +33,10 @@ export class Breaks {
         : new Set<string>(),
   });
 
+  /** 強制改ページに指定されたブロック ID の集合 */
   readonly ids = this.marks.asReadonly();
 
+  /** 指定ブロックの直前で改ページするかを反転する */
   toggle(blockId: string): void {
     this.marks.set(toggled(this.ids(), blockId));
   }
@@ -48,5 +50,6 @@ export class Breaks {
     return doc === null ? null : measurePagination(doc, this.ids());
   });
 
+  /** 総ページ数 = 各セグメントの段数の和 */
   readonly pageCount = computed(() => this.pagination()?.total ?? 0);
 }
