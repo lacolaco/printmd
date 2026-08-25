@@ -30,9 +30,10 @@ export class PaperStyles {
     paper.variables().forEach(([name, value]) => style.setProperty(name, value));
   }
 
+  /** 差し替え可能な Document を扱うため、判定に realm 依存の instanceof を使わない */
   private sheetRule(): HTMLStyleElement {
-    const found = this.doc.head.querySelector(`style[${MARK}]`);
-    return found instanceof HTMLStyleElement ? found : this.mount();
+    const found = this.doc.head.querySelector<HTMLStyleElement>(`style[${MARK}]`);
+    return found ?? this.mount();
   }
 
   private mount(): HTMLStyleElement {

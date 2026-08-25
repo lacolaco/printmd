@@ -7,6 +7,15 @@ function ruleElements(): NodeListOf<HTMLStyleElement> {
 }
 
 describe('PaperStyles', () => {
+  it('別の Document を渡しても規則要素は 1 つだけ作る', () => {
+    const other = document.implementation.createHTMLDocument('other');
+    const styles = new PaperStyles(other);
+    styles.apply(A3);
+    styles.apply(B5);
+    expect(other.head.querySelectorAll('style[data-paper-page-rule]').length).toBe(1);
+    expect(other.documentElement.style.getPropertyValue('--page-width')).toBe('182mm');
+  });
+
   it('書式の寸法を CSS カスタムプロパティとして注入する', () => {
     new PaperStyles(document).apply(B5);
     const { style } = document.documentElement;
