@@ -8,10 +8,12 @@ import type { ImportSource } from '../../shared/manuscript/manuscript';
 export class ImportDropzoneViewModel {
   private readonly manuscripts = inject(Manuscripts);
 
+  /** 選択・ドロップされた入力を原稿として取り込む */
   add(sources: readonly ImportSource[]): Promise<void> {
     return this.manuscripts.add(sources);
   }
 
+  /** 同梱デモ原稿を取り込む */
   loadDemo(): Promise<void> {
     return this.manuscripts.add(BUNDLED_DEMOS);
   }

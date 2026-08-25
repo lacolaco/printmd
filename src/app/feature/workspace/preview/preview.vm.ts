@@ -12,8 +12,12 @@ export class PreviewViewModel {
   private readonly breaks = inject(Breaks);
   private readonly zoom = inject(Zoom);
 
+  /** 描画する変換済み文書 (プレビューは複製して使う) */
   readonly rendered: Signal<RenderedDocument | null> = this.pipeline.renderedDocument;
+  /** ページ組。シート構築の入力 */
   readonly pagination: Signal<Pagination | null> = this.breaks.pagination;
+  /** 変換の進行中か。進行表示に使う */
   readonly isRendering: Signal<boolean> = this.pipeline.isRendering;
+  /** 紙面の表示倍率 (style.zoom) */
   readonly scale: Signal<number> = this.zoom.value;
 }

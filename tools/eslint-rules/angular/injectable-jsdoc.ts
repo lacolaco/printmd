@@ -20,9 +20,12 @@ function isDocumented(context: Context, member: Member): boolean {
   return comments.some((c) => c.type === 'Block' && c.value.startsWith('*'));
 }
 
+function isProvided(services: Services, cls: ReturnType<typeof enclosingClass>): boolean {
+  return isDecorated(services, cls, 'Service') || isDecorated(services, cls, 'Injectable');
+}
+
 function isExposed(services: Services, member: Member): boolean {
-  const owned = isDecorated(services, enclosingClass(member), 'Service');
-  return owned && !isHidden(member);
+  return isProvided(services, enclosingClass(member)) && !isHidden(member);
 }
 
 function onMethod(context: Context, services: Services, member: TSESTree.MethodDefinition): void {
@@ -43,14 +46,14 @@ function condemn(context: Context, member: Member, violated: boolean): void {
 }
 
 /**
- * @Service クラスの非 private メンバーには JSDoc を必須とする。ドメインサービスの
- * 公開面は目的が読める形で提供する
+ * DI で提供されるクラス (@Service / @Injectable) の非 private メンバーには
+ * JSDoc を必須とする。公開面は目的が読める形で提供する
  */
-export const serviceJsdoc = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
+export const injectableJsdoc = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
   meta: {
     type: 'suggestion',
     messages: {
-      missingDoc: '@Service の公開メンバーには JSDoc で目的を書く',
+      missingDoc: '@Service / @Injectable の公開メンバーには JSDoc で目的を書く',
     },
     schema: [],
   },

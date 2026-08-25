@@ -17,7 +17,7 @@ import { noSingleImplementationInterface } from './tools/eslint-rules/classes/no
 import { noSwitch } from './tools/eslint-rules/functions/no-switch';
 import { pureConditions } from './tools/eslint-rules/functions/pure-conditions';
 import { componentSignature } from './tools/eslint-rules/angular/component-signature';
-import { serviceJsdoc } from './tools/eslint-rules/angular/service-jsdoc';
+import { injectableJsdoc } from './tools/eslint-rules/angular/injectable-jsdoc';
 import { vmSignature } from './tools/eslint-rules/angular/vm-signature';
 import { noStateOnlyService } from './tools/eslint-rules/structure/no-state-only-service';
 
@@ -90,7 +90,7 @@ export default defineConfig([
           'no-switch': noSwitch,
           'pure-conditions': pureConditions,
           'component-signature': componentSignature,
-          'service-jsdoc': serviceJsdoc,
+          'injectable-jsdoc': injectableJsdoc,
           'vm-signature': vmSignature,
           'no-state-only-service': noStateOnlyService,
         },
@@ -124,7 +124,7 @@ export default defineConfig([
       'printmd/no-switch': 'error',
       'printmd/pure-conditions': 'error',
       'printmd/component-signature': 'error',
-      'printmd/service-jsdoc': 'error',
+      'printmd/injectable-jsdoc': 'error',
       'printmd/vm-signature': 'error',
       'printmd/no-state-only-service': 'error',
       // requireDefaultForNonUnion は printmd/no-switch の default 禁止と意図的に矛盾させる。

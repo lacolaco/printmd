@@ -8,12 +8,15 @@ export class WorkspaceViewModel {
   private readonly manuscripts = inject(Manuscripts);
   private readonly isShown = signal(false);
 
+  /** ボトムシート (調整パネル) が開いているか */
   readonly isSheetOpen: Signal<boolean> = this.isShown.asReadonly();
 
+  /** ボトムシートの開閉を反転する */
   toggle(): void {
     this.isShown.update((open) => !open);
   }
 
+  /** 作業画面へのドロップを原稿として取り込む */
   add(sources: readonly ImportSource[]): Promise<void> {
     return this.manuscripts.add(sources);
   }

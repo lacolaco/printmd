@@ -11,18 +11,24 @@ export class FilePanelViewModel {
   private readonly manuscripts = inject(Manuscripts);
   private readonly notice = signal('');
 
+  /** 取り込み済みの原稿ファイル列 (紙面の順) */
   readonly files: Signal<readonly ManuscriptFile[]> = this.manuscripts.files;
+  /** 直近の取り込みで生じた警告文 */
   readonly warnings: Signal<readonly string[]> = this.manuscripts.warnings;
+  /** 並べ替え結果の読み上げ文 (role=status が購読) */
   readonly message: Signal<string> = this.notice.asReadonly();
 
+  /** 追加の取り込み入力を原稿列の末尾へ足す */
   add(sources: readonly ImportSource[]): Promise<void> {
     return this.manuscripts.add(sources);
   }
 
+  /** 指定 ID の原稿を除く */
   remove(id: number): void {
     this.manuscripts.remove(id);
   }
 
+  /** 原稿を 1 つ上/下へ動かし、読み上げ文を更新する。動けなければ何もしない */
   move(id: number, name: string, delta: -1 | 1): void {
     if (this.manuscripts.isMovable(id, delta)) {
       this.manuscripts.nudge(id, delta);
@@ -33,6 +39,7 @@ export class FilePanelViewModel {
     }
   }
 
+  /** ドラッグの並べ替えを反映し、読み上げ文を更新する。位置が変わらなければ何もしない */
   reorder(from: number, to: number): void {
     if (this.manuscripts.isReorderable(from, to)) {
       this.manuscripts.reorder(from, to);
