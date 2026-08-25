@@ -106,11 +106,7 @@ input[type='checkbox']:not(:disabled) {
   .print-root {
     display: block;
   }
-  @page {
-    /* 寸法の単一の情報源は paper-format.ts (@page 内の var() は互換性が不確かなためリテラル) */
-    size: A4;
-    margin: 16mm;
-  }
+  /* @page 規則は page-rule.ts が注入する (@page 内の var() は互換性が不確か) */
 }
 
 /* ===========================================================================

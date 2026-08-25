@@ -2,7 +2,6 @@ import { Component, DestroyRef, effect, inject, viewChild, type ElementRef } fro
 import { PreviewViewModel } from './preview.vm';
 import type { PaperFormat } from '../../../shared/paper/paper-format';
 import { SheetRenderer } from './sheet-renderer';
-import { DEFAULT_PAPER } from '../../../shared/paper/paper-catalog';
 
 /**
  * プレビュー: CSS 多段組を流用したページ分割。変換済み文書の要素を版面幅の
@@ -47,7 +46,8 @@ export class Preview {
   private readonly repaint = effect(() => {
     const doc = this.vm.rendered();
     const pagination = this.vm.pagination();
-    this.renderer = renewRenderer(this.renderer, this.sheetsHost().nativeElement, DEFAULT_PAPER);
+    const format = this.vm.format();
+    this.renderer = renewRenderer(this.renderer, this.sheetsHost().nativeElement, format);
     this.renderer.render(doc, pagination);
   });
 
