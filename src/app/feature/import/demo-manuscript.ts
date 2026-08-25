@@ -18,6 +18,7 @@ export class DemoManuscript implements ImportSource {
 }
 
 /** 同梱デモの一式: ガイド + 著作権消滅作品の長文 (public/demo/) */
-export function bundled(): readonly DemoManuscript[] {
-  return ['printmd-guide.md', 'hashire-merosu.md'].map((name) => new DemoManuscript(name));
-}
+export const BUNDLED_DEMOS: readonly DemoManuscript[] = [
+  'printmd-guide.md',
+  'hashire-merosu.md',
+].map((name) => new DemoManuscript(name));
