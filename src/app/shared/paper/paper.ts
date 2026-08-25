@@ -1,4 +1,4 @@
-import { Service, effect, signal } from '@angular/core';
+import { Service, signal } from '@angular/core';
 import { FALLBACK, PAPERS } from './paper-catalog';
 import { PaperStyles } from './paper-styles';
 import type { PaperFormat } from './paper-format';
@@ -17,16 +17,21 @@ export class Paper {
   /** 選べる用紙書式の一覧 */
   readonly formats: readonly PaperFormat[] = PAPERS;
 
-  /** ここは DOM 書き込みのみ (画面 CSS と @page 規則の同期) */
-  private readonly restyle = effect(() => this.styles.apply(this.format()));
-
-  /** ページ組の実測は版面の CSS 変数に依存する。初回だけは effect の flush を待たない */
   constructor() {
-    this.styles.apply(this.format());
+    this.styles.apply(FALLBACK);
   }
 
   /** id で用紙書式を選び直す。未知の id は既定へ倒す */
   selectById(id: string): void {
-    this.selected.set(this.formats.find((paper) => paper.id === id) ?? FALLBACK);
+    this.adopt(this.formats.find((paper) => paper.id === id) ?? FALLBACK);
+  }
+
+  /**
+   * ページ組の実測 (Breaks.pagination) は版面の CSS 変数を前提にするため、
+   * 反映は effect の flush 順に委ねず、状態の更新と同じ手で書く
+   */
+  private adopt(paper: PaperFormat): void {
+    this.styles.apply(paper);
+    this.selected.set(paper);
   }
 }

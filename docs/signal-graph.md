@@ -8,7 +8,7 @@
 - `Breaks.ids` は linkedSignal: Manuscripts.files に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelViewModel の message / WorkspaceViewModel の sheetOpen) は省略
 - 用紙書式は `Paper` (format / formats / selectById)。書式は `PaperFormat` の値オブジェクトで、版面・段の刻み・CSS 表現を自分で答える。書式を要する導出 (ページ組・表示倍率・シート描画) はすべてこの signal を源とする
-- `Paper` の effect は書式を DOM へ書くだけ (html のカスタムプロパティと `@page` 規則)
+- `Paper` は書式の DOM への反映 (html のカスタムプロパティと `@page` 規則) を、状態の更新と同じ手で行う。ページ組の実測が版面の CSS 変数を前提にするため、effect の flush 順に委ねない
 - `Zoom.step` は linkedSignal: `Paper.format` を source とし、書式が変われば段送りを捨ててその紙に収まる段へ組み直す
 - 表示倍率は `Zoom` (index / value / label / stepBy / isSteppable)。初期段の決定と段送りの算術は同居する純関数が担う
 
@@ -23,7 +23,6 @@ flowchart LR
 
   subgraph PaperS["Paper"]
     S6((format))
-    AE2[effect<br/>書式の反映]
   end
 
   subgraph ManuscriptsS["Manuscripts"]
@@ -85,8 +84,7 @@ flowchart LR
   A3 -- stepBy --> V1
   A4 -- selectById --> S6
   S6 -- "source 連動: 収まる段へ組み直す" --> V1
-  S6 --> AE2
-  AE2 --> D3
+  A4 -. "書式の反映 (同じ手で書く)" .-> D3
   S6 --> V3
   S6 --> PE1
   S6 --> T1
@@ -136,7 +134,7 @@ flowchart LR
 
   class S2,V1 linked
   class C1,S3,VC1,VC2,HC1,V2,V3 comp
-  class AE1,AE2,PE1 eff
+  class AE1,PE1 eff
   class T1,T2,T3,T4,T5,T6 tmpl
   class D1,D2,D3 dom
 ```

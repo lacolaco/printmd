@@ -1,7 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { MM_TO_PX, type PaperFormat } from '../src/app/shared/paper/paper-format';
-import { A4 } from '../src/app/shared/paper/paper-catalog';
 
 /** Markdown 文字列をファイル入力へ流し込み、プレビューの構築を待つ */
 export async function importMarkdown(page: Page, name: string, content: string): Promise<void> {
@@ -43,7 +42,7 @@ export async function readPageCount(page: Page): Promise<number> {
  */
 export async function previewHeadingPages(
   page: Page,
-  paper: PaperFormat = A4,
+  paper: PaperFormat,
 ): Promise<Record<string, number>> {
   return page.evaluate(
     ({ columnStepPx, columnGapPx }) => {

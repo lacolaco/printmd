@@ -19,7 +19,7 @@
   <text x="410" y="192" font-size="12" fill="#59636e">↑ 破線部は窓の外 (overflow: hidden で不可視)</text>
 
   <!-- シート 2 -->
-  <text x="20" y="226" font-size="13" fill="#1f2328">2 枚目のシート: 同じ内容のコピーを margin-left: -194mm でずらす</text>
+  <text x="20" y="226" font-size="13" fill="#1f2328">2 枚目のシート: 同じ内容のコピーを段の刻みぶん (margin-left) 左へずらす</text>
   <rect x="210" y="238" width="190" height="140" fill="#ffffff" stroke="#1f2328" stroke-width="1.5"/>
   <g opacity="0.45">
     <rect x="64" y="258" width="150" height="100" fill="none" stroke="#59636e" stroke-dasharray="5 4"/>

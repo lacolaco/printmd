@@ -21,10 +21,14 @@ describe('Paper', () => {
     expect(TestBed.inject(Paper).formats.map((paper) => paper.id)).toEqual(['a4', 'a3', 'b5']);
   });
 
-  it('選んだ書式を画面 CSS へ反映する', () => {
+  it('選んだ書式を、状態の更新と同じ手で画面 CSS へ反映する (flush を待たない)', () => {
     const paper = TestBed.inject(Paper);
-    paper.selectById('b5');
-    TestBed.tick();
-    expect(document.documentElement.style.getPropertyValue('--page-width')).toBe('176mm');
+    paper.selectById('a3');
+    expect(document.documentElement.style.getPropertyValue('--content-width')).toBe('257mm');
+  });
+
+  it('構築した時点で既定の書式が反映されている', () => {
+    TestBed.inject(Paper);
+    expect(document.documentElement.style.getPropertyValue('--page-width')).toBe('210mm');
   });
 });
