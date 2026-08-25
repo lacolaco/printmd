@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { toPx } from '../src/app/shared/paper/units';
 import type { PaperFormat } from '../src/app/shared/paper/paper-format';
@@ -12,6 +12,38 @@ export async function importMarkdown(page: Page, name: string, content: string):
   });
   // 遅延実体化なので、枠だけでなく中身が入るまで待つ
   await page.locator('.sheet .clip .mc').first().waitFor();
+}
+
+/** ヘッダの用紙セレクタで書式を選び、紙面が組み直されるまで待つ */
+export async function selectPaper(page: Page, paper: PaperFormat): Promise<void> {
+  if ((await page.locator('header select').inputValue()) !== paper.label) {
+    await switchTo(page, paper);
+  }
+}
+
+/** 寸法は CSS 変数だけで先に変わるため、シートが差し替わったことを関門にする */
+async function switchTo(page: Page, paper: PaperFormat): Promise<void> {
+  await page.evaluate(() =>
+    document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
+  );
+  await page.selectOption('header select', { label: paper.label });
+  await expect(page.locator('header select')).toHaveValue(paper.label);
+  await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);
+  await page.locator('.sheet .clip .mc').first().waitFor();
+  await expect
+    .poll(async () => (await sheetSizePx(page)).width)
+    .toBeCloseTo(toPx(paper.page.width), -1);
+}
+
+/** 1 枚目のシートの、表示倍率を戻した実寸 (CSS px) */
+export async function sheetSizePx(page: Page): Promise<{ width: number; height: number }> {
+  return page.evaluate(() => {
+    const sheet = document.querySelector('.sheet');
+    if (sheet === null) return { width: 0, height: 0 };
+    const zoom = Number(getComputedStyle(sheet.parentElement!).zoom) || 1;
+    const box = sheet.getBoundingClientRect();
+    return { width: box.width / zoom, height: box.height / zoom };
+  });
 }
 
 /** ツールバーのページ数表示を数値で返す */
@@ -70,6 +102,15 @@ export async function previewHeadingPages(
     },
     { columnStepPx: toPx(paper.step), columnGapPx: toPx(paper.gap) },
   );
+}
+
+/** 印刷実出力 (page.pdf) の 1 ページ目の紙寸法 (mm) を返す */
+export async function printPdfPageSize(page: Page): Promise<{ width: number; height: number }> {
+  const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
+  const doc = await getDocument({ data: new Uint8Array(pdf) }).promise;
+  const [x0, y0, x1, y1] = (await doc.getPage(1)).view;
+  const toMm = (pt: number) => Math.round((pt * 25.4) / 72);
+  return { width: toMm(x1 - x0), height: toMm(y1 - y0) };
 }
 
 /** 印刷実出力 (page.pdf) の各ページのテキストを返す */

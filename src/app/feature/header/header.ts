@@ -1,14 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { Toolbar } from '@angular/aria/toolbar';
 import { HeaderViewModel } from './header.vm';
+import { PaperControl } from './paper-control';
 import { ZoomControl } from './zoom-control';
 
 /**
- * アプリヘッダ。ロゴ / 表示状態 (頁数・ズーム) / 印刷の終端動作を持つ 1 本の帯
+ * アプリヘッダ。ロゴ / 表示状態 (頁数・用紙・ズーム) / 印刷の終端動作を持つ 1 本の帯
  */
 @Component({
   selector: 'app-header',
-  imports: [Toolbar, ZoomControl],
+  imports: [PaperControl, Toolbar, ZoomControl],
   providers: [HeaderViewModel],
   template: `
     <header
@@ -20,6 +21,9 @@ import { ZoomControl } from './zoom-control';
           class="flex min-w-fit flex-1 items-center justify-center gap-1.5 text-xs whitespace-nowrap text-stone-700 sm:gap-2 md:absolute md:left-1/2 md:flex-none md:-translate-x-1/2"
         >
           <span role="status" aria-live="polite">{{ vm.status() }}</span>
+          <span aria-hidden="true" class="hidden opacity-40 sm:inline">|</span>
+          <!-- select は自前で矢印キーを使うため、ロービング focus のツールバーの外に置く -->
+          <app-paper-control [(selected)]="vm.format" />
           <span aria-hidden="true" class="hidden opacity-40 sm:inline">|</span>
           <div class="flex items-center gap-2" ngToolbar aria-label="表示倍率">
             <app-zoom-control

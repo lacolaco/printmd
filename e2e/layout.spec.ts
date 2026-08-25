@@ -43,6 +43,7 @@ for (const width of [320, 375]) {
       const selectors = [
         '.app-logo',
         'header [role="status"]',
+        'header select',
         '[aria-label="縮小"]',
         '[aria-label="拡大"]',
         '.app-print-button',
