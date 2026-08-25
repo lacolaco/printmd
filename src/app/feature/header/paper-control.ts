@@ -8,7 +8,7 @@ import type { PaperFormat } from '../../shared/paper/paper-format';
   template: `
     <label class="flex items-center gap-1">
       <span class="sr-only">用紙サイズ</span>
-      <!-- 選択状態は option 側で表す (select の value は option 生成前に当たり、落ちる) -->
+      <!-- select の value は option 生成前に当たって落ちるため、選択状態は option 側で持つ -->
       <select class="rounded px-1 py-0.5 hover:bg-stone-200" (change)="pick($event)">
         @for (paper of choices(); track paper.id) {
           <option [value]="paper.id" [selected]="paper.id === current()">{{ paper.label }}</option>

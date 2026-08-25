@@ -8,10 +8,7 @@ function marked(style: HTMLStyleElement): HTMLStyleElement {
   return style;
 }
 
-/**
- * 書式を文書へ書き込む口。画面 CSS (カスタムプロパティ) と印刷 (@page 規則) の
- * 双方へ同じ書式を反映することが、プレビューと印刷のページ割り一致の前提になる
- */
+/** 書式を文書へ書き込む口。画面と紙で同じ寸法を見せることがページ割り一致の前提になる */
 export class PaperStyles {
   constructor(private readonly doc: Document) {}
 
@@ -30,7 +27,6 @@ export class PaperStyles {
     paper.variables().forEach(([name, value]) => style.setProperty(name, value));
   }
 
-  /** 差し替え可能な Document を扱うため、判定に realm 依存の instanceof を使わない */
   private sheetRule(): HTMLStyleElement {
     const found = this.doc.head.querySelector<HTMLStyleElement>(`style[${MARK}]`);
     return found ?? this.mount();

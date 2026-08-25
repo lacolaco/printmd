@@ -53,10 +53,7 @@ test('ファイル境界で次のファイルが新しいシートの先頭か�
   expect(boundary!.hasPrevFileContent).toBe(false);
 });
 
-/**
- * 窓の下でストリップをずらす量は、選んだ書式の段の刻みでなければならない。
- * A4 固定の刻みが残っていると 2 ページ目の窓が段の途中を見せる
- */
+/** A4 固定の刻みが残っていると、2 ページ目の窓が段の途中を見せる */
 test('段送りの量が選んだ書式の刻みに一致する (B5)', async ({ page }) => {
   await page.goto('/');
   await importMarkdown(page, 'long.md', `# 長い原稿\n\n${'本文の段落である。'.repeat(300)}\n`);

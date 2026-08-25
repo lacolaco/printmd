@@ -29,10 +29,6 @@ test('狭い画面 + 200% ズームでもパネルが画面外へ押し出され
   expect(hasHScroll).toBe(true);
 });
 
-/**
- * 表示操作の帯は広い幅では中央へ絶対配置され、狭い幅では通常フローへ戻る。
- * 1 行に入らなければ折り返し、操作面を隠したり互いに被せたりしない
- */
 for (const width of [320, 375]) {
   test(`${width}px 幅でヘッダの操作面が隠れず互いに覆い合わない`, async ({ page }) => {
     await page.setViewportSize({ width, height: 700 });
@@ -71,7 +67,6 @@ for (const width of [320, 375]) {
 
     expect(header.overlaps).toEqual([]);
     expect(header.clipped).toEqual([]);
-    // 帯の中身は帯に収まる (隠れた操作面へスクロールを強いない)
     expect(header.spill).toBeLessThanOrEqual(0);
 
     const docScrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);

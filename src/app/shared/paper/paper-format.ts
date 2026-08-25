@@ -17,13 +17,11 @@ interface ContentBox {
 /** 1mm を CSS px に換算する係数 (96dpi 基準) */
 export const MM_TO_PX = 96 / 25.4;
 
-/** 段間 (mm)。紙の寸法ではなく画面上の段の隙間なので全書式で共通 */
+/** 段間 (mm)。紙ではなく画面上の隙間なので全書式で共通 */
 const GAP = 16;
 
 /**
- * 用紙書式。紙寸法と余白を与えると、版面・段の刻み・CSS 表現を自分で答える。
- * 紙面の寸法を要する処理は書式ごとに分岐せず、この型へ問い合わせる。
- * 寸法の単一の情報源であり、数値を別の場所へ複製してはならない
+ * 用紙書式。紙面の寸法を要する処理は書式ごとに分岐せず、この型へ問い合わせる
  */
 export class PaperFormat {
   /** 版面 (余白を除いた印字領域) */
@@ -72,7 +70,6 @@ export class PaperFormat {
   }
 }
 
-/** カスタムプロパティ名と、書式から値 (mm) を取り出す手 */
 const VARIABLES: readonly (readonly [string, (paper: PaperFormat) => number])[] = [
   ['--page-width', (paper) => paper.page.width],
   ['--page-height', (paper) => paper.page.height],

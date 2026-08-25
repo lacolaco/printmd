@@ -17,7 +17,6 @@ import { ZoomControl } from './zoom-control';
     >
       <h1 class="app-logo text-base font-bold tracking-tight">printmd</h1>
       @if (vm.isActive()) {
-        <!-- 帯は広い幅では中央に絶対配置。狭い幅では通常フローへ戻り、1 行に入らなければ折り返す (操作面を隠さず、印刷ボタンへも被せない) -->
         <div
           class="flex min-w-fit flex-1 items-center justify-center gap-1.5 text-xs whitespace-nowrap text-stone-700 sm:gap-2 md:absolute md:left-1/2 md:flex-none md:-translate-x-1/2"
         >

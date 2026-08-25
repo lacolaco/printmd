@@ -26,10 +26,7 @@ export class Paper {
     this.adopt(this.formats.find((paper) => paper.id === id) ?? FALLBACK);
   }
 
-  /**
-   * ページ組の実測 (Breaks.pagination) は版面の CSS 変数を前提にするため、
-   * 反映は effect の flush 順に委ねず、状態の更新と同じ手で書く
-   */
+  /** 実測が版面の CSS 変数を前提にするため、状態より先に反映を書く */
   private adopt(paper: PaperFormat): void {
     this.styles.apply(paper);
     this.selected.set(paper);

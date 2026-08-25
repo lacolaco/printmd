@@ -30,7 +30,7 @@ describe('defaultZoomIndex', () => {
   });
 });
 
-/** 実環境の初期段は matchMedia と innerWidth で決まる。jsdom には無いので差し込む */
+/** jsdom には matchMedia が無いので差し込む */
 function stubViewport(hasSideColumn: boolean): void {
   vi.stubGlobal('matchMedia', (media: string) => ({ matches: hasSideColumn, media }));
 }
@@ -43,7 +43,7 @@ describe('Zoom', () => {
   it('書式を選び直すと段送りを捨て、その紙が収まる段へ組み直す', () => {
     stubViewport(false);
     const zoom = TestBed.inject(Zoom);
-    // 1024 - 48 = 976px。A4 (794px) は実寸で収まり、A3 (1122px) は収まらない
+    // 可用幅 976px: A4 (794px) は収まり A3 (1122px) は収まらない
     expect(ZOOMS[zoom.index()]).toBe(1);
     zoom.stepBy(1);
     TestBed.inject(Paper).selectById('a3');

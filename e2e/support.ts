@@ -13,10 +13,7 @@ export async function importMarkdown(page: Page, name: string, content: string):
   await page.locator('.sheet').first().waitFor();
 }
 
-/**
- * ヘッダの用紙セレクタで書式を選び、紙面が組み直されるまで待つ。
- * 既に目的の書式が選ばれていても、セレクタと紙面の結線を毎回踏むために別の書式を経由する
- */
+/** 用紙書式を選び直す。結線を毎回踏むため、既に選ばれていれば別の書式を経由する */
 export async function selectPaper(page: Page, paper: PaperFormat): Promise<void> {
   const detour = PAPERS.find((other) => other.id !== paper.id)!;
   if ((await page.locator('header select').inputValue()) === paper.id) {
@@ -25,11 +22,7 @@ export async function selectPaper(page: Page, paper: PaperFormat): Promise<void>
   await switchPaper(page, paper);
 }
 
-/**
- * シートの寸法は CSS 変数だけで即座に変わるため、それを待っても古い紙面のまま
- * 返りうる。既存のシートへ印をつけ、印ごと差し替わったことを関門にする
- * (SheetRenderer は描画のたびにシートを作り直す)
- */
+/** 寸法は CSS 変数だけで先に変わるため、シートが差し替わったことを待つ */
 async function switchPaper(page: Page, paper: PaperFormat): Promise<void> {
   await page.evaluate(() =>
     document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),

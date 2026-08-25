@@ -54,7 +54,7 @@ function isAtLimit(step: number, delta: -1 | 1): boolean {
 export class Zoom {
   private readonly paper = inject(Paper);
 
-  /** 用紙書式が変われば紙の大きさも変わるので、収まる段へ組み直す */
+  /** 書式が変われば収まる段へ組み直す */
   private readonly step = linkedSignal<PaperFormat, number>({
     source: this.paper.format,
     computation: (format) => startupStep(format),

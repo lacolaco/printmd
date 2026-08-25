@@ -63,8 +63,7 @@ input[type='checkbox']:not(:disabled) {
   }
 }
 
-/* プレビュー: 多段組を用紙書式の版面に合わせ、段 = ページとして扱う
-   (寸法は paper-format.ts からカスタムプロパティで注入される) */
+/* プレビュー: 段 = ページ。寸法は paper-format.ts が注入する */
 .mc {
   width: var(--content-width);
   height: var(--content-height);
@@ -107,8 +106,7 @@ input[type='checkbox']:not(:disabled) {
   .print-root {
     display: block;
   }
-  /* @page 規則は paper-format.ts の書式から paper-styles.ts が実寸で注入する
-     (@page 内の var() は互換性が不確かなため、規則ごと差し替える) */
+  /* @page 規則は paper-styles.ts が注入する (@page 内の var() は互換性が不確か) */
 }
 
 /* ===========================================================================

@@ -21,7 +21,7 @@ export class PreviewViewModel {
   readonly pagination: Signal<Pagination | null> = this.breaks.pagination;
   /** 変換の進行中か。進行表示に使う */
   readonly isRendering: Signal<boolean> = this.pipeline.isRendering;
-  /** 現在の用紙書式。シートの段送り量に効く */
+  /** 現在の用紙書式 */
   readonly format: Signal<PaperFormat> = this.paper.format;
   /** 紙面の表示倍率 (style.zoom) */
   readonly scale: Signal<number> = this.zoom.value;
