@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { importMarkdown, previewHeadingPages, printPdfPageTexts, readPageCount } from './support';
+import { A4 } from '../src/app/shared/paper/paper-catalog';
 
 /**
  * 中核保証の検証: プレビューが見せるページ割りと、印刷 (PDF 化) の実出力が
@@ -43,7 +44,7 @@ test('プレビューのページ割りが印刷 PDF と一致する (強制改�
   await expect(page.locator('.sheet').first()).toBeAttached();
 
   const previewCount = await readPageCount(page);
-  const previewPages = await previewHeadingPages(page);
+  const previewPages = await previewHeadingPages(page, A4);
 
   const pdfTexts = await printPdfPageTexts(page);
   expect(pdfTexts.length).toBe(previewCount);
