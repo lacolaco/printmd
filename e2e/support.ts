@@ -11,7 +11,7 @@ export async function importMarkdown(page: Page, name: string, content: string):
     mimeType: 'text/markdown',
     buffer: Buffer.from(content, 'utf-8'),
   });
-  await page.locator('.sheet').first().waitFor();
+  await page.locator('.sheet .clip .mc').first().waitFor();
 }
 
 /** 用紙書式を選び直す。結線を毎回踏むため、既に選ばれていれば別の書式を経由する */
@@ -31,7 +31,8 @@ async function switchTo(page: Page, paper: PaperFormat): Promise<void> {
   await page.selectOption('header select', paper.id);
   await expect(page.locator('header select')).toHaveValue(paper.id);
   await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);
-  await page.locator('.sheet').first().waitFor();
+  // 遅延実体化なので、枠だけでなく中身が入るまで待つ
+  await page.locator('.sheet .clip .mc').first().waitFor();
   await expect
     .poll(async () => (await sheetSizePx(page)).width)
     .toBeCloseTo(paper.page.width * MM_TO_PX, -1);

@@ -12,13 +12,24 @@ export class MeasuringArea {
     this.host.className = 'measuring-area';
   }
 
-  /** 掲示は全クローン構築後 (構築中の例外で DOM に残さない)。計測は破棄より先 */
+  /** 掲示は全クローン構築後 (構築中の例外で DOM に残さない) */
   measure(doc: RenderedDocument, ranges: readonly SegmentRange[], format: PaperFormat): Pagination {
     const clones = this.cloneAll(doc, ranges);
     document.body.append(this.host);
-    const pagination = this.buildPagination(ranges, clones, format);
-    this.host.remove();
-    return pagination;
+    return this.collect(ranges, clones, format);
+  }
+
+  /** 計測中に何が起きても領域は取り除く */
+  private collect(
+    ranges: readonly SegmentRange[],
+    clones: readonly HTMLElement[],
+    format: PaperFormat,
+  ): Pagination {
+    try {
+      return this.buildPagination(ranges, clones, format);
+    } finally {
+      this.host.remove();
+    }
   }
 
   private buildPagination(

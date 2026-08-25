@@ -53,4 +53,17 @@ describe('MeasuringArea', () => {
     expect(() => area.measure(doc(), brokenRanges, A4)).toThrow('boom');
     expect(document.body.children.length).toBe(before);
   });
+
+  it('計測中に例外が起きても領域を除去する', () => {
+    const before = document.body.children.length;
+    const broken = {
+      pagesIn: () => {
+        throw new Error('measure boom');
+      },
+    } as unknown as typeof A4;
+    expect(() => new MeasuringArea().measure(doc(), [{ start: 0, end: 2 }], broken)).toThrow(
+      'measure boom',
+    );
+    expect(document.body.children.length).toBe(before);
+  });
 });

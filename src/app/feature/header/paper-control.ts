@@ -1,5 +1,5 @@
-import { Component, input, model } from '@angular/core';
-import type { PaperFormat } from '../../shared/paper/paper-format';
+import { Component, model } from '@angular/core';
+import { PAPERS } from '../../shared/paper/paper-catalog';
 
 /** 用紙書式の選択面。一覧を受け取り、選ばれた id を返すだけ */
 @Component({
@@ -10,7 +10,7 @@ import type { PaperFormat } from '../../shared/paper/paper-format';
       <span class="sr-only">用紙サイズ</span>
       <!-- select の value は option 生成前に当たって落ちるため、選択状態は option 側で持つ -->
       <select class="rounded px-1 py-0.5 hover:bg-stone-200" (change)="choose($event)">
-        @for (paper of papers(); track paper.id) {
+        @for (paper of papers; track paper.id) {
           <option [value]="paper.id" [selected]="paper.id === selected()">{{ paper.label }}</option>
         }
       </select>
@@ -18,8 +18,7 @@ import type { PaperFormat } from '../../shared/paper/paper-format';
   `,
 })
 export class PaperControl {
-  /** 選べる書式の一覧 */
-  readonly papers = input<readonly PaperFormat[]>([]);
+  protected readonly papers = PAPERS;
   /** 現在の書式の id */
   readonly selected = model('');
 

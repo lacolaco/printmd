@@ -1,11 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
-import { PAPERS } from '../../shared/paper/paper-catalog';
 import { PaperControl } from './paper-control';
 
 function renderWith(current: string): HTMLSelectElement {
   const fixture = TestBed.createComponent(PaperControl);
-  fixture.componentRef.setInput('papers', PAPERS);
   fixture.componentRef.setInput('selected', current);
   fixture.detectChanges();
   return (fixture.nativeElement as HTMLElement).querySelector('select')!;

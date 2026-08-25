@@ -18,7 +18,7 @@ export class Paper {
   readonly formats: readonly PaperFormat[] = PAPERS;
 
   constructor() {
-    this.styles.apply(DEFAULT_PAPER);
+    this.styles.apply(this.format());
   }
 
   /**

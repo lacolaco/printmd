@@ -23,11 +23,7 @@ import { ZoomControl } from './zoom-control';
           <span role="status" aria-live="polite">{{ vm.status() }}</span>
           <span aria-hidden="true" class="hidden opacity-40 sm:inline">|</span>
           <!-- select は自前で矢印キーを使うため、ロービング focus のツールバーの外に置く -->
-          <app-paper-control
-            [papers]="vm.papers()"
-            [selected]="vm.paperId()"
-            (selectedChange)="vm.choose($event)"
-          />
+          <app-paper-control [selected]="vm.paperId()" (selectedChange)="vm.choose($event)" />
           <span aria-hidden="true" class="hidden opacity-40 sm:inline">|</span>
           <div class="flex items-center gap-2" ngToolbar aria-label="表示倍率">
             <app-zoom-control
