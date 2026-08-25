@@ -1,4 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, type Signal } from '@angular/core';
+import type { FileGroup } from '../../../shared/markdown/block-groups';
 import { Breaks } from '../../../shared/pagination/breaks';
 import { Document } from '../../../shared/document';
 
@@ -8,13 +9,10 @@ export class BreakPanelViewModel {
   private readonly document = inject(Document);
   private readonly breaks = inject(Breaks);
 
-  readonly groups = this.document.blockGroups;
-  readonly rowTotal = this.document.rowTotal;
-  readonly multiSource = this.document.multiSource;
-
-  isBroken(blockId: string): boolean {
-    return this.breaks.ids().has(blockId);
-  }
+  readonly groups: Signal<readonly FileGroup[]> = this.document.blockGroups;
+  readonly rowTotal: Signal<number> = this.document.rowTotal;
+  readonly multiSource: Signal<boolean> = this.document.multiSource;
+  readonly marked: Signal<ReadonlySet<string>> = this.breaks.ids;
 
   toggle(blockId: string): void {
     this.breaks.toggle(blockId);

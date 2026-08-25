@@ -23,8 +23,8 @@ import { ZoomControl } from './zoom-control';
           <span aria-hidden="true" class="opacity-40">|</span>
           <app-zoom-control
             [label]="vm.zoomLabel()"
-            [shrinkable]="vm.isSteppable(-1)"
-            [growable]="vm.isSteppable(1)"
+            [shrinkable]="vm.shrinkable()"
+            [growable]="vm.growable()"
             (shrink)="vm.stepBy(-1)"
             (grow)="vm.stepBy(1)"
           />

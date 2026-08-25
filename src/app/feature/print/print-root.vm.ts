@@ -1,4 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, type Signal } from '@angular/core';
+import type { RenderedDocument } from '../../shared/markdown/block-extractor';
 import { Breaks } from '../../shared/pagination/breaks';
 import { Document } from '../../shared/document';
 
@@ -8,6 +9,6 @@ export class PrintRootViewModel {
   private readonly document = inject(Document);
   private readonly breaks = inject(Breaks);
 
-  readonly rendered = this.document.renderedDocument;
-  readonly marked = this.breaks.ids;
+  readonly rendered: Signal<RenderedDocument | null> = this.document.renderedDocument;
+  readonly marked: Signal<ReadonlySet<string>> = this.breaks.ids;
 }

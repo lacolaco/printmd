@@ -1,4 +1,4 @@
-import { Injectable, computed, inject } from '@angular/core';
+import { Injectable, computed, inject, type Signal } from '@angular/core';
 import { Document } from '../../shared/document';
 import { Manuscripts } from '../../shared/manuscript/manuscripts';
 import { Zoom } from '../../shared/pagination/zoom';
@@ -10,17 +10,15 @@ export class HeaderViewModel {
   private readonly document = inject(Document);
   private readonly zoom = inject(Zoom);
 
-  readonly active = this.manuscripts.nonEmpty;
-  readonly zoomLabel = this.zoom.label;
+  readonly active: Signal<boolean> = this.manuscripts.nonEmpty;
+  readonly zoomLabel: Signal<string> = this.zoom.label;
+  readonly shrinkable: Signal<boolean> = computed(() => this.zoom.isSteppable(-1));
+  readonly growable: Signal<boolean> = computed(() => this.zoom.isSteppable(1));
 
-  readonly status = computed(() => {
+  readonly status: Signal<string> = computed(() => {
     const count = this.document.pageCount();
     return this.document.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
   });
-
-  isSteppable(delta: -1 | 1): boolean {
-    return this.zoom.isSteppable(delta);
-  }
 
   stepBy(delta: -1 | 1): void {
     this.zoom.stepBy(delta);

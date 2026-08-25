@@ -1,18 +1,19 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, type Signal } from '@angular/core';
 import { Manuscripts } from '../../../shared/manuscript/manuscripts';
-import type { ImportSource } from '../../../shared/manuscript/manuscript';
+import type { ImportSource, ManuscriptFile } from '../../../shared/manuscript/manuscript';
 
 /**
- * FilePanel のビューモデル。原稿一覧の問い合わせと取り込み・並べ替え・削除の命令、
- * 並べ替え結果の読み上げ文 (role=status が購読) を持つ
+ * FilePanel のビューモデル。原稿一覧の query と取り込み・並べ替え・削除の command、
+ * 並べ替え結果の読み上げ文 (role=status が購読) を持つ。動けない移動は無視する
  */
 @Injectable()
 export class FilePanelViewModel {
   private readonly manuscripts = inject(Manuscripts);
+  private readonly notice = signal('');
 
-  readonly files = this.manuscripts.files;
-  readonly warnings = this.manuscripts.warnings;
-  readonly message = signal('');
+  readonly files: Signal<readonly ManuscriptFile[]> = this.manuscripts.files;
+  readonly warnings: Signal<readonly string[]> = this.manuscripts.warnings;
+  readonly message: Signal<string> = this.notice.asReadonly();
 
   add(sources: readonly ImportSource[]): Promise<void> {
     return this.manuscripts.add(sources);
@@ -22,25 +23,24 @@ export class FilePanelViewModel {
     this.manuscripts.remove(id);
   }
 
-  isMovable(id: number, delta: -1 | 1): boolean {
-    return this.manuscripts.isMovable(id, delta);
-  }
-
-  isReorderable(from: number, to: number): boolean {
-    return this.manuscripts.isReorderable(from, to);
-  }
-
-  /** ファイルを 1 つ動かし、読み上げ文を更新して新しい位置を返す */
-  nudge(id: number, name: string, delta: -1 | 1): number {
-    this.manuscripts.nudge(id, delta);
-    const index = this.files().findIndex((file) => file.id === id);
-    this.message.set(`${name}を${index + 1}番目に移動しました。改ページ指定はリセットされます`);
-    return index;
+  move(id: number, name: string, delta: -1 | 1): void {
+    if (this.manuscripts.isMovable(id, delta)) {
+      this.manuscripts.nudge(id, delta);
+      this.announce(
+        name,
+        this.files().findIndex((file) => file.id === id),
+      );
+    }
   }
 
   reorder(from: number, to: number): void {
-    this.manuscripts.reorder(from, to);
-    const moved = this.files()[to];
-    this.message.set(`${moved.name}を${to + 1}番目に移動しました。改ページ指定はリセットされます`);
+    if (this.manuscripts.isReorderable(from, to)) {
+      this.manuscripts.reorder(from, to);
+      this.announce(this.files()[to].name, to);
+    }
+  }
+
+  private announce(name: string, index: number): void {
+    this.notice.set(`${name}を${index + 1}番目に移動しました。改ページ指定はリセットされます`);
   }
 }

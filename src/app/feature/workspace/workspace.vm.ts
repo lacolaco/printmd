@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, type Signal } from '@angular/core';
 import { Manuscripts } from '../../shared/manuscript/manuscripts';
 import type { ImportSource } from '../../shared/manuscript/manuscript';
 
@@ -8,7 +8,7 @@ export class WorkspaceViewModel {
   private readonly manuscripts = inject(Manuscripts);
   private readonly opened = signal(false);
 
-  readonly sheetOpen = this.opened.asReadonly();
+  readonly sheetOpen: Signal<boolean> = this.opened.asReadonly();
 
   toggle(): void {
     this.opened.update((open) => !open);

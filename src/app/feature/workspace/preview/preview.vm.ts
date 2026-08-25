@@ -1,4 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, type Signal } from '@angular/core';
+import type { RenderedDocument } from '../../../shared/markdown/block-extractor';
+import type { Pagination } from '../../../shared/pagination/pagination';
 import { Document } from '../../../shared/document';
 import { Zoom } from '../../../shared/pagination/zoom';
 
@@ -8,8 +10,8 @@ export class PreviewViewModel {
   private readonly document = inject(Document);
   private readonly zoom = inject(Zoom);
 
-  readonly rendered = this.document.renderedDocument;
-  readonly pagination = this.document.pagination;
-  readonly rendering = this.document.rendering;
-  readonly scale = this.zoom.value;
+  readonly rendered: Signal<RenderedDocument | null> = this.document.renderedDocument;
+  readonly pagination: Signal<Pagination | null> = this.document.pagination;
+  readonly rendering: Signal<boolean> = this.document.rendering;
+  readonly scale: Signal<number> = this.zoom.value;
 }

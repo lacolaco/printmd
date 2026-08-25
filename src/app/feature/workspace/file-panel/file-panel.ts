@@ -49,15 +49,11 @@ export class FilePanel {
   private readonly injector = inject(Injector);
 
   protected onListDrop(event: CdkDragDrop<unknown>): void {
-    if (this.vm.isReorderable(event.previousIndex, event.currentIndex)) {
-      this.vm.reorder(event.previousIndex, event.currentIndex);
-    }
+    this.vm.reorder(event.previousIndex, event.currentIndex);
   }
 
   protected move(id: number, name: string, delta: -1 | 1): void {
-    if (this.vm.isMovable(id, delta)) {
-      this.vm.nudge(id, name, delta);
-      focusLater(this.injector, this.elementRef.nativeElement, id, delta);
-    }
+    this.vm.move(id, name, delta);
+    focusLater(this.injector, this.elementRef.nativeElement, id, delta);
   }
 }

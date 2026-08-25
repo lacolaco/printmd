@@ -28,7 +28,7 @@ import { BreakRowItem } from './break-row-item';
               <li>
                 <app-break-row-item
                   [row]="row"
-                  [checked]="vm.isBroken(row.block.id)"
+                  [checked]="vm.marked().has(row.block.id)"
                   (toggled)="vm.toggle(row.block.id)"
                 />
               </li>
