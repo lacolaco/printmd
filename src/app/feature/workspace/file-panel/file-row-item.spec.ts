@@ -7,8 +7,8 @@ import { FileRowItem } from './file-row-item';
   imports: [FileRowItem],
   template: `<app-file-row-item
     [file]="{ id: 1, name: 'a.md', content: '' }"
-    [first]="first()"
-    [last]="last()"
+    [isFirst]="first()"
+    [isLast]="last()"
     (moved)="moves.push($event)"
     (removed)="removes = removes + 1"
   />`,

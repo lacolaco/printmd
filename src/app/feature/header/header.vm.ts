@@ -12,14 +12,14 @@ export class HeaderViewModel {
   private readonly breaks = inject(Breaks);
   private readonly zoom = inject(Zoom);
 
-  readonly active: Signal<boolean> = this.manuscripts.nonEmpty;
+  readonly isActive: Signal<boolean> = this.manuscripts.isNonEmpty;
   readonly zoomLabel: Signal<string> = this.zoom.label;
-  readonly shrinkable: Signal<boolean> = computed(() => this.zoom.isSteppable(-1));
-  readonly growable: Signal<boolean> = computed(() => this.zoom.isSteppable(1));
+  readonly isShrinkable: Signal<boolean> = computed(() => this.zoom.isSteppable(-1));
+  readonly isGrowable: Signal<boolean> = computed(() => this.zoom.isSteppable(1));
 
   readonly status: Signal<string> = computed(() => {
     const count = this.breaks.pageCount();
-    return this.pipeline.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
+    return this.pipeline.isRendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
   });
 
   stepBy(delta: -1 | 1): void {

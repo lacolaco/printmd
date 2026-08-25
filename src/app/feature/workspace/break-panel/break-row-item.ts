@@ -40,7 +40,7 @@ const KIND_LABELS: Readonly<Record<BlockKind, string>> = {
         <input
           type="checkbox"
           class="mt-0.5 shrink-0"
-          [checked]="checked()"
+          [checked]="isChecked()"
           (change)="toggled.emit()"
         />
         <span class="min-w-0">
@@ -49,7 +49,7 @@ const KIND_LABELS: Readonly<Record<BlockKind, string>> = {
             aria-hidden="true"
             >{{ kindLabel() }}</span
           >
-          <span class="break-all text-stone-800" [class.font-medium]="emphasized()">{{
+          <span class="break-all text-stone-800" [class.font-medium]="isEmphasized()">{{
             row().block.label || kindLabel()
           }}</span>
         </span>
@@ -59,7 +59,7 @@ const KIND_LABELS: Readonly<Record<BlockKind, string>> = {
 })
 export class BreakRowItem {
   readonly row = input.required<BlockRow>();
-  readonly checked = input.required<boolean>();
+  readonly isChecked = input.required<boolean>();
   readonly toggled = output<void>();
 
   protected readonly kindLabel = computed(() => KIND_LABELS[this.row().block.kind]);
@@ -67,7 +67,7 @@ export class BreakRowItem {
   /** 基本の 6px + 階層インデント。深さは表示上 5 段で頭打ちにする */
   protected readonly indent = computed(() => 6 + Math.min(this.row().depth - 1, 4) * 12);
 
-  protected readonly emphasized = computed(() => {
+  protected readonly isEmphasized = computed(() => {
     const block = this.row().block;
     return block.kind === 'heading' && (block.level ?? 1) <= 2;
   });

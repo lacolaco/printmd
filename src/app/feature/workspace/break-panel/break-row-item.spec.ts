@@ -20,7 +20,7 @@ function block(partial: Partial<Block> & Pick<Block, 'id' | 'kind'>): Block {
   imports: [BreakRowItem],
   template: `<app-break-row-item
     [row]="row()"
-    [checked]="checked()"
+    [isChecked]="checked()"
     (toggled)="toggles = toggles + 1"
   />`,
 })

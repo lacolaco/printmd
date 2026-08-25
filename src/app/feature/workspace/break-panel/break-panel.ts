@@ -19,8 +19,8 @@ import { BreakRowItem } from './break-row-item';
         <p class="text-xs text-stone-500">改ページを調整できるブロックがありません</p>
       }
       @for (group of vm.groups(); track group.fileIndex) {
-        <div role="group" [attr.aria-label]="vm.multiSource() ? group.fileName : null">
-          @if (vm.multiSource()) {
+        <div role="group" [attr.aria-label]="vm.isMultiSource() ? group.fileName : null">
+          @if (vm.isMultiSource()) {
             <p class="mt-2 truncate text-xs font-bold text-stone-500">{{ group.fileName }}</p>
           }
           <ul class="space-y-0.5" role="list">
@@ -28,7 +28,7 @@ import { BreakRowItem } from './break-row-item';
               <li>
                 <app-break-row-item
                   [row]="row"
-                  [checked]="vm.breakIds().has(row.block.id)"
+                  [isChecked]="vm.breakIds().has(row.block.id)"
                   (toggled)="vm.toggle(row.block.id)"
                 />
               </li>

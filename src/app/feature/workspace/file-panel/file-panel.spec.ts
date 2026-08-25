@@ -21,7 +21,7 @@ async function whenRendered(): Promise<void> {
   for (let i = 0; i < 50; i++) {
     TestBed.tick();
     await appRef.whenStable();
-    if (!pipeline.rendering()) return;
+    if (!pipeline.isRendering()) return;
   }
 }
 

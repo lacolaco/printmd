@@ -18,7 +18,7 @@ export class Manuscripts {
 
   readonly files = this.list.asReadonly();
   readonly warnings = this.notices.asReadonly();
-  readonly nonEmpty = computed(() => this.files().length > 0);
+  readonly isNonEmpty = computed(() => this.files().length > 0);
 
   async add(sources: readonly ImportSource[]): Promise<void> {
     if (isNonEmpty(sources)) {

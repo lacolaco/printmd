@@ -21,7 +21,7 @@ export class ConversionPipeline {
     loader: async ({ params: files }) => (isNonEmpty(files) ? this.converter.render(files) : null),
   });
 
-  readonly rendering = this.pipeline.isLoading;
+  readonly isRendering = this.pipeline.isLoading;
 
   /**
    * container は唯一の DOM 実体で、印刷対象 (PrintRoot) がそのまま掲示し、

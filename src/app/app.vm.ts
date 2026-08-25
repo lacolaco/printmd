@@ -6,5 +6,5 @@ import { Manuscripts } from './shared/manuscript/manuscripts';
 export class AppViewModel {
   private readonly manuscripts = inject(Manuscripts);
 
-  readonly nonEmpty: Signal<boolean> = this.manuscripts.nonEmpty;
+  readonly isNonEmpty: Signal<boolean> = this.manuscripts.isNonEmpty;
 }

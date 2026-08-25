@@ -11,7 +11,7 @@ import { ToolbarWidget } from '@angular/aria/toolbar';
       class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
       ngToolbarWidget
       value="zoom-out"
-      [disabled]="!shrinkable()"
+      [disabled]="!isShrinkable()"
       aria-label="縮小"
       (click)="shrink.emit()"
     >
@@ -22,7 +22,7 @@ import { ToolbarWidget } from '@angular/aria/toolbar';
       class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
       ngToolbarWidget
       value="zoom-in"
-      [disabled]="!growable()"
+      [disabled]="!isGrowable()"
       aria-label="拡大"
       (click)="grow.emit()"
     >
@@ -32,8 +32,8 @@ import { ToolbarWidget } from '@angular/aria/toolbar';
 })
 export class ZoomControl {
   readonly label = input('');
-  readonly shrinkable = input(false);
-  readonly growable = input(false);
+  readonly isShrinkable = input(false);
+  readonly isGrowable = input(false);
   readonly shrink = output();
   readonly grow = output();
 }

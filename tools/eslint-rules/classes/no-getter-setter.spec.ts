@@ -64,6 +64,14 @@ tester.run('no-getter-setter', noGetterSetter, {
   ],
   invalid: [
     {
+      name: 'boolean を返すシグナルのフィールドは is 開始を強制する',
+      code: `import { signal } from '@angular/core';
+export class Panel {
+  readonly opened = signal(false);
+}`,
+      errors: [{ messageId: 'boolNeedsIs' }],
+    },
+    {
       name: '構文レベルの get アクセサは禁止',
       code: `export class Box {
   private width = 1;
