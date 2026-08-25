@@ -31,48 +31,48 @@ test('狭い画面 + 200% ズームでもパネルが画面外へ押し出され
 
 /**
  * 表示操作の帯は広い幅では中央へ絶対配置され、狭い幅では通常フローへ戻る。
- * 入りきらない分は帯の中で横スクロールさせ、印刷ボタンへ被せない。
- * 検証は幾何位置ではなく当たり判定で行う (覆われた操作面は別の操作を誤爆させる)
+ * 1 行に入らなければ折り返し、操作面を隠したり互いに被せたりしない
  */
 for (const width of [320, 375]) {
-  test(`${width}px 幅でヘッダの操作面が互いに覆い合わない`, async ({ page }) => {
+  test(`${width}px 幅でヘッダの操作面が隠れず互いに覆い合わない`, async ({ page }) => {
     await page.setViewportSize({ width, height: 700 });
     await page.goto('/');
     await importMarkdown(page, 'header.md', '# 見出し\n\n本文である。');
 
-    const overlaps = await page.evaluate(() => {
+    const header = await page.evaluate(() => {
       const selectors = [
         '.app-logo',
+        'header [role="status"]',
         'header select',
         '[aria-label="縮小"]',
         '[aria-label="拡大"]',
         '.app-print-button',
       ];
       const band = document.querySelector('header [role="status"]')!.parentElement!;
-      const scrollport = band.getBoundingClientRect();
-      // 帯が内容を切り取るときだけ、はみ出した分はスクロールで到達する。
-      // 切り取らない (overflow: visible) なら、はみ出しはそのまま隣へ被さる
-      const clips = getComputedStyle(band).overflowX !== 'visible';
-      const visibleRect = (el: Element) => {
-        const box = el.getBoundingClientRect();
-        const clipped = clips && band.contains(el);
-        return {
-          left: clipped ? Math.max(box.left, scrollport.left) : box.left,
-          right: clipped ? Math.min(box.right, scrollport.right) : box.right,
-        };
-      };
       const rects = selectors.map((selector) => ({
         selector,
-        ...visibleRect(document.querySelector(selector)!),
+        box: document.querySelector(selector)!.getBoundingClientRect(),
       }));
-      return rects.flatMap((a, index) =>
+      const overlaps = rects.flatMap((a, index) =>
         rects
           .slice(index + 1)
-          .filter((b) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0.5)
+          .filter(
+            (b) =>
+              Math.min(a.box.right, b.box.right) - Math.max(a.box.left, b.box.left) > 0.5 &&
+              Math.min(a.box.bottom, b.box.bottom) - Math.max(a.box.top, b.box.top) > 0.5,
+          )
           .map((b) => `${a.selector} × ${b.selector}`),
       );
+      const clipped = rects
+        .filter(({ box }) => box.left < 0 || box.right > window.innerWidth || box.width === 0)
+        .map(({ selector }) => selector);
+      return { overlaps, clipped, spill: band.scrollWidth - band.clientWidth };
     });
-    expect(overlaps).toEqual([]);
+
+    expect(header.overlaps).toEqual([]);
+    expect(header.clipped).toEqual([]);
+    // 帯の中身は帯に収まる (隠れた操作面へスクロールを強いない)
+    expect(header.spill).toBeLessThanOrEqual(0);
 
     const docScrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     expect(docScrollWidth).toBeLessThanOrEqual(width);
