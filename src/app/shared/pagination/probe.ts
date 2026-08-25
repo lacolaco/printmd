@@ -1,3 +1,4 @@
+import type { PaperFormat } from '../paper/paper-format';
 import type { RenderedDocument } from '../markdown/block-extractor';
 import type { Pagination, SegmentRange } from './pagination';
 import { buildSegmentClone } from './segment-clone';
@@ -12,10 +13,10 @@ export class Probe {
   }
 
   /** 掲示は全クローン構築後 (構築中の例外で DOM に残さない)。計測は破棄より先 */
-  measure(doc: RenderedDocument, ranges: readonly SegmentRange[]): Pagination {
+  measure(doc: RenderedDocument, ranges: readonly SegmentRange[], format: PaperFormat): Pagination {
     const clones = this.mount(doc, ranges);
     document.body.append(this.host);
-    const result = tallySegments(ranges, clones);
+    const result = tallySegments(ranges, clones, format);
     this.host.remove();
     return result;
   }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildRenderedDocument } from '../markdown/block-extractor';
+import { A4 } from '../paper/paper-catalog';
 import { measurePagination, splitAtForcedBreaks } from './page-count';
 import { buildSegmentClone } from './segment-clone';
 
@@ -57,7 +58,7 @@ describe('buildSegmentClone', () => {
 
 describe('measurePagination', () => {
   it('セグメントごとに計測し firstPage を積算する (jsdom は各 1 ページ)', () => {
-    const pagination = measurePagination(doc(), new Set(['f0b2']));
+    const pagination = measurePagination(doc(), new Set(['f0b2']), A4);
     expect(pagination.segments).toEqual([
       { start: 0, end: 2, pages: 1, firstPage: 0 },
       { start: 2, end: 3, pages: 1, firstPage: 1 },

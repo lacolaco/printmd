@@ -1,6 +1,7 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { A4, MM_TO_PX } from '../src/app/shared/pagination/page-geometry';
+import { MM_TO_PX, type PaperFormat } from '../src/app/shared/paper/paper-format';
+import { A4 } from '../src/app/shared/paper/paper-catalog';
 
 /** Markdown 文字列をファイル入力へ流し込み、プレビューの構築を待つ */
 export async function importMarkdown(page: Page, name: string, content: string): Promise<void> {
@@ -12,9 +13,24 @@ export async function importMarkdown(page: Page, name: string, content: string):
   await page.locator('.sheet').first().waitFor();
 }
 
+/**
+ * ヘッダの用紙セレクタで書式を選び、画面 CSS への反映を待つ。
+ * 待機条件は注入されるカスタムプロパティ (紙面の寸法そのもの) にする
+ */
+export async function selectPaper(page: Page, paper: PaperFormat): Promise<void> {
+  await page.selectOption('header select', paper.id);
+  await expect(page.locator('header select')).toHaveValue(paper.id);
+  await expect
+    .poll(() =>
+      page.evaluate(() => document.documentElement.style.getPropertyValue('--page-width')),
+    )
+    .toBe(`${paper.page.width}mm`);
+  await page.locator('.sheet').first().waitFor();
+}
+
 /** ツールバーのページ数表示を数値で返す */
 export async function readPageCount(page: Page): Promise<number> {
-  const text = await page.locator('[role="toolbar"] [role="status"]').textContent();
+  const text = await page.locator('header [role="status"]').textContent();
   const match = /(\d+)ページ/.exec(text ?? '');
   if (!match) throw new Error(`ページ数表示が読めない: ${text}`);
   return Number(match[1]);
@@ -25,7 +41,10 @@ export async function readPageCount(page: Page): Promise<number> {
  * アプリと同じセグメント分割 (強制改ページのクラス位置で独立ストリップに分ける)
  * を印刷対象の複製へ適用し、段のインデックスを x 位置から割り出す
  */
-export async function previewHeadingPages(page: Page): Promise<Record<string, number>> {
+export async function previewHeadingPages(
+  page: Page,
+  paper: PaperFormat = A4,
+): Promise<Record<string, number>> {
   return page.evaluate(
     ({ columnStepPx, columnGapPx }) => {
       const doc = document.querySelector('.print-root > *');
@@ -63,8 +82,17 @@ export async function previewHeadingPages(page: Page): Promise<Record<string, nu
       probe.remove();
       return pages;
     },
-    { columnStepPx: A4.column.step * MM_TO_PX, columnGapPx: A4.column.gap * MM_TO_PX },
+    { columnStepPx: paper.step * MM_TO_PX, columnGapPx: paper.gap * MM_TO_PX },
   );
+}
+
+/** 印刷実出力 (page.pdf) の 1 ページ目の紙寸法 (mm) を返す */
+export async function printPdfPageSize(page: Page): Promise<{ width: number; height: number }> {
+  const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
+  const doc = await getDocument({ data: new Uint8Array(pdf) }).promise;
+  const [x0, y0, x1, y1] = (await doc.getPage(1)).view;
+  const toMm = (pt: number) => Math.round((pt * 25.4) / 72);
+  return { width: toMm(x1 - x0), height: toMm(y1 - y0) };
 }
 
 /** 印刷実出力 (page.pdf) の各ページのテキストを返す */

@@ -1,40 +1,49 @@
 import { Component, inject } from '@angular/core';
 import { Toolbar } from '@angular/aria/toolbar';
 import { HeaderViewModel } from './header.vm';
+import { PaperControl } from './paper-control';
 import { ZoomControl } from './zoom-control';
 
 /**
- * アプリヘッダ。ロゴ / 表示状態 (頁数・ズーム) / 印刷の終端動作を持つ 1 本の帯
+ * アプリヘッダ。ロゴ / 表示状態 (頁数・用紙・ズーム) / 印刷の終端動作を持つ 1 本の帯
  */
 @Component({
   selector: 'app-header',
-  imports: [Toolbar, ZoomControl],
+  imports: [PaperControl, Toolbar, ZoomControl],
   providers: [HeaderViewModel],
   template: `
-    <header class="app-header flex h-12 shrink-0 items-center gap-3 border-b px-4">
+    <header class="app-header flex h-12 shrink-0 items-center gap-2 border-b px-2 sm:gap-3 sm:px-4">
       <h1 class="app-logo text-base font-bold tracking-tight">printmd</h1>
       @if (vm.isActive()) {
+        <!-- 帯は広い幅では中央に絶対配置、狭い幅では通常フローに戻して衝突を避ける -->
         <div
-          class="absolute left-1/2 flex -translate-x-1/2 items-center gap-2 text-xs text-stone-700"
-          ngToolbar
-          aria-label="表示操作"
+          class="flex min-w-0 flex-1 items-center justify-center gap-1.5 text-xs whitespace-nowrap text-stone-700 sm:gap-2 md:absolute md:left-1/2 md:flex-none md:-translate-x-1/2"
         >
           <span role="status" aria-live="polite">{{ vm.status() }}</span>
-          <span aria-hidden="true" class="opacity-40">|</span>
-          <app-zoom-control
-            [label]="vm.zoomLabel()"
-            [isShrinkable]="vm.isShrinkable()"
-            [isGrowable]="vm.isGrowable()"
-            (shrink)="vm.stepBy(-1)"
-            (grow)="vm.stepBy(1)"
+          <span aria-hidden="true" class="hidden opacity-40 sm:inline">|</span>
+          <!-- select は自前で矢印キーを使うため、ロービング focus のツールバーの外に置く -->
+          <app-paper-control
+            [choices]="vm.papers()"
+            [current]="vm.current()"
+            (picked)="vm.choose($event)"
           />
+          <span aria-hidden="true" class="hidden opacity-40 sm:inline">|</span>
+          <div class="flex items-center gap-2" ngToolbar aria-label="表示倍率">
+            <app-zoom-control
+              [label]="vm.zoomLabel()"
+              [isShrinkable]="vm.isShrinkable()"
+              [isGrowable]="vm.isGrowable()"
+              (shrink)="vm.stepBy(-1)"
+              (grow)="vm.stepBy(1)"
+            />
+          </div>
         </div>
         <button
           type="button"
           class="app-print-button ml-auto rounded-sm px-3 py-1 text-xs font-medium"
           (click)="print()"
         >
-          印刷 (PDFに保存)
+          印刷<span class="hidden sm:inline"> (PDFに保存)</span>
         </button>
       }
     </header>

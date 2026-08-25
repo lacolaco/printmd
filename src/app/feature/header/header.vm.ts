@@ -2,18 +2,25 @@ import { Injectable, computed, inject, type Signal } from '@angular/core';
 import { Breaks } from '../../shared/pagination/breaks';
 import { ConversionPipeline } from '../../shared/conversion-pipeline';
 import { Manuscripts } from '../../shared/manuscript/manuscripts';
+import { Paper } from '../../shared/paper/paper';
 import { Zoom } from '../../shared/pagination/zoom';
+import type { PaperFormat } from '../../shared/paper/paper-format';
 
-/** Header のビューモデル。表示操作の可視判断・頁数文言・段送りの問い合わせと命令 */
+/** Header のビューモデル。表示操作の可視判断・頁数文言・用紙書式と段送りの問い合わせと命令 */
 @Injectable()
 export class HeaderViewModel {
   private readonly manuscripts = inject(Manuscripts);
   private readonly pipeline = inject(ConversionPipeline);
   private readonly breaks = inject(Breaks);
   private readonly zoom = inject(Zoom);
+  private readonly paper = inject(Paper);
 
   /** 表示操作と印刷ボタンを出すか (原稿があるか) */
   readonly isActive: Signal<boolean> = this.manuscripts.isNonEmpty;
+  /** 選べる用紙書式の一覧 */
+  readonly papers: Signal<readonly PaperFormat[]> = computed(() => this.paper.formats);
+  /** 現在の用紙書式の id */
+  readonly current: Signal<string> = computed(() => this.paper.format().id);
   /** 現在の表示倍率の文言 */
   readonly zoomLabel: Signal<string> = this.zoom.label;
   /** まだ縮小できるか */
@@ -26,6 +33,11 @@ export class HeaderViewModel {
     const count = this.breaks.pageCount();
     return this.pipeline.isRendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
   });
+
+  /** id で用紙書式を選び直す */
+  choose(id: string): void {
+    this.paper.selectById(id);
+  }
 
   /** 表示倍率の段を delta ぶん送る */
   stepBy(delta: -1 | 1): void {

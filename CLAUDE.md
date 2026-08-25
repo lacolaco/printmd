@@ -10,8 +10,8 @@ printmd のプロジェクト規範。
 ## ページ組の不変条件
 
 - プレビューと印刷のページ割り一致は「予測ではなく共有」で達成する。改ページ位置を自前で計算するコードを持ち込んではならない (経緯は README の仕組み節を参照)。
-- 画面の強制改ページは CSS の強制改行 (`break-before: column`) に依存してはならない。Firefox が未実装のため、セグメント分割 (`src/app/pagination/page-count.ts`) で表現する。
-- 紙面の寸法は `src/app/pagination/page-geometry.ts` を単一の情報源とする。数値を別の場所に重複させてはならない。
+- 画面の強制改ページは CSS の強制改行 (`break-before: column`) に依存してはならない。Firefox が未実装のため、セグメント分割 (`src/app/shared/pagination/page-count.ts`) で表現する。
+- 紙面の寸法は `src/app/shared/paper/paper-format.ts` の `PaperFormat` を単一の情報源とする。数値を別の場所に重複させてはならない。書式ごとの分岐を書かず、寸法の問い合わせは `PaperFormat` のメソッドへ委ねる。
 
 ## コーディング規律
 
@@ -20,7 +20,7 @@ printmd のプロジェクト規範。
 ## 検証
 
 - テストファースト。修正はまず失敗するテストで再現してから行う。
-- 印刷パリティ (Chromium) と境界改ページ (Chromium / WebKit / Firefox) の e2e は削除・弱体化してはならない。
+- 印刷パリティ (Chromium) は選べる全書式で検証する。印刷パリティと境界改ページ (Chromium / WebKit / Firefox) の e2e は削除・弱体化してはならない。
 
 ## Angular / TypeScript コーディング指針
 

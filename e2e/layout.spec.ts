@@ -29,6 +29,26 @@ test('狭い画面 + 200% ズームでもパネルが画面外へ押し出され
   expect(hasHScroll).toBe(true);
 });
 
+/** 表示操作の帯は広い幅では中央へ絶対配置される。狭い幅では通常フローへ戻して衝突を避ける */
+test('375px 幅で原稿があってもヘッダの操作面が重ならない', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 700 });
+  await page.goto('/');
+  await importMarkdown(page, 'header.md', '# 見出し\n\n本文である。');
+
+  const selectors = ['.app-logo', 'header [role="status"]', 'header select', '.app-print-button'];
+  const boxes = [];
+  for (const selector of selectors) {
+    boxes.push((await page.locator(selector).boundingBox())!);
+  }
+  boxes.slice(1).forEach((box, index) => {
+    const previous = boxes[index];
+    expect(box.x).toBeGreaterThanOrEqual(previous.x + previous.width);
+  });
+
+  const docScrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(docScrollWidth).toBeLessThanOrEqual(375);
+});
+
 test('375px 幅でもフッタの表記が帯の内側に収まる', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 700 });
   await page.goto('/');

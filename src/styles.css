@@ -63,7 +63,8 @@ input[type='checkbox']:not(:disabled) {
   }
 }
 
-/* プレビュー: 多段組を A4 版面 (178mm × 265mm) に固定し、段 = ページとして扱う */
+/* プレビュー: 多段組を用紙書式の版面に合わせ、段 = ページとして扱う
+   (寸法は paper-format.ts からカスタムプロパティで注入される) */
 .mc {
   width: var(--content-width);
   height: var(--content-height);
@@ -106,11 +107,8 @@ input[type='checkbox']:not(:disabled) {
   .print-root {
     display: block;
   }
-  @page {
-    /* 正典は page-geometry.ts (@page 内の var() は互換性が不確かなためリテラル) */
-    size: A4;
-    margin: 16mm;
-  }
+  /* @page 規則は paper-format.ts の書式から paper-styles.ts が実寸で注入する
+     (@page 内の var() は互換性が不確かなため、規則ごと差し替える) */
 }
 
 /* ===========================================================================

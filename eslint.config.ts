@@ -42,6 +42,17 @@ const LAYERS = [
     patterns: [{ group: ['**/feature/**'], message: 'mermaid 層は feature に依存しない' }],
   },
   {
+    // paper は shared の最下層 (紙面の寸法だけを知る)
+    files: ['src/app/shared/paper/**/*.ts'],
+    patterns: [
+      { group: ['**/feature/**'], message: 'shared は feature に依存しない' },
+      {
+        group: ['**/pagination/**', '**/manuscript/**', '**/markdown/**', '**/conversion-pipeline'],
+        message: 'paper は shared の最下層。他のドメインに依存しない',
+      },
+    ],
+  },
+  {
     // shared 内の依存方向: manuscript ← conversion-pipeline ← pagination
     files: ['src/app/shared/manuscript/**/*.ts'],
     patterns: [
