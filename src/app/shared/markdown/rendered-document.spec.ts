@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildRenderedDocument } from './block-extractor';
+import { buildRenderedDocument } from './build-rendered-document';
 
 const doc = () =>
   buildRenderedDocument([

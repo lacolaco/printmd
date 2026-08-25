@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Block } from '../markdown/block-extractor';
+import type { Block } from '../markdown/block';
 import { groupBlocks } from './block-groups';
 
 function block(partial: Partial<Block> & Pick<Block, 'id' | 'kind'>): Block {

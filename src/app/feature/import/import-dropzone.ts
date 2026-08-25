@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { sourcesFrom } from '../../shared/manuscript/manuscript';
+import { sourcesFrom } from '../../shared/manuscript/import-source';
 import { ImportDropzoneViewModel } from './import-dropzone.vm';
 
 /**

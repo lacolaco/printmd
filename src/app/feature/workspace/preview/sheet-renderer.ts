@@ -1,7 +1,7 @@
-import type { RenderedDocument } from '../../../shared/markdown/block-extractor';
+import type { RenderedDocument } from '../../../shared/markdown/rendered-document';
 import type { PageSegment, Pagination } from '../../../shared/pagination/pagination';
 import { buildSegmentClone } from '../../../shared/pagination/segment-clone';
-import { ifDefined } from '../../../shared/collections';
+import { ifDefined } from '../../../shared/optional';
 import type { PaperFormat } from '../../../shared/paper/paper-format';
 
 function isEmpty(sheet: HTMLElement): boolean {

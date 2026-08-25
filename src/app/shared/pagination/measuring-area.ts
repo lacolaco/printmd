@@ -1,5 +1,5 @@
 import type { PaperFormat } from '../paper/paper-format';
-import type { RenderedDocument } from '../markdown/block-extractor';
+import type { RenderedDocument } from '../markdown/rendered-document';
 import type { Pagination, SegmentRange } from './pagination';
 import { buildSegmentClone } from './segment-clone';
 import { PaginationBuilder } from './pagination-builder';

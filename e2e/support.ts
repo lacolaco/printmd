@@ -1,6 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { MM_TO_PX, type PaperFormat } from '../src/app/shared/paper/paper-format';
+import type { PaperFormat } from '../src/app/shared/paper/paper-format';
+import { MM_TO_PX } from '../src/app/shared/paper/units';
 import { PAPERS } from '../src/app/shared/paper/paper-catalog';
 
 /** Markdown 文字列をファイル入力へ流し込み、プレビューの構築を待つ */

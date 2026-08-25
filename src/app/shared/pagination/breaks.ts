@@ -3,7 +3,7 @@ import { isPrefixOf } from '../collections';
 import { ConversionPipeline } from '../conversion-pipeline';
 import { Manuscripts } from '../manuscript/manuscripts';
 import { Paper } from '../paper/paper';
-import { measurePagination } from './page-count';
+import { measurePagination } from './measure-pagination';
 import type { ManuscriptFile } from '../manuscript/manuscript';
 
 function toggled(current: ReadonlySet<string>, blockId: string): ReadonlySet<string> {

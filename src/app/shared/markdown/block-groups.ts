@@ -1,4 +1,4 @@
-import type { Block } from './block-extractor';
+import type { Block } from './block';
 
 /** ブロックと、見出し階層に基づく深さ。見出しは自身のレベル、本文は直近の見出しの 1 段下 */
 export interface BlockRow {

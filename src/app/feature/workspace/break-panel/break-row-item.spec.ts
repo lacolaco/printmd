@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
-import type { Block } from '../../../shared/markdown/block-extractor';
+import type { Block } from '../../../shared/markdown/block';
 import type { BlockRow } from '../../../shared/markdown/block-groups';
 import { BreakRowItem } from './break-row-item';
 

@@ -1,4 +1,6 @@
 /** 用紙書式の識別子 */
+import { MM_TO_PX } from './units';
+
 export type PaperFormatId = 'a4' | 'a3' | 'b5';
 
 /** 紙の物理寸法と四辺の余白 (単位 mm) */
@@ -13,9 +15,6 @@ interface ContentBox {
   readonly width: number;
   readonly height: number;
 }
-
-/** 1mm を CSS px に換算する係数 (96dpi 基準) */
-export const MM_TO_PX = 96 / 25.4;
 
 /** 段間 (mm)。紙ではなく画面上の隙間なので全書式で共通 */
 const GAP = 16;

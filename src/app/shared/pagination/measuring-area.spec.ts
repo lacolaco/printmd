@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildRenderedDocument } from '../markdown/block-extractor';
+import { buildRenderedDocument } from '../markdown/build-rendered-document';
 import { A4 } from '../paper/paper-catalog';
 import { MeasuringArea } from './measuring-area';
 

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { importMarkdown, selectPaper } from './support';
 import { B5 } from '../src/app/shared/paper/paper-catalog';
-import { MM_TO_PX } from '../src/app/shared/paper/paper-format';
+import { MM_TO_PX } from '../src/app/shared/paper/units';
 
 // 画面の強制改ページは CSS の break-before に頼らずセグメント分割で表現している
 // (Firefox は段への強制改行を実装せず、Safari 安定版は break-before: column を

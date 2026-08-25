@@ -47,5 +47,5 @@
     <text x="500" y="368" text-anchor="middle" fill="#1f2328">ページ 4</text>
     <text x="500" y="390" text-anchor="middle" font-size="11" fill="#59636e">セグ 1 の段 1</text>
   </g>
-  <text x="20" y="446" font-size="12" fill="#59636e">総ページ数 = 各ストリップの段数の和 (2 + 2 = 4)。実装は src/app/pagination/page-count.ts</text>
+  <text x="20" y="446" font-size="12" fill="#59636e">総ページ数 = 各ストリップの段数の和 (2 + 2 = 4)。実装は src/app/shared/pagination/segment-ranges.ts</text>
 </svg>

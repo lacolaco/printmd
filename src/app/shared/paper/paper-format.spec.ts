@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { MM_TO_PX, PaperFormat } from './paper-format';
+import { PaperFormat } from './paper-format';
+import { MM_TO_PX } from './units';
 
 const paper = new PaperFormat('a4', 'A4', { width: 210, height: 297, margin: 16 });
 

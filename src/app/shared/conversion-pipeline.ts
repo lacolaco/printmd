@@ -2,7 +2,7 @@ import { Service, computed, inject, resource } from '@angular/core';
 import { isNonEmpty } from './collections';
 import { Converter } from './manuscript/converter';
 import { Manuscripts } from './manuscript/manuscripts';
-import type { RenderedDocument } from './markdown/block-extractor';
+import type { RenderedDocument } from './markdown/rendered-document';
 
 /** 変換。原稿列を変換済み文書へ導くパイプラインとその進行状態を担う */
 @Service()

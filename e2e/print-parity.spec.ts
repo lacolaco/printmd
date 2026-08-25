@@ -9,7 +9,7 @@ import {
   sheetSizePx,
 } from './support';
 import { PAPERS } from '../src/app/shared/paper/paper-catalog';
-import { MM_TO_PX } from '../src/app/shared/paper/paper-format';
+import { MM_TO_PX } from '../src/app/shared/paper/units';
 
 /**
  * 中核保証の検証: プレビューが見せるページ割りと、印刷 (PDF 化) の実出力が

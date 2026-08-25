@@ -2,7 +2,8 @@ import { Service, computed, inject, signal } from '@angular/core';
 import { isNonEmpty } from '../collections';
 import { FileOrder } from './file-order';
 import { Importer } from './importer';
-import type { ImportSource, ManuscriptFile } from './manuscript';
+import type { ManuscriptFile } from './manuscript';
+import type { ImportSource } from './import-source';
 
 function removedFrom(current: readonly ManuscriptFile[], id: number): readonly ManuscriptFile[] {
   const remaining = current.filter((f) => f.id !== id);

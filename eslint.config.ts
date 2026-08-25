@@ -47,7 +47,13 @@ const LAYERS = [
     patterns: [
       { group: ['**/feature/**'], message: 'shared は feature に依存しない' },
       {
-        group: ['**/pagination/**', '**/manuscript/**', '**/markdown/**', '**/conversion-pipeline'],
+        group: [
+          '**/pagination/**',
+          '**/manuscript/**',
+          '**/markdown/**',
+          '**/mermaid/**',
+          '**/conversion-pipeline',
+        ],
         message: 'paper は shared の最下層。他のドメインに依存しない',
       },
     ],

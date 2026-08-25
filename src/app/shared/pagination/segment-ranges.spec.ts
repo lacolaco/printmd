@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { Block } from '../markdown/block-extractor';
-import { SegmentRanges } from './segment-ranges';
+import type { Block } from '../markdown/block';
+import { buildRenderedDocument } from '../markdown/build-rendered-document';
+import { SegmentRanges, splitAtForcedBreaks } from './segment-ranges';
 
 function block(overrides: Partial<Block> = {}): Block {
   return {
@@ -54,5 +55,35 @@ describe('SegmentRanges', () => {
   it('区切りがなくても close は最後の区間を必ず含む', () => {
     const ranges = new SegmentRanges();
     expect(ranges.closeAt(0)).toEqual([{ start: 0, end: 0 }]);
+  });
+});
+
+const doc = () =>
+  buildRenderedDocument([
+    { fileIndex: 0, fileName: 'a.md', html: '<h1>A</h1><p>a1</p><p>a2</p>' },
+    { fileIndex: 1, fileName: 'b.md', html: '<h1>B</h1><p>b1</p>' },
+  ]);
+
+describe('splitAtForcedBreaks', () => {
+  it('指定がなければファイル境界だけで分割する', () => {
+    expect(splitAtForcedBreaks(doc().blocks, new Set())).toEqual([
+      { start: 0, end: 3 },
+      { start: 3, end: 5 },
+    ]);
+  });
+
+  it('チェック指定の位置でも分割する', () => {
+    expect(splitAtForcedBreaks(doc().blocks, new Set(['f0b2']))).toEqual([
+      { start: 0, end: 2 },
+      { start: 2, end: 3 },
+      { start: 3, end: 5 },
+    ]);
+  });
+
+  it('文書先頭のブロックへの指定は区切りを生まない', () => {
+    expect(splitAtForcedBreaks(doc().blocks, new Set(['f0b0']))).toEqual([
+      { start: 0, end: 3 },
+      { start: 3, end: 5 },
+    ]);
   });
 });

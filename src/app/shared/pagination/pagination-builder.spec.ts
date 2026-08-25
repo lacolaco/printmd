@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MM_TO_PX } from '../paper/paper-format';
+import { MM_TO_PX } from '../paper/units';
 import { A4, B5 } from '../paper/paper-catalog';
 import { PaginationBuilder } from './pagination-builder';
 
