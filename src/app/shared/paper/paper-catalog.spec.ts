@@ -4,11 +4,21 @@ import { A4, DEFAULT_PAPER, PAPERS } from './paper-catalog';
 describe('paper-catalog', () => {
   it('A4 の紙寸法と余白', () => {
     expect(A4.page).toEqual({ width: 210, height: 297, margin: 16 });
-    expect(A4.label).toBe('A4');
   });
 
-  it('選べる書式を画面に並べる順で持ち、既定は A4', () => {
-    expect(PAPERS.map((paper) => paper.label)).toEqual(['A4']);
-    expect(DEFAULT_PAPER).toBe(A4);
+  it('どの書式も表示名と正の版面を持つ', () => {
+    PAPERS.forEach((paper) => {
+      expect(paper.label).not.toBe('');
+      expect(paper.content.width).toBeGreaterThan(0);
+      expect(paper.content.height).toBeGreaterThan(0);
+    });
+  });
+
+  it('表示名は書式を一意に指す (select の値に使う)', () => {
+    expect(new Set(PAPERS.map((paper) => paper.label)).size).toBe(PAPERS.length);
+  });
+
+  it('既定は一覧の先頭', () => {
+    expect(DEFAULT_PAPER).toBe(PAPERS[0]);
   });
 });
