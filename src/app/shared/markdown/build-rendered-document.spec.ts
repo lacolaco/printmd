@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildRenderedDocument, type FileFragment } from './block-extractor';
+import type { FileFragment } from './block';
+import { buildRenderedDocument } from './build-rendered-document';
 
 describe('buildRenderedDocument', () => {
   it('1 ファイルのトップレベル要素に f{fileIndex}b{blockIndex} の ID を振る', () => {

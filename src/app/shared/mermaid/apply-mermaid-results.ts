@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify';
-import { ifDefined } from '../collections';
+import { ifDefined } from '../optional';
 import type { MermaidOutcome } from './mermaid-renderer';
 
 const FAILURE_TEXT = 'mermaid の描画に失敗したため、元のコードを表示しています';

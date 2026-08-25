@@ -2,7 +2,7 @@ import { Service, computed, inject, linkedSignal } from '@angular/core';
 import { isPrefixOf } from '../collections';
 import { ConversionPipeline } from '../conversion-pipeline';
 import { Manuscripts } from '../manuscript/manuscripts';
-import { measurePagination } from './page-count';
+import { measurePagination } from './measure-pagination';
 import type { ManuscriptFile } from '../manuscript/manuscript';
 
 function toggled(current: ReadonlySet<string>, blockId: string): ReadonlySet<string> {
@@ -43,7 +43,7 @@ export class Breaks {
 
   /**
    * ページ組。(doc, 指定) を現在の CSS で組んだときのレイアウト結果の
-   * メモ化された導出値 (実測はプローブで行うが観測可能な状態を残さない)
+   * メモ化された導出値 (実測は画面外の領域で行うが観測可能な状態を残さない)
    */
   readonly pagination = computed(() => {
     const doc = this.pipeline.renderedDocument();

@@ -5,7 +5,7 @@ import { MermaidRenderer, type MermaidLike } from '../mermaid/mermaid-renderer';
 import { Manuscripts } from '../manuscript/manuscripts';
 import { ConversionPipeline } from '../conversion-pipeline';
 import { Breaks } from './breaks';
-import type { Block } from '../markdown/block-extractor';
+import type { Block } from '../markdown/block';
 
 class FakeMermaidRenderer extends MermaidRenderer {
   protected override loadModule(): Promise<MermaidLike> {

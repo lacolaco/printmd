@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { BUNDLED_DEMOS } from './demo-manuscript';
 import { Manuscripts } from '../../shared/manuscript/manuscripts';
-import type { ImportSource } from '../../shared/manuscript/manuscript';
+import type { ImportSource } from '../../shared/manuscript/import-source';
 
 /** ImportDropzone のビューモデル。取り込みとデモ読み込みの command */
 @Injectable()

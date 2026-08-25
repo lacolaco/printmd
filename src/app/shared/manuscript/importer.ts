@@ -1,5 +1,6 @@
 import { Service } from '@angular/core';
-import type { ImportSource, ManuscriptFile } from './manuscript';
+import type { ManuscriptFile } from './manuscript';
+import type { ImportSource } from './import-source';
 
 const MARKDOWN_NAME_PATTERN = /\.(md|markdown|txt)$/i;
 

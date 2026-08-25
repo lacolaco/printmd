@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Importer } from './importer';
-import type { ImportSource } from './manuscript';
+import type { ImportSource } from './import-source';
 
 function source(name: string, text: () => Promise<string>): ImportSource {
   return { name, text };

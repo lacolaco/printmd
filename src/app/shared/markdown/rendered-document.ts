@@ -1,5 +1,5 @@
-import { ifDefined } from '../collections';
-import type { Block } from './block-extractor';
+import { ifDefined } from '../optional';
+import type { Block } from './block';
 import { groupBlocks, type FileGroup } from './block-groups';
 
 /** 変換済み文書の実体。container は唯一の DOM で、掲示は自身が担う */
