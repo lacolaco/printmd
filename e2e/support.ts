@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { A4, MM_TO_PX } from '../src/app/shared/pagination/page-geometry';
+import { MM_TO_PX } from '../src/app/shared/paper/units';
+import { A4 } from '../src/app/shared/paper/paper-catalog';
 
 /** Markdown 文字列をファイル入力へ流し込み、プレビューの構築を待つ */
 export async function importMarkdown(page: Page, name: string, content: string): Promise<void> {
@@ -63,7 +64,7 @@ export async function previewHeadingPages(page: Page): Promise<Record<string, nu
       probe.remove();
       return pages;
     },
-    { columnStepPx: A4.column.step * MM_TO_PX, columnGapPx: A4.column.gap * MM_TO_PX },
+    { columnStepPx: A4.step * MM_TO_PX, columnGapPx: A4.gap * MM_TO_PX },
   );
 }
 

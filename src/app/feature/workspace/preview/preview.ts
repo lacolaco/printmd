@@ -1,11 +1,13 @@
 import { Component, DestroyRef, effect, inject, viewChild, type ElementRef } from '@angular/core';
 import { PreviewViewModel } from './preview.vm';
+import type { PaperFormat } from '../../../shared/paper/paper-format';
 import { SheetRenderer } from './sheet-renderer';
+import { DEFAULT_PAPER } from '../../../shared/paper/paper-catalog';
 
 /**
- * プレビュー: CSS 多段組を流用したページ分割。変換済み文書の要素を段幅 178mm の
- * 多段組コンテナへ複製し、段 i だけを見せる窓 (178mm × 265mm, overflow
- * hidden) を A4 シートとして縦に積む。
+ * プレビュー: CSS 多段組を流用したページ分割。変換済み文書の要素を版面幅の
+ * 多段組コンテナへ複製し、段 i だけを見せる窓 (版面寸法, overflow hidden) を
+ * 用紙書式のシートとして縦に積む。
  * 改ページの指定は右カラムの調整パネルが担い、紙面は表示専用
  */
 @Component({
@@ -45,7 +47,7 @@ export class Preview {
   private readonly repaint = effect(() => {
     const doc = this.vm.rendered();
     const pagination = this.vm.pagination();
-    this.renderer = renewRenderer(this.renderer, this.sheetsHost().nativeElement);
+    this.renderer = renewRenderer(this.renderer, this.sheetsHost().nativeElement, DEFAULT_PAPER);
     this.renderer.render(doc, pagination);
   });
 
@@ -55,7 +57,11 @@ export class Preview {
   }
 }
 
-function renewRenderer(previous: SheetRenderer | null, host: HTMLElement): SheetRenderer {
+function renewRenderer(
+  previous: SheetRenderer | null,
+  host: HTMLElement,
+  format: PaperFormat,
+): SheetRenderer {
   previous?.dispose();
-  return new SheetRenderer(host);
+  return new SheetRenderer(host, format);
 }

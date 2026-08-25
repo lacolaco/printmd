@@ -63,7 +63,7 @@ input[type='checkbox']:not(:disabled) {
   }
 }
 
-/* プレビュー: 多段組を A4 版面 (178mm × 265mm) に固定し、段 = ページとして扱う */
+/* プレビュー: 段 = ページ。版面の寸法は paper-format.ts の書式から注入される */
 .mc {
   width: var(--content-width);
   height: var(--content-height);
@@ -107,7 +107,7 @@ input[type='checkbox']:not(:disabled) {
     display: block;
   }
   @page {
-    /* 正典は page-geometry.ts (@page 内の var() は互換性が不確かなためリテラル) */
+    /* 寸法の単一の情報源は paper-format.ts (@page 内の var() は互換性が不確かなためリテラル) */
     size: A4;
     margin: 16mm;
   }

@@ -2,7 +2,7 @@ import type { RenderedDocument } from '../../../shared/markdown/rendered-documen
 import type { PageSegment, Pagination } from '../../../shared/pagination/pagination';
 import { buildSegmentClone } from '../../../shared/pagination/segment-clone';
 import { ifDefined } from '../../../shared/optional';
-import { A4 } from '../../../shared/pagination/page-geometry';
+import type { PaperFormat } from '../../../shared/paper/paper-format';
 
 function isEmpty(sheet: HTMLElement): boolean {
   return sheet.childElementCount === 0;
@@ -23,10 +23,15 @@ function segmentAt(pagination: Pagination, index: number): PageSegment | undefin
   return pagination.segments.find((s) => index >= s.firstPage && index < s.firstPage + s.pages);
 }
 
-function clipWindow(doc: RenderedDocument, segment: PageSegment, column: number): HTMLElement {
+function clipWindow(
+  doc: RenderedDocument,
+  segment: PageSegment,
+  column: number,
+  format: PaperFormat,
+): HTMLElement {
   const clip = document.createElement('div');
   clip.className = 'clip';
-  clip.append(shiftedClone(doc, segment, column));
+  clip.append(shiftedClone(doc, segment, column, format));
   return clip;
 }
 
@@ -34,9 +39,14 @@ function clipWindow(doc: RenderedDocument, segment: PageSegment, column: number)
  * セグメントのクローンを、セグメント内の段位置ぶん左へずらした状態で作る。
  * 紙面の複製は読み上げ・フォーカスの対象から外す (本文は原稿と印刷対象が担う)
  */
-function shiftedClone(doc: RenderedDocument, segment: PageSegment, column: number): HTMLElement {
+function shiftedClone(
+  doc: RenderedDocument,
+  segment: PageSegment,
+  column: number,
+  format: PaperFormat,
+): HTMLElement {
   const mc = buildSegmentClone(doc, segment.start, segment.end);
-  mc.style.marginLeft = `${-(column * A4.column.step)}mm`;
+  mc.style.marginLeft = `${-format.offsetAt(column)}mm`;
   mc.setAttribute('inert', '');
   return mc;
 }
@@ -48,7 +58,10 @@ export class SheetRenderer {
   /** シート要素 → ページ番号 (0 始まり) */
   private readonly pages = new WeakMap<HTMLElement, number>();
 
-  constructor(private readonly host: HTMLElement) {}
+  constructor(
+    private readonly host: HTMLElement,
+    private readonly format: PaperFormat,
+  ) {}
 
   render(doc: RenderedDocument | null, pagination: Pagination | null): void {
     this.dispose();
@@ -143,7 +156,7 @@ export class SheetRenderer {
     pagination: Pagination,
   ): void {
     ifDefined(segmentAt(pagination, index), (segment) =>
-      sheet.append(clipWindow(doc, segment, columnFor(segment, index))),
+      sheet.append(clipWindow(doc, segment, columnFor(segment, index), this.format)),
     );
   }
 }

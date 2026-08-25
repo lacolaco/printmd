@@ -2,6 +2,7 @@ import { Service, computed, inject, linkedSignal } from '@angular/core';
 import { isPrefixOf } from '../collections';
 import { ConversionPipeline } from '../conversion-pipeline';
 import { Manuscripts } from '../manuscript/manuscripts';
+import { DEFAULT_PAPER } from '../paper/paper-catalog';
 import { measurePagination } from './measure-pagination';
 import type { ManuscriptFile } from '../manuscript/manuscript';
 
@@ -47,7 +48,7 @@ export class Breaks {
    */
   readonly pagination = computed(() => {
     const doc = this.pipeline.renderedDocument();
-    return doc === null ? null : measurePagination(doc, this.ids());
+    return doc === null ? null : measurePagination(doc, this.ids(), DEFAULT_PAPER);
   });
 
   /** 総ページ数 = 各セグメントの段数の和 */
