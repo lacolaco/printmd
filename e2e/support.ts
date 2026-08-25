@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { MM_TO_PX } from '../src/app/shared/paper/units';
-import { A4 } from '../src/app/shared/paper/paper-catalog';
+import type { PaperFormat } from '../src/app/shared/paper/paper-format';
 
 /** Markdown 文字列をファイル入力へ流し込み、プレビューの構築を待つ */
 export async function importMarkdown(page: Page, name: string, content: string): Promise<void> {
@@ -10,7 +10,8 @@ export async function importMarkdown(page: Page, name: string, content: string):
     mimeType: 'text/markdown',
     buffer: Buffer.from(content, 'utf-8'),
   });
-  await page.locator('.sheet').first().waitFor();
+  // 遅延実体化なので、枠だけでなく中身が入るまで待つ
+  await page.locator('.sheet .clip .mc').first().waitFor();
 }
 
 /** ツールバーのページ数表示を数値で返す */
@@ -26,7 +27,10 @@ export async function readPageCount(page: Page): Promise<number> {
  * アプリと同じセグメント分割 (強制改ページのクラス位置で独立ストリップに分ける)
  * を印刷対象の複製へ適用し、段のインデックスを x 位置から割り出す
  */
-export async function previewHeadingPages(page: Page): Promise<Record<string, number>> {
+export async function previewHeadingPages(
+  page: Page,
+  paper: PaperFormat,
+): Promise<Record<string, number>> {
   return page.evaluate(
     ({ columnStepPx, columnGapPx }) => {
       const doc = document.querySelector('.print-root > *');
@@ -64,7 +68,7 @@ export async function previewHeadingPages(page: Page): Promise<Record<string, nu
       probe.remove();
       return pages;
     },
-    { columnStepPx: A4.step * MM_TO_PX, columnGapPx: A4.gap * MM_TO_PX },
+    { columnStepPx: paper.step * MM_TO_PX, columnGapPx: paper.gap * MM_TO_PX },
   );
 }
 
