@@ -13,11 +13,10 @@ import { noCommonAffixes } from './tools/eslint-rules/classes/no-common-affixes'
 import { noDataClump } from './tools/eslint-rules/classes/no-data-clump';
 import { noElse } from './tools/eslint-rules/functions/no-else';
 import { noGetterSetter } from './tools/eslint-rules/classes/no-getter-setter';
-import { noPrivateComponentMethods } from './tools/eslint-rules/angular/no-private-component-methods';
 import { noSingleImplementationInterface } from './tools/eslint-rules/classes/no-single-implementation-interface';
 import { noSwitch } from './tools/eslint-rules/functions/no-switch';
 import { pureConditions } from './tools/eslint-rules/functions/pure-conditions';
-import { vmBoundary } from './tools/eslint-rules/angular/vm-boundary';
+import { componentSignature } from './tools/eslint-rules/angular/component-signature';
 import { vmSignature } from './tools/eslint-rules/angular/vm-signature';
 import { noStateOnlyService } from './tools/eslint-rules/structure/no-state-only-service';
 
@@ -86,11 +85,10 @@ export default defineConfig([
           'no-data-clump': noDataClump,
           'no-else': noElse,
           'no-getter-setter': noGetterSetter,
-          'no-private-component-methods': noPrivateComponentMethods,
           'no-single-implementation-interface': noSingleImplementationInterface,
           'no-switch': noSwitch,
           'pure-conditions': pureConditions,
-          'vm-boundary': vmBoundary,
+          'component-signature': componentSignature,
           'vm-signature': vmSignature,
           'no-state-only-service': noStateOnlyService,
         },
@@ -120,11 +118,10 @@ export default defineConfig([
       'no-void': 'error',
       'printmd/no-else': 'error',
       'printmd/no-getter-setter': 'error',
-      'printmd/no-private-component-methods': 'error',
       'printmd/no-single-implementation-interface': 'error',
       'printmd/no-switch': 'error',
       'printmd/pure-conditions': 'error',
-      'printmd/vm-boundary': 'error',
+      'printmd/component-signature': 'error',
       'printmd/vm-signature': 'error',
       'printmd/no-state-only-service': 'error',
       // requireDefaultForNonUnion は printmd/no-switch の default 禁止と意図的に矛盾させる。

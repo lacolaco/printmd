@@ -1,6 +1,6 @@
 import { RuleTester } from '@typescript-eslint/rule-tester';
 import { afterAll, describe, it } from 'vitest';
-import { vmBoundary } from './vm-boundary';
+import { componentSignature } from './component-signature';
 
 RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
@@ -15,8 +15,17 @@ const tester = new RuleTester({
   },
 });
 
-tester.run('vm-boundary', vmBoundary, {
+tester.run('component-signature', componentSignature, {
   valid: [
+    {
+      name: 'コンポーネントの protected ハンドラと private 注入フィールドは許可',
+      code: `import { Component, ElementRef, inject } from '@angular/core';
+@Component({ template: '' })
+export class Panel {
+  private readonly host = inject(ElementRef);
+  protected close(): void {}
+}`,
+    },
     {
       name: '自身と 1-1 対応するビューモデルの注入は許可',
       code: `import { Component, Injectable, inject, signal } from '@angular/core';
@@ -66,6 +75,26 @@ export class PanelViewModel {
     },
   ],
   invalid: [
+    {
+      name: 'コンポーネントの private メソッドは禁止',
+      code: `import { Component } from '@angular/core';
+@Component({ template: '' })
+export class Panel {
+  private tally(): number {
+    return 1;
+  }
+}`,
+      errors: [{ messageId: 'privateMethod' }],
+    },
+    {
+      name: 'private なアロー関数フィールドも禁止',
+      code: `import { Component } from '@angular/core';
+@Component({ template: '' })
+export class Panel {
+  private readonly tally = (): number => 1;
+}`,
+      errors: [{ messageId: 'privateMethod' }],
+    },
     {
       name: 'ドメインサービスの直接注入は禁止',
       code: `import { Component, Service, inject, signal } from '@angular/core';
