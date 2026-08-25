@@ -1,6 +1,6 @@
 import { RuleTester } from '@typescript-eslint/rule-tester';
 import { afterAll, describe, it } from 'vitest';
-import { serviceJsdoc } from './service-jsdoc';
+import { injectableJsdoc } from './injectable-jsdoc';
 
 RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
@@ -15,7 +15,7 @@ const tester = new RuleTester({
   },
 });
 
-tester.run('service-jsdoc', serviceJsdoc, {
+tester.run('injectable-jsdoc', injectableJsdoc, {
   valid: [
     {
       name: 'JSDoc 付きの公開メンバーは許可',
@@ -51,15 +51,22 @@ export class Zoom {
 }`,
     },
     {
-      name: '@Service 以外のクラスは対象外',
-      code: `import { Injectable, signal } from '@angular/core';
-@Injectable()
-export class PanelViewModel {
-  readonly opened = signal(false);
+      name: 'デコレータの無いクラスは対象外',
+      code: `export class Ranges {
+  readonly values: number[] = [];
 }`,
     },
   ],
   invalid: [
+    {
+      name: '@Injectable でも JSDoc の無い公開メンバーは違反',
+      code: `import { Injectable, signal } from '@angular/core';
+@Injectable()
+export class PanelViewModel {
+  readonly isOpened = signal(false);
+}`,
+      errors: [{ messageId: 'missingDoc' }],
+    },
     {
       name: 'JSDoc の無い公開フィールドは違反',
       code: `import { Service, signal } from '@angular/core';

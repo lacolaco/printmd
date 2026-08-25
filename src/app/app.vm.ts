@@ -6,5 +6,6 @@ import { Manuscripts } from './shared/manuscript/manuscripts';
 export class AppViewModel {
   private readonly manuscripts = inject(Manuscripts);
 
+  /** 原稿があるか。空状態と作業画面の切替に使う */
   readonly isNonEmpty: Signal<boolean> = this.manuscripts.isNonEmpty;
 }
