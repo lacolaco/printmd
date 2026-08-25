@@ -2,6 +2,7 @@ import { expect, type Page } from '@playwright/test';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { toPx } from '../src/app/shared/paper/units';
 import type { PaperFormat } from '../src/app/shared/paper/paper-format';
+import { PAPERS } from '../src/app/shared/paper/paper-catalog';
 
 /** Markdown 文字列をファイル入力へ流し込み、プレビューの構築を待つ */
 export async function importMarkdown(page: Page, name: string, content: string): Promise<void> {
@@ -14,11 +15,22 @@ export async function importMarkdown(page: Page, name: string, content: string):
   await page.locator('.sheet .clip .mc').first().waitFor();
 }
 
-/** ヘッダの用紙セレクタで書式を選び、紙面が組み直されるまで待つ */
+/**
+ * ヘッダの用紙セレクタで書式を選び、紙面が組み直されるまで待つ。
+ * 既に目的の書式が選ばれていて別の書式があるなら、結線を毎回踏むためにそこを経由する
+ */
 export async function selectPaper(page: Page, paper: PaperFormat): Promise<void> {
-  if ((await page.locator('header select').inputValue()) !== paper.label) {
+  const detour = PAPERS.find((other) => other !== paper);
+  if (detour !== undefined && (await labelOf(page)) === paper.label) {
+    await switchTo(page, detour);
+  }
+  if ((await labelOf(page)) !== paper.label) {
     await switchTo(page, paper);
   }
+}
+
+async function labelOf(page: Page): Promise<string> {
+  return page.locator('header select').inputValue();
 }
 
 /** 寸法は CSS 変数だけで先に変わるため、シートが差し替わったことを関門にする */
