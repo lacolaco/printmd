@@ -6,12 +6,12 @@ import type { ImportSource } from '../../shared/manuscript/manuscript';
 @Injectable()
 export class WorkspaceViewModel {
   private readonly manuscripts = inject(Manuscripts);
-  private readonly opened = signal(false);
+  private readonly isShown = signal(false);
 
-  readonly sheetOpen: Signal<boolean> = this.opened.asReadonly();
+  readonly isSheetOpen: Signal<boolean> = this.isShown.asReadonly();
 
   toggle(): void {
-    this.opened.update((open) => !open);
+    this.isShown.update((open) => !open);
   }
 
   add(sources: readonly ImportSource[]): Promise<void> {

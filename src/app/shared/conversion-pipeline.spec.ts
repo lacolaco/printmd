@@ -35,7 +35,7 @@ async function whenRendered(): Promise<void> {
   for (let i = 0; i < 50; i++) {
     TestBed.tick();
     await appRef.whenStable();
-    if (!pipeline.rendering()) return;
+    if (!pipeline.isRendering()) return;
   }
 }
 
@@ -56,7 +56,7 @@ describe('ドメインサービスの統合', () => {
   it('初期状態はファイルなし・ブロックなし', () => {
     expect(manuscripts.files()).toEqual([]);
     expect(blocksOf()).toEqual([]);
-    expect(manuscripts.nonEmpty()).toBe(false);
+    expect(manuscripts.isNonEmpty()).toBe(false);
   });
 
   it('Markdown ファイルを取り込みブロックを構築する', async () => {

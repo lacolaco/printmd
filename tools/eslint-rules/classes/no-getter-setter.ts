@@ -131,6 +131,46 @@ function observeDeclarations(context: Context, services: Services) {
     inspectDeclaration(context, checker, esTreeNodeToTSNodeMap, node);
 }
 
+/** 呼び出しがすべて boolean を返す型 (Signal<boolean> や関数フィールド) か */
+function isPredicateShaped(checker: ts.TypeChecker, type: ts.Type): boolean {
+  const calls = type.getCallSignatures();
+  return calls.length > 0 && calls.every((sig) => isBooleanish(sig.getReturnType()));
+}
+
+function scold(context: Context, node: TSESTree.PropertyDefinition, violated: boolean): void {
+  if (violated) {
+    const { key } = node;
+    context.report({ node: key, messageId: 'boolNeedsIs' });
+  }
+}
+
+function located(
+  checker: ts.TypeChecker,
+  esMap: Services['esTreeNodeToTSNodeMap'],
+  node: TSESTree.PropertyDefinition,
+): ts.Type {
+  return checker.getTypeAtLocation(esMap.get(node));
+}
+
+function vetField(
+  context: Context,
+  checker: ts.TypeChecker,
+  esMap: Services['esTreeNodeToTSNodeMap'],
+  node: TSESTree.PropertyDefinition,
+): void {
+  const { key } = node;
+  const title = key.type === 'Identifier' || key.type === 'PrivateIdentifier' ? key.name : '';
+  const type = located(checker, esMap, node);
+  scold(context, node, isPredicateShaped(checker, type) && !IS_PATTERN.test(title));
+}
+
+function watchFields(context: Context, services: Services) {
+  const { program, esTreeNodeToTSNodeMap } = services;
+  const checker = program.getTypeChecker();
+  return (node: TSESTree.PropertyDefinition): void =>
+    vetField(context, checker, esTreeNodeToTSNodeMap, node);
+}
+
 function checkMethod(
   context: Context,
   checker: ts.TypeChecker,
@@ -163,7 +203,7 @@ function makeListener(context: Context, services: Services) {
  * getter と setter は使わない (デメテルの法則)。構文の get/set アクセサと、
  * getXxx / setXxx 命名のメソッドによるカプセル化を禁止する。
  * ブール型のフィールド (getter の返り値・setter の第 1 引数がブール型) は例外。
- * boolean を返す問い合わせ (メソッド・モジュール関数) は is 開始を強制する
+ * boolean を返す問い合わせ (メソッド・モジュール関数・シグナル等の呼び出し可能フィールド) は is 開始を強制する
  */
 export const noGetterSetter = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds>({
   meta: {
@@ -181,6 +221,7 @@ export const noGetterSetter = ESLintUtils.RuleCreator.withoutDocs<[], MessageIds
     return {
       MethodDefinition: makeListener(context, services),
       FunctionDeclaration: observeDeclarations(context, services),
+      PropertyDefinition: watchFields(context, services),
     };
   },
 });

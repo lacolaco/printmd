@@ -13,7 +13,7 @@ import { ZoomControl } from './zoom-control';
   template: `
     <header class="app-header flex h-12 shrink-0 items-center gap-3 border-b px-4">
       <h1 class="app-logo text-base font-bold tracking-tight">printmd</h1>
-      @if (vm.active()) {
+      @if (vm.isActive()) {
         <div
           class="absolute left-1/2 flex -translate-x-1/2 items-center gap-2 text-xs text-stone-700"
           ngToolbar
@@ -23,8 +23,8 @@ import { ZoomControl } from './zoom-control';
           <span aria-hidden="true" class="opacity-40">|</span>
           <app-zoom-control
             [label]="vm.zoomLabel()"
-            [shrinkable]="vm.shrinkable()"
-            [growable]="vm.growable()"
+            [isShrinkable]="vm.isShrinkable()"
+            [isGrowable]="vm.isGrowable()"
             (shrink)="vm.stepBy(-1)"
             (grow)="vm.stepBy(1)"
           />

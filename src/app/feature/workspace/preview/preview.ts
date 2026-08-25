@@ -22,7 +22,7 @@ import { SheetRenderer } from './sheet-renderer';
         <div class="mx-auto w-fit" #sheetsHost [style.zoom]="vm.scale()"></div>
       </div>
       <!-- 読み上げはヘッダの status が担うため、こちらは視覚専用 -->
-      @if (vm.rendering()) {
+      @if (vm.isRendering()) {
         <div
           class="app-rendering-indicator pointer-events-none absolute inset-x-0 top-4 flex justify-center"
           aria-hidden="true"

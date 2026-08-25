@@ -14,7 +14,7 @@ import { AppViewModel } from './app.vm';
   template: `
     <div class="app-ui flex h-dvh flex-col">
       <app-header />
-      @if (vm.nonEmpty()) {
+      @if (vm.isNonEmpty()) {
         <app-workspace class="min-h-0 flex-1" />
       } @else {
         <main class="min-h-0 flex-1" aria-label="原稿の取り込み">

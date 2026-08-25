@@ -15,7 +15,7 @@ export class BreakPanelViewModel {
   readonly rowTotal: Signal<number> = computed(
     () => this.pipeline.renderedDocument()?.rowTotal() ?? 0,
   );
-  readonly multiSource: Signal<boolean> = computed(
+  readonly isMultiSource: Signal<boolean> = computed(
     () => this.pipeline.renderedDocument()?.isMultiSource() ?? false,
   );
   readonly breakIds: Signal<ReadonlySet<string>> = this.breaks.ids;

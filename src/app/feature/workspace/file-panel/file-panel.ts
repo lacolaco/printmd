@@ -22,8 +22,8 @@ import { focusLater } from './move-focus';
             <app-file-row-item
               cdkDrag
               [file]="file"
-              [first]="i === 0"
-              [last]="last"
+              [isFirst]="i === 0"
+              [isLast]="last"
               (moved)="move(file.id, file.name, $event)"
               (removed)="vm.remove(file.id)"
             />

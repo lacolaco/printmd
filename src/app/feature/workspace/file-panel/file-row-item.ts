@@ -19,7 +19,7 @@ import type { ManuscriptFile } from '../../../shared/manuscript/manuscript';
       [attr.aria-label]="file().name + 'を上へ移動'"
       [attr.data-move-file]="file().id"
       data-move-dir="-1"
-      [disabled]="first()"
+      [disabled]="isFirst()"
       (click)="moved.emit(-1)"
     >
       ↑
@@ -30,7 +30,7 @@ import type { ManuscriptFile } from '../../../shared/manuscript/manuscript';
       [attr.aria-label]="file().name + 'を下へ移動'"
       [attr.data-move-file]="file().id"
       data-move-dir="1"
-      [disabled]="last()"
+      [disabled]="isLast()"
       (click)="moved.emit(1)"
     >
       ↓
@@ -47,8 +47,8 @@ import type { ManuscriptFile } from '../../../shared/manuscript/manuscript';
 })
 export class FileRowItem {
   readonly file = input.required<ManuscriptFile>();
-  readonly first = input.required<boolean>();
-  readonly last = input.required<boolean>();
+  readonly isFirst = input.required<boolean>();
+  readonly isLast = input.required<boolean>();
   readonly moved = output<-1 | 1>();
   readonly removed = output<void>();
 }

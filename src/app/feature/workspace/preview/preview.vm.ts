@@ -14,6 +14,6 @@ export class PreviewViewModel {
 
   readonly rendered: Signal<RenderedDocument | null> = this.pipeline.renderedDocument;
   readonly pagination: Signal<Pagination | null> = this.breaks.pagination;
-  readonly rendering: Signal<boolean> = this.pipeline.rendering;
+  readonly isRendering: Signal<boolean> = this.pipeline.isRendering;
   readonly scale: Signal<number> = this.zoom.value;
 }

@@ -27,17 +27,17 @@ import { WorkspaceViewModel } from './workspace.vm';
       <button
         type="button"
         class="sheet-handle flex w-full items-center justify-center gap-2 border-t py-2 text-sm font-medium md:hidden"
-        [attr.aria-expanded]="vm.sheetOpen()"
+        [attr.aria-expanded]="vm.isSheetOpen()"
         aria-controls="control-panel-sheet"
         (click)="vm.toggle()"
       >
         調整パネル
-        <span aria-hidden="true">{{ vm.sheetOpen() ? '▾' : '▴' }}</span>
+        <span aria-hidden="true">{{ vm.isSheetOpen() ? '▾' : '▴' }}</span>
       </button>
       <aside
         id="control-panel-sheet"
         class="app-panel block w-full shrink-0 overflow-y-auto p-4 max-md:max-h-[60vh] max-md:shadow-2xl md:w-90 md:border-l"
-        [class]="{ 'max-md:hidden': !vm.sheetOpen() }"
+        [class]="{ 'max-md:hidden': !vm.isSheetOpen() }"
         aria-label="調整パネル"
       >
         <app-file-panel />

@@ -113,12 +113,12 @@ describe('Preview', () => {
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(TestBed.inject(ConversionPipeline).rendering()).toBe(true);
+    expect(TestBed.inject(ConversionPipeline).isRendering()).toBe(true);
     expect(el.querySelector('.app-rendering-indicator')).not.toBeNull();
 
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(TestBed.inject(ConversionPipeline).rendering()).toBe(false);
+    expect(TestBed.inject(ConversionPipeline).isRendering()).toBe(false);
     expect(el.querySelector('.app-rendering-indicator')).toBeNull();
   });
 
