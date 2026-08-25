@@ -1,5 +1,6 @@
 import { ifDefined } from '../collections';
 import type { Block } from './block-extractor';
+import { groupBlocks, type FileGroup } from './block-groups';
 
 /** 変換済み文書の実体。container は唯一の DOM で、掲示は自身が担う */
 export class RenderedDocument {
@@ -7,6 +8,21 @@ export class RenderedDocument {
     readonly container: HTMLElement,
     readonly blocks: readonly Block[],
   ) {}
+
+  private grouped: readonly FileGroup[] | null = null;
+
+  /** ファイルごとのブロック行 (階層深さ付き)。不変な自身に対する遅延メモ */
+  groups(): readonly FileGroup[] {
+    return (this.grouped ??= groupBlocks(this.blocks));
+  }
+
+  rowTotal(): number {
+    return this.groups().reduce((sum, group) => sum + group.rows.length, 0);
+  }
+
+  isMultiSource(): boolean {
+    return new Set(this.blocks.map((b) => b.fileIndex)).size > 1;
+  }
 
   /** 強制改ページを反映して掲示先へ自身を取り付ける */
   mount(host: HTMLElement, breaks: ReadonlySet<string>): void {

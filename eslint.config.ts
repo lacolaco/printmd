@@ -41,21 +41,21 @@ const LAYERS = [
     patterns: [{ group: ['**/feature/**'], message: 'mermaid 層は feature に依存しない' }],
   },
   {
-    // shared 内の依存方向: manuscript ← pagination ← document
+    // shared 内の依存方向: manuscript ← conversion-pipeline ← pagination
     files: ['src/app/shared/manuscript/**/*.ts'],
     patterns: [
       { group: ['**/feature/**'], message: 'shared は feature に依存しない' },
       {
-        group: ['**/pagination/**', '**/conversion'],
-        message: 'manuscript は shared の下層。pagination / conversion に依存しない',
+        group: ['**/pagination/**', '**/conversion-pipeline'],
+        message: 'manuscript は shared の下層。pagination / conversion-pipeline に依存しない',
       },
     ],
   },
   {
-    files: ['src/app/shared/pagination/**/*.ts'],
+    files: ['src/app/shared/conversion-pipeline.ts'],
     patterns: [
       { group: ['**/feature/**'], message: 'shared は feature に依存しない' },
-      { group: ['**/conversion'], message: 'pagination は conversion に依存しない' },
+      { group: ['**/pagination/**'], message: 'conversion-pipeline は pagination に依存しない' },
     ],
   },
 ];

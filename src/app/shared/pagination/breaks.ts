@@ -1,6 +1,8 @@
-import { Service, inject, linkedSignal } from '@angular/core';
+import { Service, computed, inject, linkedSignal } from '@angular/core';
 import { isPrefixOf } from '../collections';
+import { ConversionPipeline } from '../conversion-pipeline';
 import { Manuscripts } from '../manuscript/manuscripts';
+import { measurePagination } from './page-count';
 import type { ManuscriptFile } from '../manuscript/manuscript';
 
 function toggled(current: ReadonlySet<string>, blockId: string): ReadonlySet<string> {
@@ -9,10 +11,14 @@ function toggled(current: ReadonlySet<string>, blockId: string): ReadonlySet<str
   return removed ? next : next.add(blockId);
 }
 
-/** 改ページ指定。指定の保有とトグルを担う。タブ寿命のみで原稿を書き換えない */
+/**
+ * ページの割れ方。改ページ指定を保有し (タブ寿命のみで原稿を書き換えない)、
+ * 指定を織り込んだページ組を導く
+ */
 @Service()
 export class Breaks {
   private readonly manuscripts = inject(Manuscripts);
+  private readonly pipeline = inject(ConversionPipeline);
 
   /**
    * ID は位置由来 (f{n}b{m}) のため、ファイルの削除・並べ替えでは同じ ID が
@@ -32,4 +38,15 @@ export class Breaks {
   toggle(blockId: string): void {
     this.marks.set(toggled(this.ids(), blockId));
   }
+
+  /**
+   * ページ組。(doc, 指定) を現在の CSS で組んだときのレイアウト結果の
+   * メモ化された導出値 (実測はプローブで行うが観測可能な状態を残さない)
+   */
+  readonly pagination = computed(() => {
+    const doc = this.pipeline.renderedDocument();
+    return doc === null ? null : measurePagination(doc, this.ids());
+  });
+
+  readonly pageCount = computed(() => this.pagination()?.total ?? 0);
 }

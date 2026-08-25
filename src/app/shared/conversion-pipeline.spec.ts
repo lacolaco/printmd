@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from './mermaid/mermaid-renderer';
 import { Manuscripts } from './manuscript/manuscripts';
 import { Breaks } from './pagination/breaks';
-import { Conversion } from './conversion';
+import { ConversionPipeline } from './conversion-pipeline';
+import type { Block } from './markdown/block-extractor';
 
 class FakeMermaidRenderer extends MermaidRenderer {
   protected override loadModule(): Promise<MermaidLike> {
@@ -24,19 +25,23 @@ function file(name: string, content: string) {
  * TestBed.tick() でスケジューラを回して loader を起動させてから完了を待つ
  * (whenStable だけでは起動前に解決して素通りする)
  */
+function blocksOf(): readonly Block[] {
+  return TestBed.inject(ConversionPipeline).renderedDocument()?.blocks ?? [];
+}
+
 async function whenRendered(): Promise<void> {
   const appRef = TestBed.inject(ApplicationRef);
-  const conversion = TestBed.inject(Conversion);
+  const pipeline = TestBed.inject(ConversionPipeline);
   for (let i = 0; i < 50; i++) {
     TestBed.tick();
     await appRef.whenStable();
-    if (!conversion.rendering()) return;
+    if (!pipeline.rendering()) return;
   }
 }
 
 describe('ドメインサービスの統合', () => {
   let manuscripts: Manuscripts;
-  let conversion: Conversion;
+  let pipeline: ConversionPipeline;
   let breaks: Breaks;
 
   beforeEach(() => {
@@ -44,13 +49,13 @@ describe('ドメインサービスの統合', () => {
       providers: [{ provide: MermaidRenderer, useClass: FakeMermaidRenderer }],
     });
     manuscripts = TestBed.inject(Manuscripts);
-    conversion = TestBed.inject(Conversion);
+    pipeline = TestBed.inject(ConversionPipeline);
     breaks = TestBed.inject(Breaks);
   });
 
   it('初期状態はファイルなし・ブロックなし', () => {
     expect(manuscripts.files()).toEqual([]);
-    expect(conversion.blocks()).toEqual([]);
+    expect(blocksOf()).toEqual([]);
     expect(manuscripts.nonEmpty()).toBe(false);
   });
 
@@ -58,7 +63,7 @@ describe('ドメインサービスの統合', () => {
     await manuscripts.add([file('a.md', '# 見出し\n\n本文')]);
     await whenRendered();
     expect(manuscripts.files().map((f) => f.name)).toEqual(['a.md']);
-    expect(conversion.blocks().map((b) => b.kind)).toEqual(['heading', 'paragraph']);
+    expect(blocksOf().map((b) => b.kind)).toEqual(['heading', 'paragraph']);
   });
 
   it('Markdown 以外の拡張子は取り込まず警告を出す', async () => {
@@ -71,19 +76,19 @@ describe('ドメインサービスの統合', () => {
   it('複数ファイルを取り込むとファイル境界のブロックが isFileBoundary になる', async () => {
     await manuscripts.add([file('a.md', '# A'), file('b.md', '# B')]);
     await whenRendered();
-    expect(conversion.blocks().map((b) => b.isFileBoundary)).toEqual([false, true]);
+    expect(blocksOf().map((b) => b.isFileBoundary)).toEqual([false, true]);
   });
 
   it('mermaid フェンスを SVG 化してブロック種別を mermaid にする', async () => {
     await manuscripts.add([file('a.md', '```mermaid\ngraph TD; A-->B;\n```')]);
     await whenRendered();
-    expect(conversion.blocks().map((b) => b.kind)).toEqual(['mermaid']);
+    expect(blocksOf().map((b) => b.kind)).toEqual(['mermaid']);
   });
 
   it('ファイルを削除すると改ページ指定がリセットされる', async () => {
     await manuscripts.add([file('a.md', '# A'), file('b.md', '# B')]);
     await whenRendered();
-    const id = conversion.blocks()[0].id;
+    const id = blocksOf()[0].id;
     breaks.toggle(id);
     expect(breaks.ids().has(id)).toBe(true);
     manuscripts.remove(manuscripts.files()[0].id);
@@ -94,7 +99,7 @@ describe('ドメインサービスの統合', () => {
   it('ファイルを並べ替えると改ページ指定がリセットされる', async () => {
     await manuscripts.add([file('a.md', '# A'), file('b.md', '# B')]);
     await whenRendered();
-    breaks.toggle(conversion.blocks()[0].id);
+    breaks.toggle(blocksOf()[0].id);
     manuscripts.nudge(manuscripts.files()[0].id, 1);
     await whenRendered();
     expect(breaks.ids().size).toBe(0);
@@ -104,7 +109,7 @@ describe('ドメインサービスの統合', () => {
   it('ファイル追加だけでは改ページ指定を維持する', async () => {
     await manuscripts.add([file('a.md', '# A')]);
     await whenRendered();
-    breaks.toggle(conversion.blocks()[0].id);
+    breaks.toggle(blocksOf()[0].id);
     await manuscripts.add([file('b.md', '# B')]);
     await whenRendered();
     expect(breaks.ids().has('f0b0')).toBe(true);
@@ -113,8 +118,8 @@ describe('ドメインサービスの統合', () => {
   it('doc の読み取りは DOM を変異させない (クラス付与は消費者の描画時に行う)', async () => {
     await manuscripts.add([file('a.md', '# A\n\n本文')]);
     await whenRendered();
-    breaks.toggle(conversion.blocks()[1].id);
-    const container = conversion.renderedDocument()!.container;
+    breaks.toggle(blocksOf()[1].id);
+    const container = pipeline.renderedDocument()!.container;
     expect([...container.children].some((el) => el.classList.contains('forced-break'))).toBe(false);
   });
 
@@ -128,7 +133,7 @@ describe('ドメインサービスの統合', () => {
   it('存在しない ID の remove では改ページ指定を消さない', async () => {
     await manuscripts.add([file('a.md', '# A')]);
     await whenRendered();
-    breaks.toggle(conversion.blocks()[0].id);
+    breaks.toggle(blocksOf()[0].id);
     manuscripts.remove(9999);
     await whenRendered();
     expect(breaks.ids().size).toBe(1);
@@ -165,7 +170,7 @@ describe('変換の競合', () => {
 
   it('遅延して解決した古い変換が、現行文書のキャッシュを追い出して壊さない', async () => {
     const manuscripts = TestBed.inject(Manuscripts);
-    const conversion = TestBed.inject(Conversion);
+    const pipeline = TestBed.inject(ConversionPipeline);
     const mermaid = '```mermaid\ngraph LR\nX-->Y\n```';
 
     // loader1: [A] を開始、A の mermaid が保留のまま (pending[0])
@@ -191,14 +196,10 @@ describe('変換の競合', () => {
     pending[3]({ svg: '<svg>C3</svg>' });
     await settle();
 
-    const headings = conversion
-      .blocks()
-      .filter((b) => b.kind === 'heading')
-      .map((b) => b.label);
+    const blocks = pipeline.renderedDocument()?.blocks ?? [];
+    const headings = blocks.filter((b) => b.kind === 'heading').map((b) => b.label);
     expect(headings).toEqual(['A', 'B', 'C']);
     // B のフラグメントが追い出されていれば b.md のブロックが欠落する
-    expect(conversion.blocks().filter((b) => b.fileName === 'b.md').length).toBeGreaterThanOrEqual(
-      2,
-    );
+    expect(blocks.filter((b) => b.fileName === 'b.md').length).toBeGreaterThanOrEqual(2);
   });
 });
