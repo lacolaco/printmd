@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from './mermaid/mermaid-renderer';
 import { Manuscripts } from './manuscript/manuscripts';
 import { Breaks } from './pagination/breaks';
-import { Document } from './document';
+import { Documents } from './documents';
 
 class FakeMermaidRenderer extends MermaidRenderer {
   protected override loadModule(): Promise<MermaidLike> {
@@ -26,7 +26,7 @@ function file(name: string, content: string) {
  */
 async function whenRendered(): Promise<void> {
   const appRef = TestBed.inject(ApplicationRef);
-  const documents = TestBed.inject(Document);
+  const documents = TestBed.inject(Documents);
   for (let i = 0; i < 50; i++) {
     TestBed.tick();
     await appRef.whenStable();
@@ -36,7 +36,7 @@ async function whenRendered(): Promise<void> {
 
 describe('ドメインサービスの統合', () => {
   let manuscripts: Manuscripts;
-  let documents: Document;
+  let documents: Documents;
   let breaks: Breaks;
 
   beforeEach(() => {
@@ -44,7 +44,7 @@ describe('ドメインサービスの統合', () => {
       providers: [{ provide: MermaidRenderer, useClass: FakeMermaidRenderer }],
     });
     manuscripts = TestBed.inject(Manuscripts);
-    documents = TestBed.inject(Document);
+    documents = TestBed.inject(Documents);
     breaks = TestBed.inject(Breaks);
   });
 
@@ -165,7 +165,7 @@ describe('変換の競合', () => {
 
   it('遅延して解決した古い変換が、現行文書のキャッシュを追い出して壊さない', async () => {
     const manuscripts = TestBed.inject(Manuscripts);
-    const documents = TestBed.inject(Document);
+    const documents = TestBed.inject(Documents);
     const mermaid = '```mermaid\ngraph LR\nX-->Y\n```';
 
     // loader1: [A] を開始、A の mermaid が保留のまま (pending[0])

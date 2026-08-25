@@ -2,7 +2,7 @@ import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../../shared/mermaid/mermaid-renderer';
-import { Document } from '../../../shared/document';
+import { Documents } from '../../../shared/documents';
 import { Manuscripts } from '../../../shared/manuscript/manuscripts';
 import { FilePanel } from './file-panel';
 
@@ -17,7 +17,7 @@ class FakeMermaidRenderer extends MermaidRenderer {
 
 async function whenRendered(): Promise<void> {
   const appRef = TestBed.inject(ApplicationRef);
-  const documents = TestBed.inject(Document);
+  const documents = TestBed.inject(Documents);
   for (let i = 0; i < 50; i++) {
     TestBed.tick();
     await appRef.whenStable();

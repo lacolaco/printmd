@@ -9,7 +9,7 @@ import { Breaks } from './pagination/breaks';
 
 /** 変換済み文書。変換パイプラインと、文書の導出・ページ組を担う */
 @Service()
-export class Document {
+export class Documents {
   private readonly manuscripts = inject(Manuscripts);
   private readonly breaks = inject(Breaks);
   private readonly converter = inject(Converter);
