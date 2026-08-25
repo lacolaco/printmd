@@ -1,5 +1,14 @@
 import { expect, test } from '@playwright/test';
-import { importMarkdown, previewHeadingPages, printPdfPageTexts, readPageCount } from './support';
+import {
+  importMarkdown,
+  previewHeadingPages,
+  printPdfPageSize,
+  printPdfPageTexts,
+  readPageCount,
+  selectPaper,
+  sheetSizePx,
+} from './support';
+import { toPx } from '../src/app/shared/paper/units';
 import { PAPERS } from '../src/app/shared/paper/paper-catalog';
 
 /**
@@ -36,6 +45,7 @@ for (const paper of PAPERS) {
   }) => {
     await page.goto('/');
     await importMarkdown(page, 'parity.md', buildManuscript());
+    await selectPaper(page, paper);
 
     // 節 6 の直前に強制改ページを入れる (ページ数が変わるかは原稿の割り付け次第
     // なので、待機条件はマスターへのクラス付与とプレビュー再構築にする)
@@ -69,6 +79,21 @@ for (const paper of PAPERS) {
     expect(pdfTexts[forcedPage - 1].replaceAll(/\s+/g, '').startsWith('節6')).toBe(true);
   });
 }
+
+test('選んだ用紙書式が画面と印刷 PDF の紙寸法になる', async ({ page }) => {
+  await page.goto('/');
+  await importMarkdown(page, 'size.md', '# 用紙\n\n本文である。\n');
+  for (const paper of PAPERS) {
+    await selectPaper(page, paper);
+    expect(await printPdfPageSize(page)).toEqual({
+      width: paper.page.width,
+      height: paper.page.height,
+    });
+    const sheet = await sheetSizePx(page);
+    expect(sheet.width).toBeCloseTo(toPx(paper.page.width), -1);
+    expect(sheet.height).toBeCloseTo(toPx(paper.page.height), -1);
+  }
+});
 
 test('GitHub 体裁の要素が描画される', async ({ page }) => {
   await page.goto('/');
