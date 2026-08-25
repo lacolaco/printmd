@@ -20,7 +20,7 @@ export class HeaderViewModel {
   /** 選べる用紙書式の一覧 */
   readonly papers: Signal<readonly PaperFormat[]> = computed(() => this.paper.formats);
   /** 現在の用紙書式の id */
-  readonly current: Signal<string> = computed(() => this.paper.format().id);
+  readonly paperId: Signal<string> = computed(() => this.paper.format().id);
   /** 現在の表示倍率の文言 */
   readonly zoomLabel: Signal<string> = this.zoom.label;
   /** まだ縮小できるか */

@@ -17,13 +17,13 @@ export async function importMarkdown(page: Page, name: string, content: string):
 export async function selectPaper(page: Page, paper: PaperFormat): Promise<void> {
   const detour = PAPERS.find((other) => other.id !== paper.id)!;
   if ((await page.locator('header select').inputValue()) === paper.id) {
-    await switchPaper(page, detour);
+    await switchTo(page, detour);
   }
-  await switchPaper(page, paper);
+  await switchTo(page, paper);
 }
 
 /** 寸法は CSS 変数だけで先に変わるため、シートが差し替わったことを待つ */
-async function switchPaper(page: Page, paper: PaperFormat): Promise<void> {
+async function switchTo(page: Page, paper: PaperFormat): Promise<void> {
   await page.evaluate(() =>
     document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
   );

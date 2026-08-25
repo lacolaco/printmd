@@ -11,4 +11,4 @@ export const B5 = new PaperFormat('b5', 'B5', { width: 182, height: 257, margin:
 export const PAPERS: readonly PaperFormat[] = [A4, A3, B5];
 
 /** 既定の書式 */
-export const FALLBACK = A4;
+export const DEFAULT_PAPER = A4;

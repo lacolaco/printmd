@@ -15,7 +15,7 @@ const gapPx = A4.gap * MM_TO_PX;
 describe('Tally', () => {
   it('1 段に収まる幅なら 1 ページと数える', () => {
     const tally = new Tally(A4);
-    tally.absorb({ start: 0, end: 1 }, cloneWithScrollWidth(stepPx - gapPx));
+    tally.add({ start: 0, end: 1 }, cloneWithScrollWidth(stepPx - gapPx));
     expect(tally.result()).toEqual({
       segments: [{ start: 0, end: 1, pages: 1, firstPage: 0 }],
       total: 1,
@@ -24,14 +24,14 @@ describe('Tally', () => {
 
   it('幅がゼロでも最低 1 ページとする', () => {
     const tally = new Tally(A4);
-    tally.absorb({ start: 0, end: 1 }, cloneWithScrollWidth(0));
+    tally.add({ start: 0, end: 1 }, cloneWithScrollWidth(0));
     expect(tally.result().segments[0].pages).toBe(1);
   });
 
   it('複数セグメントの firstPage を段数の累積で積算する', () => {
     const tally = new Tally(A4);
-    tally.absorb({ start: 0, end: 1 }, cloneWithScrollWidth(stepPx - gapPx));
-    tally.absorb({ start: 1, end: 2 }, cloneWithScrollWidth(2 * stepPx - gapPx));
+    tally.add({ start: 0, end: 1 }, cloneWithScrollWidth(stepPx - gapPx));
+    tally.add({ start: 1, end: 2 }, cloneWithScrollWidth(2 * stepPx - gapPx));
     const result = tally.result();
     expect(result.segments).toEqual([
       { start: 0, end: 1, pages: 1, firstPage: 0 },

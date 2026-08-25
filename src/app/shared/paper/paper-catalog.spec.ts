@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { A3, A4, B5, FALLBACK, PAPERS } from './paper-catalog';
+import { A3, A4, B5, DEFAULT_PAPER, PAPERS } from './paper-catalog';
 
 describe('paper-catalog', () => {
   it('3 書式を画面に並べる順で持つ', () => {
@@ -14,6 +14,6 @@ describe('paper-catalog', () => {
   });
 
   it('既定は A4', () => {
-    expect(FALLBACK).toBe(A4);
+    expect(DEFAULT_PAPER).toBe(A4);
   });
 });

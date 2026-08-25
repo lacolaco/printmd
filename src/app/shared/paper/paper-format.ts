@@ -60,7 +60,7 @@ export class PaperFormat {
 
   /** 画面 CSS が参照するカスタムプロパティ (名前と値の組) */
   variables(): readonly (readonly [string, string])[] {
-    return VARIABLES.map(([name, pick]) => [name, `${pick(this)}mm`] as const);
+    return VARIABLES.map(([name, read]) => [name, `${read(this)}mm`] as const);
   }
 
   /** 印刷の @page 規則。@page 内の var() は互換性が不確かなため実寸で書く */

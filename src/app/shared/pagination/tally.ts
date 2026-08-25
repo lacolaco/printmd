@@ -7,7 +7,7 @@ export class Tally {
 
   constructor(private readonly format: PaperFormat) {}
 
-  absorb(range: SegmentRange, clone: HTMLElement): void {
+  add(range: SegmentRange, clone: HTMLElement): void {
     const pages = this.format.pagesIn(clone.scrollWidth);
     this.segments.push({ ...range, pages, firstPage: this.firstPage });
     this.firstPage += pages;
@@ -24,6 +24,6 @@ export function tallySegments(
   format: PaperFormat,
 ): Pagination {
   const tally = new Tally(format);
-  ranges.forEach((range, index) => tally.absorb(range, clones[index]));
+  ranges.forEach((range, index) => tally.add(range, clones[index]));
   return tally.result();
 }

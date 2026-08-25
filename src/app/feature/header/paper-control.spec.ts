@@ -5,8 +5,8 @@ import { PaperControl } from './paper-control';
 
 function renderWith(current: string): HTMLSelectElement {
   const fixture = TestBed.createComponent(PaperControl);
-  fixture.componentRef.setInput('choices', PAPERS);
-  fixture.componentRef.setInput('current', current);
+  fixture.componentRef.setInput('papers', PAPERS);
+  fixture.componentRef.setInput('selected', current);
   fixture.detectChanges();
   return (fixture.nativeElement as HTMLElement).querySelector('select')!;
 }

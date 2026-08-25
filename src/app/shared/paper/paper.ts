@@ -1,5 +1,5 @@
 import { DOCUMENT, Service, inject, signal } from '@angular/core';
-import { FALLBACK, PAPERS } from './paper-catalog';
+import { DEFAULT_PAPER, PAPERS } from './paper-catalog';
 import { PaperStyles } from './paper-styles';
 import type { PaperFormat } from './paper-format';
 
@@ -9,7 +9,7 @@ import type { PaperFormat } from './paper-format';
  */
 @Service()
 export class Paper {
-  private readonly selected = signal<PaperFormat>(FALLBACK);
+  private readonly selected = signal<PaperFormat>(DEFAULT_PAPER);
   private readonly styles = new PaperStyles(inject(DOCUMENT));
 
   /** 現在の用紙書式 */
@@ -18,17 +18,16 @@ export class Paper {
   readonly formats: readonly PaperFormat[] = PAPERS;
 
   constructor() {
-    this.styles.apply(FALLBACK);
+    this.styles.apply(DEFAULT_PAPER);
   }
 
-  /** id で用紙書式を選び直す。未知の id は既定へ倒す */
+  /**
+   * id で用紙書式を選び直す (未知の id は既定へ倒す)。
+   * 実測が版面の CSS 変数を前提にするため、状態より先に反映を書く
+   */
   selectById(id: string): void {
-    this.adopt(this.formats.find((paper) => paper.id === id) ?? FALLBACK);
-  }
-
-  /** 実測が版面の CSS 変数を前提にするため、状態より先に反映を書く */
-  private adopt(paper: PaperFormat): void {
-    this.styles.apply(paper);
-    this.selected.set(paper);
+    const chosen = this.formats.find((paper) => paper.id === id) ?? DEFAULT_PAPER;
+    this.styles.apply(chosen);
+    this.selected.set(chosen);
   }
 }
