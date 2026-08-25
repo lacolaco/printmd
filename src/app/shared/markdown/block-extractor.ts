@@ -1,4 +1,4 @@
-import { ifDefined } from '../collections';
+import { RenderedDocument } from './rendered-document';
 
 export type BlockKind =
   | 'heading'
@@ -47,11 +47,6 @@ export interface FileFragment {
   readonly fileIndex: number;
   readonly fileName: string;
   readonly html: string;
-}
-
-export interface RenderedDocument {
-  readonly container: HTMLElement;
-  readonly blocks: readonly Block[];
 }
 
 function isMermaidFigure(el: Element): boolean {
@@ -130,7 +125,7 @@ class Assembler {
   }
 
   result(): RenderedDocument {
-    return { container: this.container, blocks: this.blocks };
+    return new RenderedDocument(this.container, this.blocks);
   }
 }
 
@@ -140,20 +135,4 @@ export function buildRenderedDocument(fragments: readonly FileFragment[]): Rende
   return assembler.result();
 }
 
-/**
- * 強制改ページ (指定 Set とファイル境界) を container のトップレベル要素へ
- * クラスとして反映する。冪等 (toggle) なので何度適用してもよい。
- * 呼び出しは各消費者の描画時に行う。派生値 (computed) の読み取りに
- * DOM 変異の副作用を持ち込まないための取り決め
- */
-export function applyForcedBreaks(
-  container: HTMLElement,
-  blocks: readonly Block[],
-  breaks: ReadonlySet<string>,
-): void {
-  [...container.children].forEach((el, index) =>
-    ifDefined(blocks[index], (block) =>
-      el.classList.toggle('forced-break', block.isFileBoundary || breaks.has(block.id)),
-    ),
-  );
-}
+export { RenderedDocument } from './rendered-document';

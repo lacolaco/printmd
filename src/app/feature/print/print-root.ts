@@ -1,5 +1,4 @@
 import { Component, ElementRef, effect, inject } from '@angular/core';
-import { applyForcedBreaks, type RenderedDocument } from '../../shared/markdown/block-extractor';
 import { PrintRootViewModel } from './print-root.vm';
 
 /**
@@ -21,24 +20,10 @@ export class PrintRoot {
 
   constructor() {
     effect(() => {
-      const host = this.host.nativeElement;
-      resetHost(host);
-      mountDocument(host, this.vm.rendered(), this.vm.marked());
+      const doc = this.vm.rendered();
+      const marked = this.vm.marked();
+      this.host.nativeElement.replaceChildren();
+      doc?.mount(this.host.nativeElement, marked);
     });
   }
-}
-
-function mountDocument(
-  host: HTMLElement,
-  doc: RenderedDocument | null,
-  breaks: ReadonlySet<string>,
-): void {
-  if (doc !== null) {
-    applyForcedBreaks(doc.container, doc.blocks, breaks);
-    host.append(doc.container);
-  }
-}
-
-function resetHost(host: HTMLElement): void {
-  host.replaceChildren();
 }

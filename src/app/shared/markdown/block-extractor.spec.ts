@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyForcedBreaks, buildRenderedDocument, type FileFragment } from './block-extractor';
+import { buildRenderedDocument, type FileFragment } from './block-extractor';
 
 describe('buildRenderedDocument', () => {
   it('1 ファイルのトップレベル要素に f{fileIndex}b{blockIndex} の ID を振る', () => {
@@ -108,18 +108,19 @@ describe('buildRenderedDocument', () => {
     expect(blocks[0].id).toBe('f0b0');
   });
 
-  it('applyForcedBreaks は指定とファイル境界に forced-break を付け、解除も冪等に行う', () => {
-    const { container, blocks } = buildRenderedDocument([
+  it('markBreaks は指定とファイル境界に forced-break を付け、解除も冪等に行う', () => {
+    const doc = buildRenderedDocument([
       { fileIndex: 0, fileName: 'a.md', html: '<h1>A</h1><p>本文</p>' },
       { fileIndex: 1, fileName: 'b.md', html: '<h1>B</h1>' },
     ]);
-    applyForcedBreaks(container, blocks, new Set(['f0b1']));
+    const { container } = doc;
+    doc.markBreaks(new Set(['f0b1']));
     expect([...container.children].map((el) => el.classList.contains('forced-break'))).toEqual([
       false,
       true,
       true, // ファイル境界は常に改ページ
     ]);
-    applyForcedBreaks(container, blocks, new Set());
+    doc.markBreaks(new Set());
     expect([...container.children].map((el) => el.classList.contains('forced-break'))).toEqual([
       false,
       false,
