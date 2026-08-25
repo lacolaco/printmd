@@ -46,8 +46,8 @@ const LAYERS = [
     patterns: [
       { group: ['**/feature/**'], message: 'shared は feature に依存しない' },
       {
-        group: ['**/pagination/**', '**/document'],
-        message: 'manuscript は shared の下層。pagination / document に依存しない',
+        group: ['**/pagination/**', '**/conversion'],
+        message: 'manuscript は shared の下層。pagination / conversion に依存しない',
       },
     ],
   },
@@ -55,7 +55,7 @@ const LAYERS = [
     files: ['src/app/shared/pagination/**/*.ts'],
     patterns: [
       { group: ['**/feature/**'], message: 'shared は feature に依存しない' },
-      { group: ['**/document'], message: 'pagination は document に依存しない' },
+      { group: ['**/conversion'], message: 'pagination は conversion に依存しない' },
     ],
   },
 ];

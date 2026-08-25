@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../../shared/mermaid/mermaid-renderer';
-import { Document } from '../../../shared/document';
+import { Conversion } from '../../../shared/conversion';
 import { Manuscripts } from '../../../shared/manuscript/manuscripts';
 import { Zoom } from '../../../shared/pagination/zoom';
 import { Preview } from './preview';
@@ -28,7 +28,7 @@ describe('Preview', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelectorAll('.sheet')).toHaveLength(0);
-    expect(TestBed.inject(Document).pageCount()).toBe(0);
+    expect(TestBed.inject(Conversion).pageCount()).toBe(0);
   });
 
   it('原稿があればマスターを複製したシートを作る (jsdom はレイアウトを持たないため 1 枚)', async () => {
@@ -44,7 +44,7 @@ describe('Preview', () => {
     expect(sheets).toHaveLength(1);
     expect(sheets[0].querySelector('.clip > .mc.markdown-body')).not.toBeNull();
     expect(sheets[0].querySelector('h1')?.textContent).toBe('見出し');
-    expect(TestBed.inject(Document).pageCount()).toBe(1);
+    expect(TestBed.inject(Conversion).pageCount()).toBe(1);
   });
 
   it('IntersectionObserver がある環境では、シートは可視になるまで実体化しない', async () => {
@@ -112,12 +112,12 @@ describe('Preview', () => {
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(TestBed.inject(Document).rendering()).toBe(true);
+    expect(TestBed.inject(Conversion).rendering()).toBe(true);
     expect(el.querySelector('.app-rendering-indicator')).not.toBeNull();
 
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(TestBed.inject(Document).rendering()).toBe(false);
+    expect(TestBed.inject(Conversion).rendering()).toBe(false);
     expect(el.querySelector('.app-rendering-indicator')).toBeNull();
   });
 

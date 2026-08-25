@@ -7,9 +7,9 @@ import { groupBlocks } from './markdown/block-groups';
 import { measurePagination } from './pagination/page-count';
 import { Breaks } from './pagination/breaks';
 
-/** 変換済み文書。変換パイプラインと、文書の導出・ページ組を担う */
+/** 変換。原稿列からの変換パイプラインと、変換済み文書の導出・ページ組を担う */
 @Service()
-export class Document {
+export class Conversion {
   private readonly manuscripts = inject(Manuscripts);
   private readonly breaks = inject(Breaks);
   private readonly converter = inject(Converter);
