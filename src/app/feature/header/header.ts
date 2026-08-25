@@ -15,9 +15,9 @@ import { ZoomControl } from './zoom-control';
     <header class="app-header flex h-12 shrink-0 items-center gap-2 border-b px-2 sm:gap-3 sm:px-4">
       <h1 class="app-logo text-base font-bold tracking-tight">printmd</h1>
       @if (vm.isActive()) {
-        <!-- 帯は広い幅では中央に絶対配置、狭い幅では通常フローに戻して衝突を避ける -->
+        <!-- 帯は広い幅では中央に絶対配置。狭い幅では通常フローへ戻し、入りきらない分は帯の中で横スクロールさせる (印刷ボタンへ被せない) -->
         <div
-          class="flex min-w-0 flex-1 items-center justify-center gap-1.5 text-xs whitespace-nowrap text-stone-700 sm:gap-2 md:absolute md:left-1/2 md:flex-none md:-translate-x-1/2"
+          class="flex min-w-0 flex-1 items-center justify-center-safe gap-1.5 overflow-x-auto text-xs whitespace-nowrap text-stone-700 sm:gap-2 md:absolute md:left-1/2 md:flex-none md:overflow-visible md:-translate-x-1/2"
         >
           <span role="status" aria-live="polite">{{ vm.status() }}</span>
           <span aria-hidden="true" class="hidden opacity-40 sm:inline">|</span>

@@ -29,25 +29,55 @@ test('狭い画面 + 200% ズームでもパネルが画面外へ押し出され
   expect(hasHScroll).toBe(true);
 });
 
-/** 表示操作の帯は広い幅では中央へ絶対配置される。狭い幅では通常フローへ戻して衝突を避ける */
-test('375px 幅で原稿があってもヘッダの操作面が重ならない', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 700 });
-  await page.goto('/');
-  await importMarkdown(page, 'header.md', '# 見出し\n\n本文である。');
+/**
+ * 表示操作の帯は広い幅では中央へ絶対配置され、狭い幅では通常フローへ戻る。
+ * 入りきらない分は帯の中で横スクロールさせ、印刷ボタンへ被せない。
+ * 検証は幾何位置ではなく当たり判定で行う (覆われた操作面は別の操作を誤爆させる)
+ */
+for (const width of [320, 375]) {
+  test(`${width}px 幅でヘッダの操作面が互いに覆い合わない`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 700 });
+    await page.goto('/');
+    await importMarkdown(page, 'header.md', '# 見出し\n\n本文である。');
 
-  const selectors = ['.app-logo', 'header [role="status"]', 'header select', '.app-print-button'];
-  const boxes = [];
-  for (const selector of selectors) {
-    boxes.push((await page.locator(selector).boundingBox())!);
-  }
-  boxes.slice(1).forEach((box, index) => {
-    const previous = boxes[index];
-    expect(box.x).toBeGreaterThanOrEqual(previous.x + previous.width);
+    const overlaps = await page.evaluate(() => {
+      const selectors = [
+        '.app-logo',
+        'header select',
+        '[aria-label="縮小"]',
+        '[aria-label="拡大"]',
+        '.app-print-button',
+      ];
+      const band = document.querySelector('header [role="status"]')!.parentElement!;
+      const scrollport = band.getBoundingClientRect();
+      // 帯が内容を切り取るときだけ、はみ出した分はスクロールで到達する。
+      // 切り取らない (overflow: visible) なら、はみ出しはそのまま隣へ被さる
+      const clips = getComputedStyle(band).overflowX !== 'visible';
+      const visibleRect = (el: Element) => {
+        const box = el.getBoundingClientRect();
+        const clipped = clips && band.contains(el);
+        return {
+          left: clipped ? Math.max(box.left, scrollport.left) : box.left,
+          right: clipped ? Math.min(box.right, scrollport.right) : box.right,
+        };
+      };
+      const rects = selectors.map((selector) => ({
+        selector,
+        ...visibleRect(document.querySelector(selector)!),
+      }));
+      return rects.flatMap((a, index) =>
+        rects
+          .slice(index + 1)
+          .filter((b) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0.5)
+          .map((b) => `${a.selector} × ${b.selector}`),
+      );
+    });
+    expect(overlaps).toEqual([]);
+
+    const docScrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(docScrollWidth).toBeLessThanOrEqual(width);
   });
-
-  const docScrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-  expect(docScrollWidth).toBeLessThanOrEqual(375);
-});
+}
 
 test('375px 幅でもフッタの表記が帯の内側に収まる', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 700 });
