@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from './mermaid/mermaid-renderer';
 import { Manuscripts } from './manuscript/manuscripts';
 import { Breaks } from './pagination/breaks';
-import { Conversion } from './conversion';
+import { ConversionPipeline } from './conversion-pipeline';
 import type { Block } from './markdown/block-extractor';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -26,22 +26,22 @@ function file(name: string, content: string) {
  * (whenStable だけでは起動前に解決して素通りする)
  */
 function blocksOf(): readonly Block[] {
-  return TestBed.inject(Conversion).renderedDocument()?.blocks ?? [];
+  return TestBed.inject(ConversionPipeline).renderedDocument()?.blocks ?? [];
 }
 
 async function whenRendered(): Promise<void> {
   const appRef = TestBed.inject(ApplicationRef);
-  const conversion = TestBed.inject(Conversion);
+  const pipeline = TestBed.inject(ConversionPipeline);
   for (let i = 0; i < 50; i++) {
     TestBed.tick();
     await appRef.whenStable();
-    if (!conversion.rendering()) return;
+    if (!pipeline.rendering()) return;
   }
 }
 
 describe('ドメインサービスの統合', () => {
   let manuscripts: Manuscripts;
-  let conversion: Conversion;
+  let pipeline: ConversionPipeline;
   let breaks: Breaks;
 
   beforeEach(() => {
@@ -49,7 +49,7 @@ describe('ドメインサービスの統合', () => {
       providers: [{ provide: MermaidRenderer, useClass: FakeMermaidRenderer }],
     });
     manuscripts = TestBed.inject(Manuscripts);
-    conversion = TestBed.inject(Conversion);
+    pipeline = TestBed.inject(ConversionPipeline);
     breaks = TestBed.inject(Breaks);
   });
 
@@ -119,7 +119,7 @@ describe('ドメインサービスの統合', () => {
     await manuscripts.add([file('a.md', '# A\n\n本文')]);
     await whenRendered();
     breaks.toggle(blocksOf()[1].id);
-    const container = conversion.renderedDocument()!.container;
+    const container = pipeline.renderedDocument()!.container;
     expect([...container.children].some((el) => el.classList.contains('forced-break'))).toBe(false);
   });
 
@@ -170,7 +170,7 @@ describe('変換の競合', () => {
 
   it('遅延して解決した古い変換が、現行文書のキャッシュを追い出して壊さない', async () => {
     const manuscripts = TestBed.inject(Manuscripts);
-    const conversion = TestBed.inject(Conversion);
+    const pipeline = TestBed.inject(ConversionPipeline);
     const mermaid = '```mermaid\ngraph LR\nX-->Y\n```';
 
     // loader1: [A] を開始、A の mermaid が保留のまま (pending[0])
@@ -196,7 +196,7 @@ describe('変換の競合', () => {
     pending[3]({ svg: '<svg>C3</svg>' });
     await settle();
 
-    const blocks = conversion.renderedDocument()?.blocks ?? [];
+    const blocks = pipeline.renderedDocument()?.blocks ?? [];
     const headings = blocks.filter((b) => b.kind === 'heading').map((b) => b.label);
     expect(headings).toEqual(['A', 'B', 'C']);
     // B のフラグメントが追い出されていれば b.md のブロックが欠落する

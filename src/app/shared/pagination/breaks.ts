@@ -1,6 +1,6 @@
 import { Service, computed, inject, linkedSignal } from '@angular/core';
 import { isPrefixOf } from '../collections';
-import { Conversion } from '../conversion';
+import { ConversionPipeline } from '../conversion-pipeline';
 import { Manuscripts } from '../manuscript/manuscripts';
 import { measurePagination } from './page-count';
 import type { ManuscriptFile } from '../manuscript/manuscript';
@@ -18,7 +18,7 @@ function toggled(current: ReadonlySet<string>, blockId: string): ReadonlySet<str
 @Service()
 export class Breaks {
   private readonly manuscripts = inject(Manuscripts);
-  private readonly conversion = inject(Conversion);
+  private readonly pipeline = inject(ConversionPipeline);
 
   /**
    * ID は位置由来 (f{n}b{m}) のため、ファイルの削除・並べ替えでは同じ ID が
@@ -44,7 +44,7 @@ export class Breaks {
    * メモ化された導出値 (実測はプローブで行うが観測可能な状態を残さない)
    */
   readonly pagination = computed(() => {
-    const doc = this.conversion.renderedDocument();
+    const doc = this.pipeline.renderedDocument();
     return doc === null ? null : measurePagination(doc, this.ids());
   });
 

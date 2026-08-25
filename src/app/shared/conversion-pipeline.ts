@@ -6,7 +6,7 @@ import type { RenderedDocument } from './markdown/block-extractor';
 
 /** 変換。原稿列を変換済み文書へ導くパイプラインとその進行状態を担う */
 @Service()
-export class Conversion {
+export class ConversionPipeline {
   private readonly manuscripts = inject(Manuscripts);
   private readonly converter = inject(Converter);
 

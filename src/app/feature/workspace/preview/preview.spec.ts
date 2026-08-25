@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../../shared/mermaid/mermaid-renderer';
-import { Conversion } from '../../../shared/conversion';
+import { ConversionPipeline } from '../../../shared/conversion-pipeline';
 import { Breaks } from '../../../shared/pagination/breaks';
 import { Manuscripts } from '../../../shared/manuscript/manuscripts';
 import { Zoom } from '../../../shared/pagination/zoom';
@@ -113,12 +113,12 @@ describe('Preview', () => {
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(TestBed.inject(Conversion).rendering()).toBe(true);
+    expect(TestBed.inject(ConversionPipeline).rendering()).toBe(true);
     expect(el.querySelector('.app-rendering-indicator')).not.toBeNull();
 
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(TestBed.inject(Conversion).rendering()).toBe(false);
+    expect(TestBed.inject(ConversionPipeline).rendering()).toBe(false);
     expect(el.querySelector('.app-rendering-indicator')).toBeNull();
   });
 

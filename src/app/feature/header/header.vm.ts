@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, type Signal } from '@angular/core';
 import { Breaks } from '../../shared/pagination/breaks';
-import { Conversion } from '../../shared/conversion';
+import { ConversionPipeline } from '../../shared/conversion-pipeline';
 import { Manuscripts } from '../../shared/manuscript/manuscripts';
 import { Zoom } from '../../shared/pagination/zoom';
 
@@ -8,7 +8,7 @@ import { Zoom } from '../../shared/pagination/zoom';
 @Injectable()
 export class HeaderViewModel {
   private readonly manuscripts = inject(Manuscripts);
-  private readonly conversion = inject(Conversion);
+  private readonly pipeline = inject(ConversionPipeline);
   private readonly breaks = inject(Breaks);
   private readonly zoom = inject(Zoom);
 
@@ -19,7 +19,7 @@ export class HeaderViewModel {
 
   readonly status: Signal<string> = computed(() => {
     const count = this.breaks.pageCount();
-    return this.conversion.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
+    return this.pipeline.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
   });
 
   stepBy(delta: -1 | 1): void {

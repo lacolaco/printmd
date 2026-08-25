@@ -29,7 +29,7 @@ flowchart LR
     V2[/pageCount<br/>= pagination.total/]
   end
 
-  subgraph ConversionS["Conversion"]
+  subgraph ConversionS["ConversionPipeline"]
     S4[["renderedDocument<br/>resource (async 導出)"]]
     S3[/rendering<br/>= isLoading/]
   end
