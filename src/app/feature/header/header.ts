@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Toolbar } from '@angular/aria/toolbar';
 import { HeaderViewModel } from './header.vm';
-import { PageStatus } from './page-status';
 import { ZoomControl } from './zoom-control';
 
 /**
@@ -9,7 +8,7 @@ import { ZoomControl } from './zoom-control';
  */
 @Component({
   selector: 'app-header',
-  imports: [Toolbar, PageStatus, ZoomControl],
+  imports: [Toolbar, ZoomControl],
   providers: [HeaderViewModel],
   template: `
     <header class="app-header flex h-12 shrink-0 items-center gap-3 border-b px-4">
@@ -20,7 +19,7 @@ import { ZoomControl } from './zoom-control';
           ngToolbar
           aria-label="表示操作"
         >
-          <app-page-status [label]="vm.status()" />
+          <span role="status" aria-live="polite">{{ vm.status() }}</span>
           <span aria-hidden="true" class="opacity-40">|</span>
           <app-zoom-control
             [label]="vm.zoomLabel()"

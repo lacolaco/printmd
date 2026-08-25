@@ -7,7 +7,6 @@
 flowchart TB
   APP["App<br/><small>画面骨格: ヘッダ / 画面切替 / 印刷対象</small>"]
   HEADER["Header<br/><small>ロゴ / 表示操作の帯 / 印刷 (コンテナ)</small>"]
-  STATUS["PageStatus<br/><small>頁数文言の掲示 (プレーン)</small>"]
   ZOOMC["ZoomControl<br/><small>ズームの段送り操作面 (プレーン)</small>"]
   WS["Workspace<br/><small>作業画面: md+ は 2 カラム、スマートフォン幅は<br/>シングルカラム + ボトムシート (開閉状態を所有)。<br/>追加取り込みのドロップ受け</small>"]
   PREVIEW["Preview<br/><small>A4 シート面の結線。描画は<br/>SheetRenderer に委譲 (遅延実体化)</small>"]
@@ -21,7 +20,6 @@ flowchart TB
   PRINT["PrintRoot<br/><small>印刷対象 (変換済み文書の掲示)</small>"]
 
   APP --> HEADER
-  HEADER --> STATUS
   HEADER --> ZOOMC
   APP --> FOOTER
   APP -->|"原稿あり"| WS
@@ -39,7 +37,7 @@ flowchart TB
   classDef leaf fill:#e0f2fe,stroke:#0369a1
   class APP shell
   class WS layout
-  class HEADER,STATUS,ZOOMC,PREVIEW,FILEP,BREAKP,FOOTER,DROP,PRINT leaf
+  class HEADER,ZOOMC,PREVIEW,FILEP,BREAKP,FOOTER,DROP,PRINT leaf
 ```
 
 - 画面領域の責務で階層化: App は骨格、Workspace が作業画面と右カラム (調整パネル) を所有する
