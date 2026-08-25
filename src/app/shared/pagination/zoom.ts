@@ -1,5 +1,6 @@
 import { Service, computed, signal } from '@angular/core';
-import { A4, MM_TO_PX } from './page-geometry';
+import type { PaperFormat } from '../paper/paper-format';
+import { DEFAULT_PAPER } from '../paper/paper-catalog';
 
 export const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
 
@@ -19,20 +20,28 @@ function largestFitting(fit: number): number {
 }
 
 /**
- * 初期ズーム段の決定。利用可能幅に A4 紙面が収まる最大の段を選ぶ。
+ * 初期ズーム段の決定。利用可能幅に紙面が収まる最大の段を選ぶ。
  * 100% (実寸 = 印刷判断の基準) を上限とし、自動では拡大しない
  */
-export function defaultZoomIndex(viewportWidth: number, hasSideColumn: boolean): number {
+export function defaultZoomIndex(
+  viewportWidth: number,
+  hasSideColumn: boolean,
+  format: PaperFormat,
+): number {
   const available = viewportWidth - (hasSideColumn ? PANEL_WIDTH : 0) - GUTTERS;
-  const fit = Math.min(1, available / (A4.page.width * MM_TO_PX));
+  const fit = Math.min(1, available / format.widthPx());
   return largestFitting(fit);
+}
+
+function isSideColumnShown(): boolean {
+  return window.matchMedia('(min-width: 768px)').matches;
 }
 
 /** matchMedia を持たない環境 (jsdom) では実寸を既定にする */
 function startupStep(): number {
   return typeof window.matchMedia !== 'function'
     ? ZOOMS.indexOf(1)
-    : defaultZoomIndex(window.innerWidth, window.matchMedia('(min-width: 768px)').matches);
+    : defaultZoomIndex(window.innerWidth, isSideColumnShown(), DEFAULT_PAPER);
 }
 
 /** 段を delta ぶん送る (両端で頭打ち) */

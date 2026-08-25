@@ -11,7 +11,7 @@ printmd のプロジェクト規範。
 
 - プレビューと印刷のページ割り一致は「予測ではなく共有」で達成する。改ページ位置を自前で計算するコードを持ち込んではならない (経緯は README の仕組み節を参照)。
 - 画面の強制改ページは CSS の強制改行 (`break-before: column`) に依存してはならない。Firefox が未実装のため、セグメント分割 (`src/app/shared/pagination/segment-ranges.ts`) で表現する。
-- 紙面の寸法は `src/app/pagination/page-geometry.ts` を単一の情報源とする。数値を別の場所に重複させてはならない。
+- 紙面の寸法は `src/app/shared/paper/paper-format.ts` の `PaperFormat` を単一の情報源とし、書式そのものは `paper-catalog.ts` に置く。数値を別の場所に重複させてはならない。書式ごとの分岐を書かず、寸法の問い合わせは `PaperFormat` のメソッドへ委ねる。
 
 ## コーディング規律
 
