@@ -11,30 +11,32 @@ import { ZoomControl } from './zoom-control';
   imports: [Toolbar, ZoomControl],
   providers: [HeaderViewModel],
   template: `
-    <header class="app-header flex h-12 shrink-0 items-center gap-3 border-b px-4">
+    <header
+      class="app-header flex min-h-12 shrink-0 flex-wrap items-center gap-2 border-b px-2 py-1 sm:h-12 sm:gap-3 sm:py-0 sm:px-4"
+    >
       <h1 class="app-logo text-base font-bold tracking-tight">printmd</h1>
       @if (vm.isActive()) {
         <div
-          class="absolute left-1/2 flex -translate-x-1/2 items-center gap-2 text-xs text-stone-700"
-          ngToolbar
-          aria-label="表示操作"
+          class="flex min-w-fit flex-1 items-center justify-center gap-1.5 text-xs whitespace-nowrap text-stone-700 sm:gap-2 md:absolute md:left-1/2 md:flex-none md:-translate-x-1/2"
         >
           <span role="status" aria-live="polite">{{ vm.status() }}</span>
-          <span aria-hidden="true" class="opacity-40">|</span>
-          <app-zoom-control
-            [label]="vm.zoomLabel()"
-            [isShrinkable]="vm.isShrinkable()"
-            [isGrowable]="vm.isGrowable()"
-            (shrink)="vm.stepBy(-1)"
-            (grow)="vm.stepBy(1)"
-          />
+          <span aria-hidden="true" class="hidden opacity-40 sm:inline">|</span>
+          <div class="flex items-center gap-2" ngToolbar aria-label="表示倍率">
+            <app-zoom-control
+              [label]="vm.zoomLabel()"
+              [isShrinkable]="vm.isShrinkable()"
+              [isGrowable]="vm.isGrowable()"
+              (shrink)="vm.stepBy(-1)"
+              (grow)="vm.stepBy(1)"
+            />
+          </div>
         </div>
         <button
           type="button"
           class="app-print-button ml-auto rounded-sm px-3 py-1 text-xs font-medium"
           (click)="print()"
         >
-          印刷 (PDFに保存)
+          印刷
         </button>
       }
     </header>
