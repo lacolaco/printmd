@@ -10,8 +10,8 @@ describe('PaperStyles', () => {
   it('書式の寸法を CSS カスタムプロパティとして注入する', () => {
     new PaperStyles(document).apply(B5);
     const { style } = document.documentElement;
-    expect(style.getPropertyValue('--page-width')).toBe('176mm');
-    expect(style.getPropertyValue('--content-height')).toBe('222mm');
+    expect(style.getPropertyValue('--page-width')).toBe('182mm');
+    expect(style.getPropertyValue('--content-height')).toBe('229mm');
   });
 
   it('印刷の @page 規則を書式の実寸で差し替える', () => {

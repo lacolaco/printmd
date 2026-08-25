@@ -10,7 +10,7 @@ describe('paper-catalog', () => {
   it('各書式の紙寸法と余白', () => {
     expect(A4.page).toEqual({ width: 210, height: 297, margin: 16 });
     expect(A3.page).toEqual({ width: 297, height: 420, margin: 20 });
-    expect(B5.page).toEqual({ width: 176, height: 250, margin: 14 });
+    expect(B5.page).toEqual({ width: 182, height: 257, margin: 14 });
   });
 
   it('既定は A4', () => {

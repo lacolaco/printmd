@@ -64,7 +64,7 @@ describe('tallySegments', () => {
 
 describe('書式ごとの段の刻み', () => {
   it('同じ幅でも版面の狭い書式では段数が増える', () => {
-    // 420mm: A4 (刻み 194mm) では 2 段、B5 (刻み 164mm) では 3 段になる幅
+    // 420mm: A4 (刻み 194mm) では 2 段、B5 (刻み 170mm) では 3 段になる幅
     const width = 420 * MM_TO_PX;
     const clone = cloneWithScrollWidth(width);
     expect(tallySegments([{ start: 0, end: 1 }], [clone], A4).total).toBe(2);
