@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, type Signal } from '@angular/core';
-import { Documents } from '../../shared/documents';
+import { Conversion } from '../../shared/conversion';
 import { Manuscripts } from '../../shared/manuscript/manuscripts';
 import { Zoom } from '../../shared/pagination/zoom';
 
@@ -7,7 +7,7 @@ import { Zoom } from '../../shared/pagination/zoom';
 @Injectable()
 export class HeaderViewModel {
   private readonly manuscripts = inject(Manuscripts);
-  private readonly documents = inject(Documents);
+  private readonly conversion = inject(Conversion);
   private readonly zoom = inject(Zoom);
 
   readonly active: Signal<boolean> = this.manuscripts.nonEmpty;
@@ -16,8 +16,8 @@ export class HeaderViewModel {
   readonly growable: Signal<boolean> = computed(() => this.zoom.isSteppable(1));
 
   readonly status: Signal<string> = computed(() => {
-    const count = this.documents.pageCount();
-    return this.documents.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
+    const count = this.conversion.pageCount();
+    return this.conversion.rendering() ? '変換中…' : count === 0 ? '—' : `${count}ページ`;
   });
 
   stepBy(delta: -1 | 1): void {
