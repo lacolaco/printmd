@@ -2,7 +2,7 @@ import type { PaperFormat } from '../paper/paper-format';
 import type { RenderedDocument } from '../markdown/block-extractor';
 import type { Pagination, SegmentRange } from './pagination';
 import { buildSegmentClone } from './segment-clone';
-import { tallySegments } from './tally';
+import { PaginationBuilder } from './pagination-builder';
 
 /** 計測用の使い捨て DOM */
 export class Probe {
@@ -16,9 +16,19 @@ export class Probe {
   measure(doc: RenderedDocument, ranges: readonly SegmentRange[], format: PaperFormat): Pagination {
     const clones = this.cloneAll(doc, ranges);
     document.body.append(this.host);
-    const result = tallySegments(ranges, clones, format);
+    const pagination = this.buildPagination(ranges, clones, format);
     this.host.remove();
-    return result;
+    return pagination;
+  }
+
+  private buildPagination(
+    ranges: readonly SegmentRange[],
+    clones: readonly HTMLElement[],
+    format: PaperFormat,
+  ): Pagination {
+    const builder = new PaginationBuilder(format);
+    ranges.forEach((range, index) => builder.add(range, clones[index]));
+    return builder.build();
   }
 
   private cloneAll(doc: RenderedDocument, ranges: readonly SegmentRange[]): HTMLElement[] {

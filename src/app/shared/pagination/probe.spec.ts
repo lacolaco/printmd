@@ -21,6 +21,24 @@ describe('Probe', () => {
     });
   });
 
+  it('セグメントとクローンを順に対応付けて開始ページを積む', () => {
+    const pagination = new Probe().measure(
+      doc(),
+      [
+        { start: 0, end: 1 },
+        { start: 1, end: 2 },
+      ],
+      A4,
+    );
+    expect(pagination).toEqual({
+      segments: [
+        { start: 0, end: 1, pages: 1, firstPage: 0 },
+        { start: 1, end: 2, pages: 1, firstPage: 1 },
+      ],
+      total: 2,
+    });
+  });
+
   it('計測中に例外が起きても host を除去する', () => {
     const probe = new Probe();
     const brokenRanges = [
