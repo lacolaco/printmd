@@ -12,7 +12,7 @@ export class BreakPanelViewModel {
   readonly groups: Signal<readonly FileGroup[]> = this.document.blockGroups;
   readonly rowTotal: Signal<number> = this.document.rowTotal;
   readonly multiSource: Signal<boolean> = this.document.multiSource;
-  readonly marked: Signal<ReadonlySet<string>> = this.breaks.ids;
+  readonly breakIds: Signal<ReadonlySet<string>> = this.breaks.ids;
 
   toggle(blockId: string): void {
     this.breaks.toggle(blockId);

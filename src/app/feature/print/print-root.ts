@@ -21,9 +21,9 @@ export class PrintRoot {
   constructor() {
     effect(() => {
       const doc = this.vm.rendered();
-      const marked = this.vm.marked();
+      const breakIds = this.vm.breakIds();
       this.host.nativeElement.replaceChildren();
-      doc?.mount(this.host.nativeElement, marked);
+      doc?.mount(this.host.nativeElement, breakIds);
     });
   }
 }

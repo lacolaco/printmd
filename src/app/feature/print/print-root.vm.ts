@@ -10,5 +10,5 @@ export class PrintRootViewModel {
   private readonly breaks = inject(Breaks);
 
   readonly rendered: Signal<RenderedDocument | null> = this.document.renderedDocument;
-  readonly marked: Signal<ReadonlySet<string>> = this.breaks.ids;
+  readonly breakIds: Signal<ReadonlySet<string>> = this.breaks.ids;
 }
