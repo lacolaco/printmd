@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MM_TO_PX } from '../paper/units';
+import { toPx } from '../paper/units';
 import { A4 } from '../paper/paper-catalog';
 import { PaginationBuilder } from './pagination-builder';
 
@@ -9,8 +9,8 @@ function cloneWithScrollWidth(scrollWidth: number): HTMLElement {
   return el;
 }
 
-const stepPx = A4.step * MM_TO_PX;
-const gapPx = A4.gap * MM_TO_PX;
+const stepPx = toPx(A4.step);
+const gapPx = toPx(A4.gap);
 
 describe('PaginationBuilder', () => {
   it('1 段に収まる幅なら 1 ページと数える', () => {

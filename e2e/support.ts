@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { MM_TO_PX } from '../src/app/shared/paper/units';
+import { toPx } from '../src/app/shared/paper/units';
 import type { PaperFormat } from '../src/app/shared/paper/paper-format';
 
 /** Markdown 文字列をファイル入力へ流し込み、プレビューの構築を待つ */
@@ -68,7 +68,7 @@ export async function previewHeadingPages(
       probe.remove();
       return pages;
     },
-    { columnStepPx: paper.step * MM_TO_PX, columnGapPx: paper.gap * MM_TO_PX },
+    { columnStepPx: toPx(paper.step), columnGapPx: toPx(paper.gap) },
   );
 }
 
