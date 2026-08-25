@@ -106,7 +106,7 @@ export class SheetRenderer {
     pagination: Pagination,
   ): void {
     if (entry.isIntersecting) {
-      this.realize(entry.target as HTMLElement, doc, pagination);
+      this.fill(entry.target as HTMLElement, doc, pagination);
       this.observer?.unobserve(entry.target);
     }
   }
@@ -122,33 +122,34 @@ export class SheetRenderer {
     const sheet = blankFrame(index);
     this.pages.set(sheet, index);
     this.host.append(sheet);
-    this.settle(sheet, doc, pagination);
+    this.schedule(sheet, doc, pagination);
   }
 
-  private settle(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
-    this.watchLazily(sheet);
-    this.fillEagerly(sheet, doc, pagination);
+  private schedule(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
+    this.observe(sheet);
+    this.preload(sheet, doc, pagination);
   }
 
-  private watchLazily(sheet: HTMLElement): void {
+  private observe(sheet: HTMLElement): void {
     if (this.observer !== null) {
       this.observer.observe(sheet);
     }
   }
 
-  private fillEagerly(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
+  /** 監視できない環境では可視域を待たずに入れる */
+  private preload(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
     if (this.observer === null) {
-      this.realize(sheet, doc, pagination);
+      this.fill(sheet, doc, pagination);
     }
   }
 
-  private realize(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
+  private fill(sheet: HTMLElement, doc: RenderedDocument, pagination: Pagination): void {
     if (isEmpty(sheet)) {
-      this.materialize(sheet, this.pages.get(sheet) ?? NaN, doc, pagination);
+      this.insertClip(sheet, this.pages.get(sheet) ?? NaN, doc, pagination);
     }
   }
 
-  private materialize(
+  private insertClip(
     sheet: HTMLElement,
     index: number,
     doc: RenderedDocument,

@@ -72,7 +72,7 @@ input[type='checkbox']:not(:disabled) {
   column-fill: auto;
 }
 
-.preview-probe {
+.measuring-area {
   position: absolute;
   left: -9999px;
   top: 0;

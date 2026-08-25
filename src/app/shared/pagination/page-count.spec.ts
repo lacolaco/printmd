@@ -65,6 +65,6 @@ describe('measurePagination', () => {
       { start: 3, end: 5, pages: 1, firstPage: 2 },
     ]);
     expect(pagination.total).toBe(3);
-    expect(document.querySelector('.preview-probe')).toBeNull();
+    expect(document.querySelector('.measuring-area')).toBeNull();
   });
 });

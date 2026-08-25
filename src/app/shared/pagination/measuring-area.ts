@@ -4,12 +4,12 @@ import type { Pagination, SegmentRange } from './pagination';
 import { buildSegmentClone } from './segment-clone';
 import { PaginationBuilder } from './pagination-builder';
 
-/** 計測用の使い捨て DOM */
-export class Probe {
+/** 実レイアウトで測るための、画面外に置く使い捨ての領域 */
+export class MeasuringArea {
   private readonly host = document.createElement('div');
 
   constructor() {
-    this.host.className = 'preview-probe';
+    this.host.className = 'measuring-area';
   }
 
   /** 掲示は全クローン構築後 (構築中の例外で DOM に残さない)。計測は破棄より先 */

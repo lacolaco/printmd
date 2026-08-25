@@ -1,8 +1,8 @@
 import type { Block, RenderedDocument } from '../markdown/block-extractor';
 import type { PaperFormat } from '../paper/paper-format';
 import type { Pagination, SegmentRange } from './pagination';
-import { Probe } from './probe';
-import { Ranges } from './ranges';
+import { MeasuringArea } from './measuring-area';
+import { SegmentRanges } from './segment-ranges';
 
 /**
  * 強制改ページ (指定 Set とファイル境界) の位置で文書をセグメントへ分割する。
@@ -15,14 +15,14 @@ export function splitAtForcedBreaks(
   blocks: readonly Block[],
   breaks: ReadonlySet<string>,
 ): SegmentRange[] {
-  const ranges = new Ranges();
-  blocks.forEach((block, index) => ranges.cut(block, index, breaks));
-  return ranges.close(blocks.length);
+  const ranges = new SegmentRanges();
+  blocks.forEach((block, index) => ranges.cutBefore(block, index, breaks));
+  return ranges.closeAt(blocks.length);
 }
 
 /**
  * 文書が何ページ (= 段) に割り付くかをセグメントごとに実レイアウトで計測する。
- * 同一の (doc, breaks, 書式) に対して決定的で、プローブは即座に破棄する
+ * 同一の (doc, breaks, 書式) に対して決定的で、領域は即座に破棄する
  * ため観測可能な状態を残さない (computed の中から呼べる純粋関数として扱う)
  */
 export function measurePagination(
@@ -32,5 +32,5 @@ export function measurePagination(
 ): Pagination {
   const { blocks } = doc;
   const ranges = splitAtForcedBreaks(blocks, breaks);
-  return new Probe().measure(doc, ranges, format);
+  return new MeasuringArea().measure(doc, ranges, format);
 }

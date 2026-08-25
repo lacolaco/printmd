@@ -45,7 +45,7 @@ export class Breaks {
 
   /**
    * ページ組。(doc, 指定, 用紙書式) で組んだときのレイアウト結果の
-   * メモ化された導出値 (実測はプローブで行うが観測可能な状態を残さない)
+   * メモ化された導出値 (実測は画面外の領域で行うが観測可能な状態を残さない)
    */
   readonly pagination = computed(() => {
     const doc = this.pipeline.renderedDocument();
