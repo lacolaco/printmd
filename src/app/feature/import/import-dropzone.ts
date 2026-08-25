@@ -23,7 +23,7 @@ import { ImportDropzoneViewModel } from './import-dropzone.vm';
         (change)="readSelection($event)"
       />
       <span class="max-w-sm text-center">
-        Markdownファイルをここへドロップ、またはクリックして選択すると、A4の紙面プレビューが表示されます
+        Markdownファイルをここへドロップ、またはクリックして選択すると、紙面プレビューが表示されます
       </span>
       <button
         type="button"
