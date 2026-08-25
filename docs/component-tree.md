@@ -1,6 +1,6 @@
 # コンポーネントツリー
 
-各コンポーネントの配置と責務。トップレベルは `src/app/feature/` (機能 = header / workspace / import / print / footer) と `src/app/shared/` (機能横断のドメイン) の 2 つ。feature 内のディレクトリ構造はこのツリーの親子関係をそのまま写し、コンポーネントの協力オブジェクト (SheetRenderer / Demo など) とコンテナのビューモデル (`xxx.vm.ts`) は、それを使うコンポーネントと同じディレクトリに置く。状態とその操作は責務単位のドメインサービス (Manuscripts / Breaks / Document / Zoom) が一体で保有し、shared のドメインディレクトリに置く。
+各コンポーネントの配置と責務。トップレベルは `src/app/feature/` (機能 = header / workspace / import / print / footer) と `src/app/shared/` (機能横断のドメイン) の 2 つ。feature 内のディレクトリ構造はこのツリーの親子関係をそのまま写し、コンポーネントの協力オブジェクト (SheetRenderer など) とコンテナのビューモデル (`xxx.vm.ts`) は、それを使うコンポーネントと同じディレクトリに置く。状態とその操作は責務単位のドメインサービス (Manuscripts / Breaks / Document / Zoom) が一体で保有し、shared のドメインディレクトリに置く。
 **コンポーネントの追加・削除・責務変更のコミットでは、この図と docs/signal-graph.md を同じコミットで更新すること** (CLAUDE.md の生きたドキュメント規則)。
 
 ```mermaid
@@ -16,7 +16,7 @@ flowchart TB
   FILEROW["FileRowItem<br/><small>ファイル行の操作面 (移動・削除)</small>"]
   FILEADD["FileAddInput<br/><small>追加取り込みの入力面</small>"]
   FOOTER["Footer<br/><small>下端の帯: 著作権表記・ライセンス導線・Angular バージョン<br/>(ヘッダと対)</small>"]
-  DROP["ImportDropzone<br/><small>取り込み面 (デモ取り込みは<br/>Demo サービス)</small>"]
+  DROP["ImportDropzone<br/><small>取り込み面 (デモ原稿の読み込みも担う)</small>"]
   PRINT["PrintRoot<br/><small>印刷対象 (変換済み文書の掲示)</small>"]
 
   APP --> HEADER
