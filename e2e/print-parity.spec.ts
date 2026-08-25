@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { importMarkdown, previewHeadingPages, printPdfPageTexts, readPageCount } from './support';
-import { A4 } from '../src/app/shared/paper/paper-catalog';
+import { PAPERS } from '../src/app/shared/paper/paper-catalog';
 
 /**
  * 中核保証の検証: プレビューが見せるページ割りと、印刷 (PDF 化) の実出力が
  * 同一であること。段落のページ跨ぎ・強制改ページ・混合ブロックを含む原稿で、
  * 全 h2 見出しの「載るページ番号」をプレビューと実 PDF の双方から取り出して
- * 突き合わせる。
+ * 突き合わせる。選べる用紙書式のすべてで成り立たなければならない。
  */
 
 function buildManuscript(): string {
@@ -30,41 +30,45 @@ function buildManuscript(): string {
   return md.join('\n');
 }
 
-test('プレビューのページ割りが印刷 PDF と一致する (強制改ページ込み)', async ({ page }) => {
-  await page.goto('/');
-  await importMarkdown(page, 'parity.md', buildManuscript());
+for (const paper of PAPERS) {
+  test(`プレビューのページ割りが印刷 PDF と一致する (強制改ページ込み・${paper.label})`, async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await importMarkdown(page, 'parity.md', buildManuscript());
 
-  // 節 6 の直前に強制改ページを入れる (ページ数が変わるかは原稿の割り付け次第
-  // なので、待機条件はマスターへのクラス付与とプレビュー再構築にする)
-  await page
-    .locator('app-break-panel label', { hasText: '節 6' })
-    .locator('input[type="checkbox"]')
-    .check();
-  await expect(page.locator('.print-root .forced-break')).toHaveCount(1);
-  await expect(page.locator('.sheet').first()).toBeAttached();
+    // 節 6 の直前に強制改ページを入れる (ページ数が変わるかは原稿の割り付け次第
+    // なので、待機条件はマスターへのクラス付与とプレビュー再構築にする)
+    await page
+      .locator('app-break-panel label', { hasText: '節 6' })
+      .locator('input[type="checkbox"]')
+      .check();
+    await expect(page.locator('.print-root .forced-break')).toHaveCount(1);
+    await expect(page.locator('.sheet').first()).toBeAttached();
 
-  const previewCount = await readPageCount(page);
-  const previewPages = await previewHeadingPages(page, A4);
+    const previewCount = await readPageCount(page);
+    const previewPages = await previewHeadingPages(page, paper);
 
-  const pdfTexts = await printPdfPageTexts(page);
-  expect(pdfTexts.length).toBe(previewCount);
+    const pdfTexts = await printPdfPageTexts(page);
+    expect(pdfTexts.length).toBe(previewCount);
 
-  // 実 PDF 側の各見出しの初出ページ
-  const printPages: Record<string, number> = {};
-  pdfTexts.forEach((text, index) => {
-    const normalized = text.replaceAll(/\s+/g, '');
-    for (let s = 1; s <= 10; s++) {
-      const key = `節 ${s}`;
-      if (!(key in printPages) && normalized.includes(`節${s}`)) printPages[key] = index + 1;
-    }
+    // 実 PDF 側の各見出しの初出ページ
+    const printPages: Record<string, number> = {};
+    pdfTexts.forEach((text, index) => {
+      const normalized = text.replaceAll(/\s+/g, '');
+      for (let s = 1; s <= 10; s++) {
+        const key = `節 ${s}`;
+        if (!(key in printPages) && normalized.includes(`節${s}`)) printPages[key] = index + 1;
+      }
+    });
+
+    expect(printPages).toEqual(previewPages);
+
+    // 強制改ページ先はページ先頭 (= その見出しでページが始まる)
+    const forcedPage = previewPages['節 6'];
+    expect(pdfTexts[forcedPage - 1].replaceAll(/\s+/g, '').startsWith('節6')).toBe(true);
   });
-
-  expect(printPages).toEqual(previewPages);
-
-  // 強制改ページ先はページ先頭 (= その見出しでページが始まる)
-  const forcedPage = previewPages['節 6'];
-  expect(pdfTexts[forcedPage - 1].replaceAll(/\s+/g, '').startsWith('節6')).toBe(true);
-});
+}
 
 test('GitHub 体裁の要素が描画される', async ({ page }) => {
   await page.goto('/');
