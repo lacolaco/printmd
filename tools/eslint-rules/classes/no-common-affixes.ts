@@ -110,7 +110,7 @@ export const noCommonAffixes = ESLintUtils.RuleCreator.withoutDocs<[], MessageId
     type: 'suggestion',
     messages: {
       commonAffix:
-        '同一スコープに語「{{affix}}」を共有する名前が複数ある。クラスへのカプセル化が不足している (共通の接頭辞・接尾辞を持たせない)',
+        '同一スコープに語「{{affix}}」を共有する名前が複数ある。既定は共有している語ごとクラスへ束ねて解くこと。改名してよいのは、共有が動詞や前置詞の偶発的な一致である場合に限る',
     },
     schema: [],
   },
