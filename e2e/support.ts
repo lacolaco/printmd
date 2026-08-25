@@ -13,18 +13,24 @@ export async function importMarkdown(page: Page, name: string, content: string):
 }
 
 /**
- * ヘッダの用紙セレクタで書式を選び、画面 CSS への反映を待つ。
- * 待機条件は注入されるカスタムプロパティ (紙面の寸法そのもの) にする
+ * ヘッダの用紙セレクタで書式を選び、紙面の再構築を待つ。
+ * 待機条件は再描画後のシートの実寸にする (CSS 変数は状態の更新より先に書かれるため、
+ * それを待っても古いシートのまま返りうる)。セレクタと Paper の結線は単体テストが持つ
  */
 export async function selectPaper(page: Page, paper: PaperFormat): Promise<void> {
   await page.selectOption('header select', paper.id);
   await expect(page.locator('header select')).toHaveValue(paper.id);
-  await expect
-    .poll(() =>
-      page.evaluate(() => document.documentElement.style.getPropertyValue('--page-width')),
-    )
-    .toBe(`${paper.page.width}mm`);
-  await page.locator('.sheet').first().waitFor();
+  await expect.poll(() => sheetWidthPx(page)).toBeCloseTo(paper.page.width * MM_TO_PX, -1);
+}
+
+/** 1 枚目のシートの、表示倍率を戻した実寸 (CSS px) */
+async function sheetWidthPx(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const sheet = document.querySelector('.sheet');
+    if (sheet === null) return 0;
+    const zoom = Number(getComputedStyle(sheet.parentElement!).zoom) || 1;
+    return sheet.getBoundingClientRect().width / zoom;
+  });
 }
 
 /** ツールバーのページ数表示を数値で返す */
