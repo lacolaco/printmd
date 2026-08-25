@@ -41,7 +41,7 @@ const LAYERS = [
     patterns: [{ group: ['**/feature/**'], message: 'mermaid 層は feature に依存しない' }],
   },
   {
-    // shared 内の依存方向: manuscript ← pagination ← document
+    // shared 内の依存方向: manuscript ← conversion ← pagination
     files: ['src/app/shared/manuscript/**/*.ts'],
     patterns: [
       { group: ['**/feature/**'], message: 'shared は feature に依存しない' },
@@ -52,10 +52,10 @@ const LAYERS = [
     ],
   },
   {
-    files: ['src/app/shared/pagination/**/*.ts'],
+    files: ['src/app/shared/conversion.ts'],
     patterns: [
       { group: ['**/feature/**'], message: 'shared は feature に依存しない' },
-      { group: ['**/conversion'], message: 'pagination は conversion に依存しない' },
+      { group: ['**/pagination/**'], message: 'conversion は pagination に依存しない' },
     ],
   },
 ];

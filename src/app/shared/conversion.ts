@@ -2,16 +2,12 @@ import { Service, computed, inject, resource } from '@angular/core';
 import { isNonEmpty } from './collections';
 import { Converter } from './manuscript/converter';
 import { Manuscripts } from './manuscript/manuscripts';
-import type { Block, RenderedDocument } from './markdown/block-extractor';
-import { groupBlocks } from './markdown/block-groups';
-import { measurePagination } from './pagination/page-count';
-import { Breaks } from './pagination/breaks';
+import type { RenderedDocument } from './markdown/block-extractor';
 
-/** 変換。原稿列からの変換パイプラインと、変換済み文書の導出・ページ組を担う */
+/** 変換。原稿列を変換済み文書へ導くパイプラインとその進行状態を担う */
 @Service()
 export class Conversion {
   private readonly manuscripts = inject(Manuscripts);
-  private readonly breaks = inject(Breaks);
   private readonly converter = inject(Converter);
 
   /**
@@ -29,29 +25,9 @@ export class Conversion {
 
   /**
    * container は唯一の DOM 実体で、印刷対象 (PrintRoot) がそのまま掲示し、
-   * プレビューは複製して使う。強制改ページのクラス付与はここでは行わない
-   * (消費者が描画時に applyForcedBreaks を適用する)
+   * プレビューは複製して使う。強制改ページのクラス付与は消費者の描画時に行う
    */
   readonly renderedDocument = computed<RenderedDocument | null>(() =>
     this.pipeline.hasValue() ? (this.pipeline.value() ?? null) : null,
   );
-
-  readonly blocks = computed<readonly Block[]>(() => this.renderedDocument()?.blocks ?? []);
-  /** ファイルごとのブロック行 (階層深さ付き) */
-  readonly blockGroups = computed(() => groupBlocks(this.blocks()));
-  readonly rowTotal = computed(() =>
-    this.blockGroups().reduce((sum, group) => sum + group.rows.length, 0),
-  );
-  readonly multiSource = computed(() => new Set(this.blocks().map((b) => b.fileIndex)).size > 1);
-
-  /**
-   * ページ組。(doc, breaks) を現在の CSS で組んだときのレイアウト結果の
-   * メモ化された導出値 (実測はプローブで行うが観測可能な状態を残さない)
-   */
-  readonly pagination = computed(() => {
-    const doc = this.renderedDocument();
-    return doc === null ? null : measurePagination(doc, this.breaks.ids());
-  });
-
-  readonly pageCount = computed(() => this.pagination()?.total ?? 0);
 }

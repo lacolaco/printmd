@@ -4,7 +4,7 @@
 
 - 逆流 (effect からの signal 書き込み)・循環: なし
 - `renderedDocument` は resource: Manuscripts.files を params とする async 導出 (Converter サービスが markdown 変換 + mermaid SVG 化 + キャッシュを担う)。`rendering` はその isLoading
-- `Conversion.pagination` は (doc, breaks) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
+- `Breaks.pagination` は (doc, 指定) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (プローブは観測可能な状態を残さない)。`pageCount` はその total
 - `Breaks.ids` は linkedSignal: Manuscripts.files に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelViewModel の message / WorkspaceViewModel の sheetOpen) は省略
 - 表示倍率は `Zoom` (index / value / label / stepBy / isSteppable)。初期段の決定と段送りの算術は同居する純関数が担う
@@ -25,17 +25,13 @@ flowchart LR
 
   subgraph BreaksS["Breaks"]
     S2((ids<br/>linkedSignal))
+    V3[/pagination<br/>計測つき computed<br/>セグメント分割 + 実測/]
+    V2[/pageCount<br/>= pagination.total/]
   end
 
   subgraph ConversionS["Conversion"]
     S4[["renderedDocument<br/>resource (async 導出)"]]
     S3[/rendering<br/>= isLoading/]
-    C2[/blocks/]
-    C3[/blockGroups/]
-    C4[/rowTotal/]
-    C5[/multiSource/]
-    V3[/pagination<br/>計測つき computed<br/>セグメント分割 + 実測/]
-    V2[/pageCount<br/>= pagination.total/]
   end
 
   subgraph ZoomS["Zoom"]
@@ -83,15 +79,9 @@ flowchart LR
   A1 -. "add が警告を設定" .-> S5
 
   S1 --> C1
-  S4 --> C2
 
   C1 --> T2
-  C2 --> C3
-  C3 --> C4
-  C2 --> C5
-  C3 --> T4
-  C4 --> T4
-  C5 --> T4
+  S4 -- "doc.groups() ほか<br/>(RenderedDocument の遅延メモ)" --> T4
   S2 --> T4
   S1 --> T5
   S5 --> T5
@@ -128,7 +118,7 @@ flowchart LR
   class S4 res
 
   class S2 linked
-  class C1,C2,C3,C4,C5,S3,VC1,VC2,HC1,V2,V3 comp
+  class C1,S3,VC1,VC2,HC1,V2,V3 comp
   class AE1,PE1 eff
   class T1,T2,T3,T4,T5,T6 tmpl
   class D1,D2 dom
