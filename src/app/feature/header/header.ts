@@ -44,7 +44,7 @@ import { ZoomControl } from './zoom-control';
           class="app-print-button ml-auto rounded-sm px-3 py-1 text-xs font-medium"
           (click)="print()"
         >
-          印刷<span class="hidden sm:inline"> (PDFに保存)</span>
+          印刷
         </button>
       }
     </header>
