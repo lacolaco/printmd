@@ -21,6 +21,7 @@ export class Converter {
   private readonly mermaid = inject(MermaidRenderer);
   private readonly cache = inject(FragmentCache);
 
+  /** 原稿列を 1 つの変換済み文書へ変換する。キャッシュ済みの断片は再変換しない */
   async render(files: readonly ManuscriptFile[]): Promise<RenderedDocument> {
     const epoch = this.cache.begin();
     await this.convertMissing(files);

@@ -21,6 +21,7 @@ export class ConversionPipeline {
     loader: async ({ params: files }) => (isNonEmpty(files) ? this.converter.render(files) : null),
   });
 
+  /** 変換の進行中か。ヘッダとプレビューが進行表示に使う */
   readonly isRendering = this.pipeline.isLoading;
 
   /**

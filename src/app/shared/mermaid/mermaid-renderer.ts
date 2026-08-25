@@ -35,6 +35,7 @@ export class MermaidRenderer {
   private module: Promise<MermaidLike> | null = null;
   private sequence = 0;
 
+  /** mermaid 本体の動的 import。テストでは fake に差し替える */
   protected loadModule(): Promise<MermaidLike> {
     return import('mermaid').then((mod) => configure(mod.default));
   }
@@ -44,6 +45,7 @@ export class MermaidRenderer {
     return this.module;
   }
 
+  /** mermaid ブロック群を SVG 化し、ID ごとの成否を返す */
   async render(blocks: readonly MermaidBlock[]): Promise<ReadonlyMap<string, MermaidOutcome>> {
     return isNonEmpty(blocks) ? this.produceOutcomes(blocks) : new Map();
   }
