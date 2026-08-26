@@ -22,9 +22,11 @@ describe('Steps', () => {
     expect(steps.isSteppable(items[items.length - 1], -1)).toBe(true);
   });
 
-  it('一覧にない段からは先頭へ寄せる (取り違えを黙って通さない)', () => {
+  it('一覧にない段は動かさない (最小段へ飛ばさない)', () => {
     expect(steps.isSteppable('z', -1)).toBe(false);
-    expect(steps.next('z', 1)).toBe(items[0]);
+    expect(steps.isSteppable('z', 1)).toBe(false);
+    expect(steps.next('z', 1)).toBe('z');
+    expect(steps.next('z', -1)).toBe('z');
   });
 
   it('段の名前を答える', () => {

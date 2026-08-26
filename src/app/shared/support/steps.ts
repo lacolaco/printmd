@@ -13,14 +13,19 @@ export class Steps<T> {
     return this.naming(item);
   }
 
-  /** delta ぶん隣の段 (両端では現在の段のまま) */
+  /** delta ぶん隣の段 (両端と一覧外では現在の段のまま) */
   next(current: T, delta: -1 | 1): T {
-    return this.items[this.clamped(this.items.indexOf(current) + delta)];
+    const index = this.items.indexOf(current);
+    return index === -1 ? current : this.items[this.clamped(index + delta)];
   }
 
-  /** delta 方向へまだ段を送れるか */
+  /** delta 方向へまだ段を送れるか (一覧外の値からは送れない) */
   isSteppable(current: T, delta: -1 | 1): boolean {
     const index = this.items.indexOf(current);
+    return index === -1 ? false : this.isInside(index, delta);
+  }
+
+  private isInside(index: number, delta: -1 | 1): boolean {
     return delta === -1 ? index > 0 : index < this.items.length - 1;
   }
 
