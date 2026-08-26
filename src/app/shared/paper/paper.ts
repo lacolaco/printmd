@@ -11,7 +11,7 @@ import type { PaperFormat } from './paper-format';
 export class Paper {
   private readonly styles = new PaperStyles(inject(DOCUMENT));
 
-  /** 現在の用紙書式。Signal Forms の模型として書き込みも受ける */
+  /** 現在の用紙書式。操作面からの書き込みも受ける */
   readonly format = signal<PaperFormat>(DEFAULT_PAPER);
   constructor() {
     // ここは DOM 書き込みのみ (画面 CSS と @page 規則の同期)

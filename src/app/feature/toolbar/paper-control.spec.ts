@@ -41,13 +41,11 @@ describe('PaperControl', () => {
     expect(buttons.every((button) => button.getAttribute('role') !== 'radio')).toBe(true);
   });
 
-  it('ボタン列の親に role="group" を持ち、ラベルの id を参照できる', async () => {
+  it('ボタン列の親が role="group" として用紙の名前を持つ', async () => {
     const { el } = await render(PAPERS[0]);
     const group = el.querySelector('[ngToolbarWidgetGroup]')!;
-    const labelId = group.getAttribute('aria-labelledby');
     expect(group.getAttribute('role')).toBe('group');
-    expect(labelId).not.toBeNull();
-    expect(el.querySelector(`#${labelId}`)?.textContent).toBe('用紙');
+    expect(group.getAttribute('aria-label')).toBe('用紙');
   });
 
   it('どの書式でも選択状態が aria-pressed に表れる', async () => {
@@ -67,11 +65,8 @@ describe('PaperControl', () => {
     expect(fixture.componentInstance.selected()).toBe(other);
   });
 
-  it('インスタンスごとに label の id が異なる (複数描画しても参照が衝突しない)', async () => {
-    const { fixture: a } = await render(PAPERS[0]);
-    const { fixture: b } = await render(PAPERS[0]);
-    const idOf = (fixture: typeof a) =>
-      (fixture.nativeElement as HTMLElement).querySelector('span')!.id;
-    expect(idOf(a)).not.toBe(idOf(b));
+  it('見出しは装飾として隠し、読み上げの名前と重ねない', async () => {
+    const { el } = await render(PAPERS[0]);
+    expect(el.querySelector('span')?.getAttribute('aria-hidden')).toBe('true');
   });
 });

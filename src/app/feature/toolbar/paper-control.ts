@@ -1,5 +1,4 @@
-import { Component, inject, model } from '@angular/core';
-import { _IdGenerator } from '@angular/cdk/a11y';
+import { Component, model } from '@angular/core';
 import { ToolbarWidget, ToolbarWidgetGroup } from '@angular/aria/toolbar';
 import { PAPERS } from '../../shared/paper/paper-catalog';
 import type { PaperFormat } from '../../shared/paper/paper-format';
@@ -11,8 +10,9 @@ import type { PaperFormat } from '../../shared/paper/paper-format';
  * role は radiogroup / radio ではなく aria-pressed にする。Toolbar の矢印キーは
  * ロービング移動だけを担い選択を動かさないため、radio の約束と食い違う
  * (排他であることは ngToolbarWidgetGroup が構造で示す)。
- * ngToolbarWidgetGroup は host に role を持たず role=generic になり、
- * generic への aria-labelledby は ARIA 1.2 で無視されるため role="group" を足す。
+ * ngToolbarWidgetGroup は host に role を持たず role=generic になり、generic への
+ * 名前付けは ARIA 1.2 が禁じるため role="group" を足す。名前は aria-label で与え、
+ * 可視の見出しは装飾として隠す (id の参照は複数描画で衝突しうる)。
  * 選択の確定も選択状態も Toolbar の value 模型には載せない。帯には選択の意味を
  * 持たないアクションの widget (ズームの段送り) も並び、帯ひとつの value 配列に
  * 両者が混ざると書式を取り出せなくなるためである
@@ -22,12 +22,12 @@ import type { PaperFormat } from '../../shared/paper/paper-format';
   imports: [ToolbarWidget, ToolbarWidgetGroup],
   host: { class: 'flex items-center gap-1' },
   template: `
-    <span [id]="labelId">用紙</span>
-    <div ngToolbarWidgetGroup role="group" [attr.aria-labelledby]="labelId" class="flex">
+    <span aria-hidden="true">用紙</span>
+    <div ngToolbarWidgetGroup role="group" aria-label="用紙" class="flex">
       @for (paper of papers; track paper.label) {
         <button
           type="button"
-          class="rounded px-1.5 py-0.5 hover:bg-stone-200 aria-pressed:bg-stone-200 aria-pressed:font-medium"
+          class="rounded px-1.5 py-0.5 hover:bg-stone-200 aria-pressed:bg-stone-700 aria-pressed:font-medium aria-pressed:text-white"
           ngToolbarWidget
           [value]="paper.label"
           [attr.aria-pressed]="paper === selected()"
@@ -45,9 +45,6 @@ export class PaperControl {
   readonly selected = model.required<PaperFormat>();
 
   protected readonly papers = PAPERS;
-
-  /** インスタンスごとに一意な id。複数描画されても label の参照先が衝突しない */
-  protected readonly labelId = inject(_IdGenerator).getId('paper-control-label-');
 
   /**
    * Enter / Space での選択。Toolbar は repeat の keydown までは既定動作を止めない

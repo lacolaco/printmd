@@ -148,9 +148,8 @@ input[type='checkbox']:not(:disabled) {
   border-color: var(--line);
   color: var(--sumi);
 }
-.app-toolbar button:hover:not([aria-pressed='true']) {
-  background: #eceef0;
-}
+/* 帯のボタンの hover と選択状態は、各操作面が Tailwind のユーティリティで表す
+   (ここに一般規則を置くと詳細度でユーティリティに勝ち、選択の手がかりを潰す) */
 .app-workspace {
   background: var(--desk);
 }

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../shared/mermaid/mermaid-renderer';
 import { Manuscripts } from '../../shared/manuscript/manuscripts';
 import { Header } from './header';
@@ -18,6 +18,10 @@ describe('Header', () => {
     TestBed.configureTestingModule({
       providers: [{ provide: MermaidRenderer, useClass: FakeMermaidRenderer }],
     });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('原稿がないときはロゴだけで印刷ボタンは出さない (刷るものがない)', async () => {
