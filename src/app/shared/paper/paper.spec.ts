@@ -5,7 +5,7 @@ import { Paper, provideSheetMetrics } from './paper';
 import { StyleVariables } from '../layout/style-variables';
 
 /** 一覧の末尾。書式が 1 つのときは既定と同じになる */
-const LAST = PAPERS[PAPERS.length - 1];
+const LAST = PAPERS.items[PAPERS.items.length - 1];
 
 describe('Paper', () => {
   it('既定の書式を保有する', () => {
