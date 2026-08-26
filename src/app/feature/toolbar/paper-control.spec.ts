@@ -55,4 +55,21 @@ describe('PaperControl', () => {
     const { el } = await render(DEFAULT_PAPER);
     expect(el.querySelector('select')).toBeNull();
   });
+
+  it('Enter キーで段を送り、既定動作は止める', async () => {
+    const { fixture, next } = await render(FIRST);
+    const event = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
+    next.dispatchEvent(event);
+    fixture.detectChanges();
+    expect(event.defaultPrevented).toBe(true);
+    expect(fixture.componentInstance.selected()).toBe(PAPERS.next(FIRST, 1));
+  });
+
+  it('長押しの repeat では 2 度目以降を送らない', async () => {
+    const { fixture, next } = await render(FIRST);
+    next.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    next.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', repeat: true }));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.selected()).toBe(PAPERS.next(FIRST, 1));
+  });
 });
