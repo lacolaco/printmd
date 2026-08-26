@@ -20,8 +20,8 @@ export class ToolbarViewModel {
   readonly format: WritableSignal<PaperFormat> = this.paper.format;
   /** 現在のベース文字サイズの段 (双方向) */
   readonly fontSize: WritableSignal<FontSize> = this.typography.size;
-  /** 現在の表示倍率の段 (双方向。ZOOMS の添字) */
-  readonly zoomIndex: WritableSignal<number> = this.zoom.index;
+  /** 現在の表示倍率 (双方向。1 = 紙の実寸) */
+  readonly zoomLevel: WritableSignal<number> = this.zoom.value;
 
   /** 頁数と変換中を畳んだ読み上げ対象の文言 */
   readonly status: Signal<string> = computed(() => {

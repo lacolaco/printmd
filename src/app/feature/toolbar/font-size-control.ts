@@ -1,7 +1,7 @@
 import { Component, computed, model } from '@angular/core';
 import { form } from '@angular/forms/signals';
 import { ToolbarWidget } from '@angular/aria/toolbar';
-import { isSteppable, steppedFrom } from '../../shared/typography/font-catalog';
+import { SIZES } from '../../shared/typography/font-catalog';
 import type { FontSize } from '../../shared/typography/font-size';
 import { isActivating, preventSelection } from './toolbar-activation';
 
@@ -16,7 +16,7 @@ import { isActivating, preventSelection } from './toolbar-activation';
       class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
       ngToolbarWidget
       value="font-size-down"
-      [disabled]="!isShrinkable()"
+      [disabled]="!reach().back"
       aria-label="文字を縮小"
       (click)="step(-1)"
       (keydown)="onKeydown($event, -1)"
@@ -28,7 +28,7 @@ import { isActivating, preventSelection } from './toolbar-activation';
       class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
       ngToolbarWidget
       value="font-size-up"
-      [disabled]="!isGrowable()"
+      [disabled]="!reach().forward"
       aria-label="文字を拡大"
       (click)="step(1)"
       (keydown)="onKeydown($event, 1)"
@@ -42,11 +42,14 @@ export class FontSizeControl {
   readonly selected = model.required<FontSize>();
 
   protected readonly field = form(this.selected);
-  protected readonly isShrinkable = computed(() => isSteppable(this.selected(), -1));
-  protected readonly isGrowable = computed(() => isSteppable(this.selected(), 1));
+  /** どちら向きへまだ段を送れるか */
+  protected readonly reach = computed(() => ({
+    back: SIZES.isSteppable(this.selected(), -1),
+    forward: SIZES.isSteppable(this.selected(), 1),
+  }));
 
   protected step(delta: -1 | 1): void {
-    this.field().value.set(steppedFrom(this.selected(), delta));
+    this.field().value.set(SIZES.next(this.selected(), delta));
   }
 
   protected onKeydown(event: KeyboardEvent, delta: -1 | 1): void {

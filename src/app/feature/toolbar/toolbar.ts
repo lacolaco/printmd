@@ -23,7 +23,7 @@ import { ZoomControl } from './zoom-control';
       <span aria-hidden="true" class="opacity-40">|</span>
       <app-font-size-control [(selected)]="vm.fontSize" />
       <span aria-hidden="true" class="opacity-40">|</span>
-      <app-zoom-control [(selected)]="vm.zoomIndex" />
+      <app-zoom-control [(selected)]="vm.zoomLevel" />
     </div>
   `,
 })

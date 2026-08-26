@@ -41,7 +41,7 @@ function buildManuscript(): string {
   return md.join('\n');
 }
 
-for (const paper of PAPERS) {
+for (const paper of PAPERS.items) {
   test(`プレビューのページ割りが印刷 PDF と一致する (強制改ページ込み・${paper.label})`, async ({
     page,
   }) => {
@@ -85,7 +85,7 @@ for (const paper of PAPERS) {
 test('選んだ用紙書式が画面と印刷 PDF の紙寸法になる', async ({ page }) => {
   await page.goto('/');
   await importMarkdown(page, 'size.md', '# 用紙\n\n本文である。\n');
-  for (const paper of PAPERS) {
+  for (const paper of PAPERS.items) {
     await selectPaper(page, paper);
     expect(await printPdfPageSize(page)).toEqual({
       width: paper.page.width,
@@ -97,7 +97,7 @@ test('選んだ用紙書式が画面と印刷 PDF の紙寸法になる', async 
   }
 });
 
-for (const size of [SIZES[0], SIZES[SIZES.length - 1]]) {
+for (const size of [SIZES.items[0], SIZES.items[SIZES.items.length - 1]]) {
   test(`プレビューのページ割りが印刷 PDF と一致する (文字サイズ ${size.label})`, async ({
     page,
   }) => {

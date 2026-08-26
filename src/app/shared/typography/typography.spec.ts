@@ -5,7 +5,7 @@ import { StyleVariables } from '../layout/style-variables';
 import { Typography, provideBaseFontSize } from './typography';
 
 /** 一覧の末尾。段が 1 つのときは既定と同じになる */
-const LAST = SIZES[SIZES.length - 1];
+const LAST = SIZES.items[SIZES.items.length - 1];
 
 describe('Typography', () => {
   it('既定の段を保有する', () => {
@@ -30,7 +30,7 @@ describe('provideBaseFontSize', () => {
     TestBed.configureTestingModule({ providers: [provideBaseFontSize()] });
     const variables = TestBed.inject(StyleVariables);
     expect(variables.all()).toEqual(DEFAULT_SIZE.variables());
-    TestBed.inject(Typography).select(SIZES[0]);
-    expect(variables.all()).toEqual(SIZES[0].variables());
+    TestBed.inject(Typography).select(SIZES.items[0]);
+    expect(variables.all()).toEqual(SIZES.items[0].variables());
   });
 });

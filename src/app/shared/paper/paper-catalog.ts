@@ -1,4 +1,5 @@
 import { PaperFormat } from './paper-format';
+import { Steps } from '../support/steps';
 import { mm } from './units';
 
 /** A4 (210×297mm) */
@@ -21,8 +22,8 @@ export const B5 = new PaperFormat('B5', {
   margin: mm(14),
 });
 
-/** 選べる書式の一覧 (画面に並べる順) */
-export const PAPERS: readonly PaperFormat[] = [A4, A3, B5];
+/** 選べる書式の一覧 (画面に並べる順) と段送り */
+export const PAPERS = new Steps([A4, A3, B5]);
 
 /** 既定の書式 */
-export const DEFAULT_PAPER = A4;
+export const DEFAULT_PAPER: PaperFormat = A4;

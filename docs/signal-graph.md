@@ -7,12 +7,13 @@
 - `Breaks.pagination` は (doc, 指定, 組み上がりの設定) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (計測用の領域は観測可能な状態を残さない)。設定は画面 CSS を経由して組み上がりに効くため、依存として読むだけで測定へは渡さない (寸法そのものは段の刻み計算のため書式から受け取る)。`pageCount` はその total
 - `Breaks.ids` は linkedSignal: Manuscripts.files に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelViewModel の message / WorkspaceViewModel の sheetOpen) は省略
-- 用紙書式は `Paper` (format / select)。`format` は書き込み可能で、`PaperControl` が自身の Signal Forms のフィールド越しに読み書きする (表示名との変換は transformedValue の parse / format)。書式は `PaperFormat` の値オブジェクトで、版面・段の刻み・CSS 表現を自分で答える。書式を要する導出 (ページ組・表示倍率・シート描画) はすべてこの signal を源とする
+- 用紙書式は `Paper` (format / select)。`format` は書き込み可能で、`PaperControl` が自身の Signal Forms のフィールド越しに読み書きする (段送りの算術は一覧が持つ Steps)。書式は `PaperFormat` の値オブジェクトで、版面・段の刻み・CSS 表現を自分で答える。書式を要する導出 (ページ組・表示倍率・シート描画) はすべてこの signal を源とする
 - `Paper` の effect は `@page` 規則を DOM へ書くだけ。画面 CSS への寸法の供給は `StyleVariables` へ委ねる
 - 本文のベース文字サイズは `Typography` (size / select)。`size` は書き込み可能で、`FontSizeControl` が自身の Signal Forms のフィールド越しに読み書きする。段の刻みと段送りの算術は font-catalog の純関数 (steppedFrom / isSteppable) が担う。段は `provideBaseFontSize` で組み上がりの設定として登録し、`.markdown-body` の `font-size` がそのカスタムプロパティを読む (画面・印刷は同じ CSS を経由するので同じ組み上がりを見る)
+- 選べるもの (用紙書式・文字サイズ・表示倍率) はどれも段の一覧 (`Steps`) と現在の段の signal で表す。段送りの算術は一覧が持ち、操作面は Signal Forms のフィールド越しに段を書き換える
 - 紙面の組み上がりを決める設定は `StyleVariables` が束ねる。設定は `provideLayoutSetting` で DI へ登録し、`all` computed が全設定のカスタムプロパティを畳んで effect が html へ書く。`Breaks.pagination` はこの `all` を読むので、設定が増えても `breaks.ts` は変わらない (拡張点)
-- `Zoom.step` は linkedSignal: `Paper.format` を source とし、書式が変われば段送りを捨ててその紙に収まる段へ組み直す。`index` として書き込み可能なまま公開し、`ZoomControl` が自身の Signal Forms のフィールド越しに読み書きする (段送りの算術は zoom.ts の純関数 stepped / isAtLimit)
-- 表示倍率は `Zoom` (index / value / label / stepBy / isSteppable)。初期段の決定と段送りの算術は同居する純関数が担う
+- `Zoom.value` は linkedSignal: `Paper.format` を source とし、書式が変われば段送りを捨ててその紙に収まる段へ組み直す。`index` として書き込み可能なまま公開し、`ZoomControl` が自身の Signal Forms のフィールド越しに読み書きする (段送りの算術は zoom.ts の純関数 stepped / isAtLimit)
+- 表示倍率は `Zoom` (value / select)。`value` は書き込み可能で、`ZoomControl` が自身の Signal Forms のフィールド越しに読み書きする。初期段の決定は同居する純関数 (fittingLevel)、段送りの算術は一覧が持つ (Steps)
 
 ```mermaid
 flowchart LR
@@ -56,7 +57,7 @@ flowchart LR
   end
 
   subgraph ZoomS["Zoom"]
-    V1((index<br/>linkedSignal))
+    V1((value<br/>linkedSignal))
     VC1[/value/]
     VC2[/label/]
   end

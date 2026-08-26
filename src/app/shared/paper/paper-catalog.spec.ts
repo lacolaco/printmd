@@ -7,7 +7,7 @@ describe('paper-catalog', () => {
   });
 
   it('どの書式も表示名と正の版面を持つ', () => {
-    PAPERS.forEach((paper) => {
+    PAPERS.items.forEach((paper) => {
       expect(paper.label).not.toBe('');
       expect(paper.content.width).toBeGreaterThan(0);
       expect(paper.content.height).toBeGreaterThan(0);
@@ -15,10 +15,10 @@ describe('paper-catalog', () => {
   });
 
   it('表示名は書式を一意に指す (select の値に使う)', () => {
-    expect(new Set(PAPERS.map((paper) => paper.label)).size).toBe(PAPERS.length);
+    expect(new Set(PAPERS.items.map((paper) => paper.label)).size).toBe(PAPERS.items.length);
   });
 
   it('既定は一覧の先頭', () => {
-    expect(DEFAULT_PAPER).toBe(PAPERS[0]);
+    expect(DEFAULT_PAPER).toBe(PAPERS.items[0]);
   });
 });

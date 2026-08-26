@@ -44,7 +44,10 @@ for (const width of [320, 375]) {
         '.app-logo',
         '.app-print-button',
         '[role="toolbar"] [role="status"]',
-        '[role="toolbar"] select',
+        '[aria-label="前の用紙"]',
+        '[aria-label="次の用紙"]',
+        '[aria-label="文字を縮小"]',
+        '[aria-label="文字を拡大"]',
         '[aria-label="縮小"]',
         '[aria-label="拡大"]',
       ];

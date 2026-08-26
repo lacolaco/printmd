@@ -14,7 +14,7 @@ import { ZoomControl } from './zoom-control';
   `,
 })
 class Host {
-  readonly selected = signal(ZOOMS.indexOf(1));
+  readonly selected = signal(1);
 }
 
 async function render(index: number) {
@@ -28,38 +28,38 @@ async function render(index: number) {
 
 describe('ZoomControl', () => {
   it('現在の段の百分率を表示する', async () => {
-    const { fixture } = await render(ZOOMS.indexOf(1.5));
+    const { fixture } = await render(1.5);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('150%');
   });
 
   it('クリックで段を送る', async () => {
-    const { fixture, grow } = await render(ZOOMS.indexOf(1));
+    const { fixture, grow } = await render(1);
     grow.click();
     fixture.detectChanges();
-    expect(fixture.componentInstance.selected()).toBe(ZOOMS.indexOf(1.25));
+    expect(fixture.componentInstance.selected()).toBe(1.25);
   });
 
   it('両端では該当ボタンを disabled にする', async () => {
     const { shrink } = await render(0);
     expect(shrink.getAttribute('aria-disabled')).toBe('true');
-    const { grow } = await render(ZOOMS.length - 1);
+    const { grow } = await render(ZOOMS.items[ZOOMS.items.length - 1]);
     expect(grow.getAttribute('aria-disabled')).toBe('true');
   });
 
   it('Enter キーで段を送り、既定動作は止める', async () => {
-    const { fixture, grow } = await render(ZOOMS.indexOf(1));
+    const { fixture, grow } = await render(1);
     const event = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
     grow.dispatchEvent(event);
     fixture.detectChanges();
     expect(event.defaultPrevented).toBe(true);
-    expect(fixture.componentInstance.selected()).toBe(ZOOMS.indexOf(1.25));
+    expect(fixture.componentInstance.selected()).toBe(1.25);
   });
 
   it('長押しの repeat では 2 度目以降を送らない', async () => {
-    const { fixture, grow } = await render(ZOOMS.indexOf(1));
+    const { fixture, grow } = await render(1);
     grow.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
     grow.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', repeat: true }));
     fixture.detectChanges();
-    expect(fixture.componentInstance.selected()).toBe(ZOOMS.indexOf(1.25));
+    expect(fixture.componentInstance.selected()).toBe(1.25);
   });
 });

@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MermaidRenderer, type MermaidLike } from '../../shared/mermaid/mermaid-renderer';
 import { Manuscripts } from '../../shared/manuscript/manuscripts';
-import { PAPERS } from '../../shared/paper/paper-catalog';
+import { DEFAULT_PAPER, PAPERS } from '../../shared/paper/paper-catalog';
 import { Paper } from '../../shared/paper/paper';
 import { Zoom } from '../../shared/pagination/zoom';
 import { Typography } from '../../shared/typography/typography';
@@ -48,7 +48,7 @@ describe('Toolbar', () => {
     expect(el.textContent).toContain('75%');
   });
 
-  it('用紙セレクタの選択が Paper に反映される', async () => {
+  it('用紙の段送りが Paper に反映される', async () => {
     const manuscripts = TestBed.inject(Manuscripts);
     await manuscripts.add([{ name: 'a.md', text: () => Promise.resolve('# A\n\n本文') }]);
 
@@ -56,13 +56,11 @@ describe('Toolbar', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const other = PAPERS[PAPERS.length - 1];
-    const select = (fixture.nativeElement as HTMLElement).querySelector('select')!;
-    select.value = other.label;
-    select.dispatchEvent(new Event('input'));
+    const el = fixture.nativeElement as HTMLElement;
+    el.querySelector<HTMLButtonElement>('[aria-label="次の用紙"]')!.click();
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(TestBed.inject(Paper).format()).toBe(other);
+    expect(TestBed.inject(Paper).format()).toBe(PAPERS.next(DEFAULT_PAPER, 1));
   });
 
   it('文字サイズの操作が Typography に反映される', async () => {

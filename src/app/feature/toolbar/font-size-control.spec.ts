@@ -2,7 +2,7 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
 import { Toolbar as AriaToolbar } from '@angular/aria/toolbar';
-import { SIZES } from '../../shared/typography/font-catalog';
+import { DEFAULT_SIZE, SIZES } from '../../shared/typography/font-catalog';
 import type { FontSize } from '../../shared/typography/font-size';
 import { FontSizeControl } from './font-size-control';
 
@@ -15,7 +15,7 @@ import { FontSizeControl } from './font-size-control';
   `,
 })
 class Host {
-  readonly selected = signal<FontSize>(SIZES[4]);
+  readonly selected = signal<FontSize>(DEFAULT_SIZE);
 }
 
 async function render(size: FontSize) {
@@ -29,38 +29,38 @@ async function render(size: FontSize) {
 
 describe('FontSizeControl', () => {
   it('現在の段の表示名を表示する', async () => {
-    const { fixture } = await render(SIZES[4]);
+    const { fixture } = await render(DEFAULT_SIZE);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('12pt');
   });
 
   it('クリックで段を送る', async () => {
-    const { fixture, grow } = await render(SIZES[4]);
+    const { fixture, grow } = await render(DEFAULT_SIZE);
     grow.click();
     fixture.detectChanges();
-    expect(fixture.componentInstance.selected()).toBe(SIZES[5]);
+    expect(fixture.componentInstance.selected()).toBe(SIZES.items[5]);
   });
 
   it('両端では該当ボタンを disabled にする', async () => {
-    const { shrink } = await render(SIZES[0]);
+    const { shrink } = await render(SIZES.items[0]);
     expect(shrink.getAttribute('aria-disabled')).toBe('true');
-    const { grow } = await render(SIZES[SIZES.length - 1]);
+    const { grow } = await render(SIZES.items[SIZES.items.length - 1]);
     expect(grow.getAttribute('aria-disabled')).toBe('true');
   });
 
   it('Enter キーで段を送り、既定動作は止める', async () => {
-    const { fixture, grow } = await render(SIZES[4]);
+    const { fixture, grow } = await render(DEFAULT_SIZE);
     const event = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
     grow.dispatchEvent(event);
     fixture.detectChanges();
     expect(event.defaultPrevented).toBe(true);
-    expect(fixture.componentInstance.selected()).toBe(SIZES[5]);
+    expect(fixture.componentInstance.selected()).toBe(SIZES.items[5]);
   });
 
   it('長押しの repeat では 2 度目以降を送らない', async () => {
-    const { fixture, grow } = await render(SIZES[4]);
+    const { fixture, grow } = await render(DEFAULT_SIZE);
     grow.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
     grow.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', repeat: true }));
     fixture.detectChanges();
-    expect(fixture.componentInstance.selected()).toBe(SIZES[5]);
+    expect(fixture.componentInstance.selected()).toBe(SIZES.items[5]);
   });
 });

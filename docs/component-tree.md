@@ -10,7 +10,7 @@ flowchart TB
   TOOLBAR["Toolbar<br/><small>頁数 / 用紙 / 文字サイズ / 倍率の帯<br/>(ngToolbar、コンテナ)</small>"]
   ZOOMC["ZoomControl<br/><small>倍率の段送り操作面<br/>(Signal Forms のフィールドで段を保持)</small>"]
   FONTC["FontSizeControl<br/><small>文字サイズの段送り操作面<br/>(Signal Forms のフィールドで段を保持)</small>"]
-  PAPERC["PaperControl<br/><small>用紙書式の選択面<br/>(Signal Forms のフィールドで select を束ねる)</small>"]
+  PAPERC["PaperControl<br/><small>用紙書式の段送り操作面<br/>(Signal Forms のフィールドで段を保持)</small>"]
   WS["Workspace<br/><small>作業画面: md+ は 2 カラム、スマートフォン幅は<br/>シングルカラム + ボトムシート (開閉状態を所有)。<br/>追加取り込みのドロップ受け</small>"]
   PREVIEW["Preview<br/><small>シート面の結線 (寸法は用紙書式)。描画は<br/>SheetRenderer に委譲 (遅延実体化)</small>"]
   FILEP["FilePanel<br/><small>原稿の取り込み・並べ替え・削除<br/>(読み上げは FilePanelState)</small>"]
@@ -47,5 +47,5 @@ flowchart TB
 ```
 
 - 画面領域の責務で階層化: App は骨格、Workspace が作業画面と右カラム (調整パネル) を所有する。表示操作の帯 (Toolbar) は原稿があるときだけヘッダの下・作業画面の上に出る (Header 自体は常時表示でロゴと印刷ボタンだけを持つ)
-- コンテナは自身のビューモデル (CQS: state query と command) だけを注入し、VM がドメインサービス (Manuscripts / Breaks / ConversionPipeline / Paper / Zoom) を仲介する。プレーンなコンポーネントは input/output だけで疎通し VM を持たない。ZoomControl / FontSizeControl / PaperControl は `model()` で現在値を親と双方向に束ね、Signal Forms の `form()` でその値を保持する (段送りボタンはフィールドの値を書き換える操作として書く)
+- コンテナは自身のビューモデル (CQS: state query と command) だけを注入し、VM がドメインサービス (Manuscripts / Breaks / ConversionPipeline / Paper / Typography / Zoom / StyleVariables) を仲介する。プレーンなコンポーネントは input/output だけで疎通し VM を持たない。ZoomControl / FontSizeControl / PaperControl は `model()` で現在値を親と双方向に束ね、Signal Forms の `form()` でその値を保持する (段送りボタンはフィールドの値を書き換える操作として書く)
 - リアクティブ構造は [signal-graph.md](./signal-graph.md) を参照

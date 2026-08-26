@@ -16,35 +16,33 @@ export async function importMarkdown(page: Page, name: string, content: string):
 }
 
 /**
- * 帯の用紙セレクタで書式を選び、紙面が組み直されるまで待つ。
- * 既に目的の書式が選ばれていて別の書式があるなら、結線を毎回踏むためにそこを経由する
+ * 帯の用紙の段送りで書式を選び、紙面が組み直されるまで待つ。
+ * 実クリックで送る (帯の中の操作面が実際に操作できることも同時に確かめる)
  */
 export async function selectPaper(page: Page, paper: PaperFormat): Promise<void> {
-  const detour = PAPERS.find((other) => other !== paper);
-  if (detour !== undefined && (await labelOf(page)) === paper.label) {
-    await switchTo(page, detour);
+  const target = PAPERS.items.indexOf(paper);
+  for (let guard = 0; guard < PAPERS.items.length && (await paperIndex(page)) !== target; guard++) {
+    await stepPaper(page, (await paperIndex(page)) < target ? 1 : -1);
   }
-  if ((await labelOf(page)) !== paper.label) {
-    await switchTo(page, paper);
-  }
-}
-
-async function labelOf(page: Page): Promise<string> {
-  return page.locator('[role="toolbar"] select').inputValue();
-}
-
-/** 寸法は CSS 変数だけで先に変わるため、シートが差し替わったことを関門にする */
-async function switchTo(page: Page, paper: PaperFormat): Promise<void> {
-  await page.evaluate(() =>
-    document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
-  );
-  await page.selectOption('[role="toolbar"] select', { label: paper.label });
-  await expect(page.locator('[role="toolbar"] select')).toHaveValue(paper.label);
-  await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);
-  await page.locator('.sheet .clip .mc').first().waitFor();
+  await expect.poll(() => paperIndex(page)).toBe(target);
   await expect
     .poll(async () => (await sheetSizePx(page)).width)
     .toBeCloseTo(toPx(paper.page.width), -1);
+}
+
+async function paperIndex(page: Page): Promise<number> {
+  const label = await page.locator('[role="toolbar"]').innerText();
+  return PAPERS.items.findIndex((paper) => label.includes(paper.label));
+}
+
+/** 寸法は CSS 変数だけで先に変わるため、シートが差し替わったことを関門にする */
+async function stepPaper(page: Page, delta: -1 | 1): Promise<void> {
+  await page.evaluate(() =>
+    document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
+  );
+  await page.click(delta === 1 ? '[aria-label="次の用紙"]' : '[aria-label="前の用紙"]');
+  await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);
+  await page.locator('.sheet .clip .mc').first().waitFor();
 }
 
 async function fontSizePt(page: Page): Promise<number> {
