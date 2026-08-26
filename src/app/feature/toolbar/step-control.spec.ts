@@ -40,10 +40,11 @@ describe('StepControl', () => {
     expect(el.textContent).toContain(STEPS.nameOf(MIDDLE));
   });
 
-  it('読み上げの名前は操作ごとに分かれる', async () => {
+  it('読み上げの名前は操作と現在の段を含む (段を送っても値は読み上げられないため)', async () => {
     const { back, forward } = await render(MIDDLE);
-    expect(back.getAttribute('aria-label')).toBe('大きさを前へ');
-    expect(forward.getAttribute('aria-label')).toBe('大きさを次へ');
+    const current = STEPS.nameOf(MIDDLE);
+    expect(back.getAttribute('aria-label')).toBe(`大きさ ${current}を前へ`);
+    expect(forward.getAttribute('aria-label')).toBe(`大きさ ${current}を次へ`);
   });
 
   it('クリックで段を送る', async () => {

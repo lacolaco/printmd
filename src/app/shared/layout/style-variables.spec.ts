@@ -14,14 +14,14 @@ function inDocument(providers: readonly unknown[]) {
 describe('StyleVariables', () => {
   it('供給元が無ければ何も書かない', () => {
     const { doc, variables } = inDocument([]);
-    TestBed.flushEffects();
+    TestBed.tick();
     expect(variables.all()).toEqual([]);
     expect(doc.documentElement.style.length).toBe(0);
   });
 
   it('供給元のカスタムプロパティを html へ書く', () => {
     const { doc } = inDocument([provideLayoutSetting(() => () => [['--a', '1mm']])]);
-    TestBed.flushEffects();
+    TestBed.tick();
     expect(doc.documentElement.style.getPropertyValue('--a')).toBe('1mm');
   });
 
@@ -39,12 +39,12 @@ describe('StyleVariables', () => {
   it('供給元の値が変われば書き直す (組み上がりの依存になる)', () => {
     const size = signal('9pt');
     const { doc, variables } = inDocument([provideLayoutSetting(() => () => [['--a', size()]])]);
-    TestBed.flushEffects();
+    TestBed.tick();
     expect(doc.documentElement.style.getPropertyValue('--a')).toBe('9pt');
 
     size.set('14pt');
     expect(variables.all()).toEqual([['--a', '14pt']]);
-    TestBed.flushEffects();
+    TestBed.tick();
     expect(doc.documentElement.style.getPropertyValue('--a')).toBe('14pt');
   });
 
@@ -53,11 +53,11 @@ describe('StyleVariables', () => {
     const { doc } = inDocument([
       provideLayoutSetting(() => () => (supplied() ? [['--a', '1mm']] : [])),
     ]);
-    TestBed.flushEffects();
+    TestBed.tick();
     expect(doc.documentElement.style.getPropertyValue('--a')).toBe('1mm');
 
     supplied.set(false);
-    TestBed.flushEffects();
+    TestBed.tick();
     expect(doc.documentElement.style.getPropertyValue('--a')).toBe('');
   });
 });

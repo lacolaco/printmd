@@ -25,7 +25,7 @@ function isActivationKey(key: string): boolean {
       ngToolbarWidget
       [value]="name() + '-back'"
       [disabled]="!reach().back"
-      [attr.aria-label]="name() + 'を前へ'"
+      [attr.aria-label]="reading() + 'を前へ'"
       (click)="step(-1)"
       (keydown)="onKeydown($event, -1)"
     >
@@ -37,7 +37,7 @@ function isActivationKey(key: string): boolean {
       ngToolbarWidget
       [value]="name() + '-forward'"
       [disabled]="!reach().forward"
-      [attr.aria-label]="name() + 'を次へ'"
+      [attr.aria-label]="reading() + 'を次へ'"
       (click)="step(1)"
       (keydown)="onKeydown($event, 1)"
     >
@@ -55,6 +55,14 @@ export class StepControl<T> {
 
   /** 段を持つフィールド。現在値の読み出しはここを通す */
   protected readonly field = form(this.selected);
+
+  /**
+   * 読み上げの名前。現在の段を含めるのは、段を送っても値そのものは
+   * 読み上げられないため (値の span は名前にも live 領域にも属さない)
+   */
+  protected readonly reading = computed(
+    () => `${this.name()} ${this.steps().nameOf(this.field().value())}`,
+  );
 
   /** どちら向きへまだ段を送れるか */
   protected readonly reach = computed(() => ({

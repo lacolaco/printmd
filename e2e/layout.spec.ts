@@ -10,7 +10,7 @@ test('狭い画面 + 200% ズームでもパネルが画面外へ押し出され
   await page.goto('/');
   await importMarkdown(page, 'layout.md', '# A\n\n' + '本文の段落である。'.repeat(200));
 
-  const zoomIn = page.locator('[aria-label="倍率を次へ"]');
+  const zoomIn = page.locator('[aria-label^="倍率"][aria-label$="を次へ"]');
   for (let i = 0; i < 3; i++) await zoomIn.click();
   await expect(page.locator('[role="toolbar"]')).toContainText('200%');
 
@@ -44,10 +44,10 @@ for (const width of [320, 375]) {
         '.app-logo',
         '.app-print-button',
         '[role="toolbar"] [role="status"]',
-        '[aria-label="用紙を前へ"]',
-        '[aria-label="用紙を次へ"]',
-        '[aria-label="倍率を前へ"]',
-        '[aria-label="倍率を次へ"]',
+        '[aria-label^="用紙"][aria-label$="を前へ"]',
+        '[aria-label^="用紙"][aria-label$="を次へ"]',
+        '[aria-label^="倍率"][aria-label$="を前へ"]',
+        '[aria-label^="倍率"][aria-label$="を次へ"]',
       ];
       const band = document.querySelector('[role="toolbar"]')!;
       const rects = selectors.map((selector) => ({

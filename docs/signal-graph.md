@@ -84,8 +84,8 @@ flowchart LR
   subgraph DOM["DOM シンク"]
     D1[(print-root<br/>唯一の文書実体)]
     D2[(sheets<br/>クローン群)]
-    D3[(html のカスタムプロパティ<br/>+ @page 規則)]
-    D4[(html のカスタムプロパティ<br/>--base-font-size)]
+    D3[(@page 規則)]
+    D4[(html のカスタムプロパティ<br/>登録された設定すべて)]
   end
 
   A1 -- "add / remove /<br/>nudge / reorder" --> S1

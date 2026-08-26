@@ -22,7 +22,8 @@ export async function importMarkdown(page: Page, name: string, content: string):
 export async function selectPaper(page: Page, paper: PaperFormat): Promise<void> {
   const target = PAPERS.items.indexOf(paper);
   // 既に目的の書式なら、結線を毎回踏むために隣を経由してから戻る
-  if ((await paperIndex(page)) === target) {
+  // (書式が 1 つだけなら送り先が無いので、そのまま検証へ進む)
+  if (PAPERS.items.length > 1 && (await paperIndex(page)) === target) {
     await stepPaper(page, target === 0 ? 1 : -1);
   }
   for (let guard = 0; guard < PAPERS.items.length && (await paperIndex(page)) !== target; guard++) {
@@ -44,7 +45,11 @@ async function stepPaper(page: Page, delta: -1 | 1): Promise<void> {
   await page.evaluate(() =>
     document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
   );
-  await page.click(delta === 1 ? '[aria-label="用紙を次へ"]' : '[aria-label="用紙を前へ"]');
+  await page.click(
+    delta === 1
+      ? '[aria-label^="用紙"][aria-label$="を次へ"]'
+      : '[aria-label^="用紙"][aria-label$="を前へ"]',
+  );
   await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);
   await page.locator('.sheet .clip .mc').first().waitFor();
 }
