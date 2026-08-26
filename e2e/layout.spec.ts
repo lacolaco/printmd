@@ -34,7 +34,7 @@ test('狭い画面 + 200% ズームでもパネルが画面外へ押し出され
  * 操作面を隠したり互いに被せたりしない
  */
 for (const width of [320, 375]) {
-  test(`${width}px 幅で帯の操作面が隠れず互いに覆い合わない`, async ({ page }) => {
+  test(`${width}px 幅でツールバーのボタンが隠れず互いに覆い合わない`, async ({ page }) => {
     await page.setViewportSize({ width, height: 700 });
     await page.goto('/');
     await importMarkdown(page, 'header.md', '# 見出し\n\n本文である。');
@@ -46,6 +46,8 @@ for (const width of [320, 375]) {
         '[role="toolbar"] [role="status"]',
         '[aria-label^="用紙"][aria-label$="を前へ"]',
         '[aria-label^="用紙"][aria-label$="を次へ"]',
+        '[aria-label^="文字"][aria-label$="を小さく"]',
+        '[aria-label^="文字"][aria-label$="を大きく"]',
         '[aria-label^="倍率"][aria-label$="を下げる"]',
         '[aria-label^="倍率"][aria-label$="を上げる"]',
       ];

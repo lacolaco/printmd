@@ -8,9 +8,10 @@
 - `Breaks.ids` は linkedSignal: Manuscripts.files に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelViewModel の message / WorkspaceViewModel の sheetOpen) は省略
 - 用紙書式は `Paper` (format / select)。`format` は書き込み可能で、ツールバーの `PaperControl` が自身の Signal Forms のフィールド越しに読み書きする。書式は `PaperFormat` の値オブジェクトで、版面と段の刻みと CSS 表現を自分で答える。書式を要する導出 (ページ組・表示倍率・シート描画) はすべてこの signal を源とする
-- `Paper` の effect は `@page` 規則を DOM へ書くだけ。画面 CSS への寸法の供給は `StyleVariables` へ委ねる
-- 用紙書式の前後の移動は `paper-catalog.ts` の `PaperCatalog` が答える。表示倍率は `zoom.ts` が同じ算術を自分で持つ
-- ページ割りに関わる設定は `StyleVariables` がまとめる。設定は `provideLayoutSetting` で DI へ登録し、`all` computed が全設定のカスタムプロパティを 1 つにして effect が html へ書く。`Breaks.pagination` はこの `all` を読むので、設定が増えても `breaks.ts` は変わらない
+- `Paper` の effect は `@page` 規則を DOM へ書くだけ。画面 CSS への寸法の書き込みは `StyleVariables` が行う
+- 用紙書式の前後の移動は `paper-catalog.ts` の `PaperCatalog` が答える。文字サイズは `font-catalog.ts` の `FontCatalog`、表示倍率は `zoom.ts` がそれぞれ同じ算術を自分で持つ
+- 本文のベース文字サイズは `Typography` (size / changeBy)。`size` は書き込み可能で、ツールバーの `FontSizeControl` が自身の Signal Forms のフィールド越しに読み書きする。`Typography` は自分を `StyleVariables` へ登録し、`.markdown-body` の `font-size` がそのカスタムプロパティを読む
+- ページ割りに関わる設定は `StyleVariables` がまとめる。設定は自分で `register` を呼んで登録し、`all` computed が全設定のカスタムプロパティを 1 つにして effect が html へ書く。`Breaks.pagination` はこの `all` を読むので、設定が増えても `breaks.ts` は変わらない
 - `Zoom.value` は linkedSignal: `Paper.format` を source とし、書式が変わればその紙に収まる倍率へ戻す。ツールバーの `ZoomControl` は表示と可否を受け取り、操作を output で返す
 
 ```mermaid
@@ -53,9 +54,9 @@ flowchart LR
     V1((value<br/>linkedSignal))
   end
 
-  subgraph ToolbarC["Toolbar (PaperControl / ZoomControl)"]
+  subgraph ToolbarC["Toolbar (PaperControl / FontSizeControl / ZoomControl)"]
     HC1[/status<br/>ToolbarViewModel/]
-    T1{{ツールバー: 頁数/用紙/倍率}}
+    T1{{ツールバー: 頁数/用紙/文字サイズ/倍率}}
   end
 
   subgraph HeaderC["Header"]
@@ -98,7 +99,7 @@ flowchart LR
   AE2 --> D3
   S6 --> V3
   S6 --> PE1
-  S6 -- "provideLayoutSetting で登録" --> VS1
+  S6 -- "register で登録" --> VS1
   VS1 --> AE3
   AE3 --> D4
   VS1 --> V3
