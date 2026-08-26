@@ -1,11 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { Toolbar as AriaToolbar } from '@angular/aria/toolbar';
 import { PAPERS } from '../../shared/paper/paper-catalog';
+import { SIZES } from '../../shared/typography/font-catalog';
 import { StepControl } from './step-control';
 import { ToolbarViewModel } from './toolbar.vm';
 import { ZOOMS } from '../../shared/pagination/zoom';
 
-/** プレビュー直上の表示操作の帯: 頁数 / 用紙 / 倍率 */
+/** プレビュー直上の表示操作の帯: 頁数 / 用紙 / 文字サイズ / 倍率 */
 @Component({
   selector: 'app-toolbar',
   imports: [AriaToolbar, StepControl],
@@ -21,6 +22,8 @@ import { ZOOMS } from '../../shared/pagination/zoom';
       <span aria-hidden="true" class="opacity-40">|</span>
       <app-step-control name="用紙" [steps]="papers" [(selected)]="vm.format" />
       <span aria-hidden="true" class="opacity-40">|</span>
+      <app-step-control name="文字" [steps]="sizes" [(selected)]="vm.fontSize" />
+      <span aria-hidden="true" class="opacity-40">|</span>
       <app-step-control name="倍率" [steps]="zooms" [(selected)]="vm.zoomLevel" />
     </div>
   `,
@@ -28,5 +31,6 @@ import { ZOOMS } from '../../shared/pagination/zoom';
 export class Toolbar {
   protected readonly vm = inject(ToolbarViewModel);
   protected readonly papers = PAPERS;
+  protected readonly sizes = SIZES;
   protected readonly zooms = ZOOMS;
 }
