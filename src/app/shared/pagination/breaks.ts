@@ -1,8 +1,9 @@
 import { Service, computed, inject, linkedSignal } from '@angular/core';
-import { isPrefixOf } from '../collections';
+import { isPrefixOf } from '../support/collections';
 import { ConversionPipeline } from '../conversion-pipeline';
 import { Manuscripts } from '../manuscript/manuscripts';
 import { Paper } from '../paper/paper';
+import { StyleVariables } from '../layout/style-variables';
 import { measurePagination } from './measure-pagination';
 import type { ManuscriptFile } from '../manuscript/manuscript';
 
@@ -21,6 +22,7 @@ export class Breaks {
   private readonly manuscripts = inject(Manuscripts);
   private readonly pipeline = inject(ConversionPipeline);
   private readonly paper = inject(Paper);
+  private readonly style = inject(StyleVariables);
 
   /**
    * ID は位置由来 (f{n}b{m}) のため、ファイルの削除・並べ替えでは同じ ID が
@@ -45,9 +47,12 @@ export class Breaks {
 
   /**
    * ページ組。(doc, 指定) を現在の CSS で組んだときのレイアウト結果の
-   * メモ化された導出値 (実測は画面外の領域で行うが観測可能な状態を残さない)
+   * メモ化された導出値 (実測は画面外の領域で行うが観測可能な状態を残さない)。
+   * 組み上がりを決める設定は StyleVariables が束ねるので、設定が増えても
+   * ここは変わらない (寸法そのものは段の刻み計算のため書式から受け取る)
    */
   readonly pagination = computed(() => {
+    this.style.all();
     const doc = this.pipeline.renderedDocument();
     return doc === null ? null : measurePagination(doc, this.ids(), this.paper.format());
   });

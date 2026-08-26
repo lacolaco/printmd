@@ -1,5 +1,5 @@
 import { Service, computed, inject, signal } from '@angular/core';
-import { isNonEmpty } from '../collections';
+import { isNonEmpty } from '../support/collections';
 import { FileOrder } from './file-order';
 import { Importer } from './importer';
 import type { ManuscriptFile } from './manuscript';
