@@ -5,7 +5,7 @@ import {
   type EnvironmentProviders,
   type WritableSignal,
 } from '@angular/core';
-import { DEFAULT_SIZE } from './font-catalog';
+import { DEFAULT_SIZE, SIZES } from './font-catalog';
 import { provideLayoutSetting } from '../layout/style-variables';
 import type { FontSize } from './font-size';
 
@@ -18,9 +18,9 @@ export class Typography {
   /** 現在の段。Signal Forms の模型として書き込みも受ける */
   readonly size: WritableSignal<FontSize> = signal(DEFAULT_SIZE);
 
-  /** 段を選び直す */
-  select(size: FontSize): void {
-    this.size.set(size);
+  /** 段を delta ぶん送る (両端で頭打ち) */
+  stepBy(delta: -1 | 1): void {
+    this.size.set(SIZES.next(this.size(), delta));
   }
 }
 

@@ -1,9 +1,17 @@
 /**
- * 段の一覧。現在の段から隣へ送る算術だけを持ち、両端では頭打ちになる。
- * 選べるものを段送りで扱う場所 (用紙書式・文字サイズ・表示倍率) が共有する
+ * 段の一覧。段送りの算術と表示名を自分で答え、両端では頭打ちになる。
+ * 選べるもの (用紙書式・文字サイズ・表示倍率) はどれもこの形で表す
  */
 export class Steps<T> {
-  constructor(readonly items: readonly T[]) {}
+  constructor(
+    readonly items: readonly T[],
+    private readonly naming: (item: T) => string,
+  ) {}
+
+  /** 画面に出す段の名前 */
+  nameOf(item: T): string {
+    return this.naming(item);
+  }
 
   /** delta ぶん隣の段 (両端では現在の段のまま) */
   next(current: T, delta: -1 | 1): T {

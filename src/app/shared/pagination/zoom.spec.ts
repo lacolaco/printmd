@@ -50,8 +50,13 @@ describe('Zoom', () => {
     const zoom = TestBed.inject(Zoom);
     // 可用幅 976px: A4 (794px) は収まり、大 (1122px) は収まらない
     expect(zoom.value()).toBe(1);
-    zoom.select(ZOOMS.next(zoom.value(), 1));
+    zoom.stepBy(1);
     TestBed.inject(Paper).select(LARGE);
     expect(zoom.value()).toBe(0.75);
+  });
+
+  it('段は小さい順に並ぶ (収まる段の探索がこの順序に依る)', () => {
+    const levels = ZOOMS.items;
+    expect(levels).toEqual([...levels].sort((a, b) => a - b));
   });
 });

@@ -23,7 +23,7 @@ export const B5 = new PaperFormat('B5', {
 });
 
 /** 選べる書式の一覧 (画面に並べる順) と段送り */
-export const PAPERS = new Steps([A4, A3, B5]);
+export const PAPERS = new Steps([A4, A3, B5], (paper) => paper.label);
 
 /** 既定の書式 */
 export const DEFAULT_PAPER: PaperFormat = A4;

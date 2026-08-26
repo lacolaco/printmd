@@ -3,6 +3,7 @@ import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { toPx } from '../src/app/shared/paper/units';
 import type { PaperFormat } from '../src/app/shared/paper/paper-format';
 import { PAPERS } from '../src/app/shared/paper/paper-catalog';
+import { SIZES } from '../src/app/shared/typography/font-catalog';
 
 /** Markdown 文字列をファイル入力へ流し込み、プレビューの構築を待つ */
 export async function importMarkdown(page: Page, name: string, content: string): Promise<void> {
@@ -21,6 +22,10 @@ export async function importMarkdown(page: Page, name: string, content: string):
  */
 export async function selectPaper(page: Page, paper: PaperFormat): Promise<void> {
   const target = PAPERS.items.indexOf(paper);
+  // 既に目的の書式なら、結線を毎回踏むために隣を経由してから戻る
+  if ((await paperIndex(page)) === target) {
+    await stepPaper(page, target === 0 ? 1 : -1);
+  }
   for (let guard = 0; guard < PAPERS.items.length && (await paperIndex(page)) !== target; guard++) {
     await stepPaper(page, (await paperIndex(page)) < target ? 1 : -1);
   }
@@ -40,7 +45,7 @@ async function stepPaper(page: Page, delta: -1 | 1): Promise<void> {
   await page.evaluate(() =>
     document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
   );
-  await page.click(delta === 1 ? '[aria-label="次の用紙"]' : '[aria-label="前の用紙"]');
+  await page.click(delta === 1 ? '[aria-label="用紙を次へ"]' : '[aria-label="用紙を前へ"]');
   await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);
   await page.locator('.sheet .clip .mc').first().waitFor();
 }
@@ -54,13 +59,17 @@ async function fontSizePt(page: Page): Promise<number> {
 
 /** 帯の文字サイズ操作で段送りし、目的の pt に届くまで紙面の組み直しを待つ */
 export async function selectFontSize(page: Page, targetPt: number): Promise<void> {
-  for (let guard = 0; guard < 10 && (await fontSizePt(page)) !== targetPt; guard++) {
+  for (
+    let guard = 0;
+    guard < SIZES.items.length && (await fontSizePt(page)) !== targetPt;
+    guard++
+  ) {
     const current = await fontSizePt(page);
     await page.evaluate(() =>
       document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
     );
     await page.click(
-      current < targetPt ? '[aria-label="文字を拡大"]' : '[aria-label="文字を縮小"]',
+      current < targetPt ? '[aria-label="文字を次へ"]' : '[aria-label="文字を前へ"]',
     );
     await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);
     await page.locator('.sheet .clip .mc').first().waitFor();

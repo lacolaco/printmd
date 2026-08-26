@@ -4,7 +4,10 @@ import { Paper } from '../paper/paper';
 import { Steps } from '../support/steps';
 
 /** 選べる倍率の段 (小さい順) と段送り。1 = 紙の実寸 */
-export const ZOOMS = new Steps([0.5, 0.75, 1, 1.25, 1.5, 2]);
+export const ZOOMS = new Steps(
+  [0.5, 0.75, 1, 1.25, 1.5, 2],
+  (level) => `${Math.round(level * 100)}%`,
+);
 
 /** md ブレークポイント以上で右カラム (調整パネル) が占める幅 (単位 px) */
 const PANEL_WIDTH = 360;
@@ -53,8 +56,8 @@ export class Zoom {
     computation: (format) => onStartup(format),
   });
 
-  /** 段を選び直す */
-  select(level: number): void {
-    this.value.set(level);
+  /** 段を delta ぶん送る (両端で頭打ち) */
+  stepBy(delta: -1 | 1): void {
+    this.value.set(ZOOMS.next(this.value(), delta));
   }
 }

@@ -4,33 +4,30 @@ import { DEFAULT_SIZE, SIZES } from './font-catalog';
 import { StyleVariables } from '../layout/style-variables';
 import { Typography, provideBaseFontSize } from './typography';
 
-/** 一覧の末尾。段が 1 つのときは既定と同じになる */
-const LAST = SIZES.items[SIZES.items.length - 1];
-
 describe('Typography', () => {
   it('既定の段を保有する', () => {
     expect(TestBed.inject(Typography).size()).toBe(DEFAULT_SIZE);
   });
 
-  it('段を選び直す', () => {
+  it('段を送る', () => {
     const typography = TestBed.inject(Typography);
-    typography.select(LAST);
-    expect(typography.size()).toBe(LAST);
+    typography.stepBy(1);
+    expect(typography.size()).toBe(SIZES.next(DEFAULT_SIZE, 1));
   });
 });
 
 describe('provideBaseFontSize', () => {
   it('ベース文字サイズを画面 CSS の供給元として登録する', () => {
     TestBed.configureTestingModule({ providers: [provideBaseFontSize()] });
-    TestBed.inject(Typography).select(LAST);
-    expect(TestBed.inject(StyleVariables).all()).toEqual(LAST.variables());
+    TestBed.inject(Typography).stepBy(1);
+    expect(TestBed.inject(StyleVariables).all()).toEqual(SIZES.next(DEFAULT_SIZE, 1).variables());
   });
 
   it('段を選び直すと供給する値も追随する', () => {
     TestBed.configureTestingModule({ providers: [provideBaseFontSize()] });
     const variables = TestBed.inject(StyleVariables);
     expect(variables.all()).toEqual(DEFAULT_SIZE.variables());
-    TestBed.inject(Typography).select(SIZES.items[0]);
-    expect(variables.all()).toEqual(SIZES.items[0].variables());
+    TestBed.inject(Typography).stepBy(-1);
+    expect(variables.all()).toEqual(SIZES.next(DEFAULT_SIZE, -1).variables());
   });
 });

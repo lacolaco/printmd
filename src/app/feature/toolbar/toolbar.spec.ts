@@ -42,7 +42,7 @@ describe('Toolbar', () => {
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('[role="status"]')?.textContent).toContain('ページ');
-    el.querySelector<HTMLButtonElement>('[aria-label="縮小"]')!.click();
+    el.querySelector<HTMLButtonElement>('[aria-label="倍率を前へ"]')!.click();
     fixture.detectChanges();
     expect(TestBed.inject(Zoom).value()).toBe(0.75);
     expect(el.textContent).toContain('75%');
@@ -57,7 +57,7 @@ describe('Toolbar', () => {
     await fixture.whenStable();
 
     const el = fixture.nativeElement as HTMLElement;
-    el.querySelector<HTMLButtonElement>('[aria-label="次の用紙"]')!.click();
+    el.querySelector<HTMLButtonElement>('[aria-label="用紙を次へ"]')!.click();
     fixture.detectChanges();
     await fixture.whenStable();
     expect(TestBed.inject(Paper).format()).toBe(PAPERS.next(DEFAULT_PAPER, 1));
@@ -72,7 +72,7 @@ describe('Toolbar', () => {
     await fixture.whenStable();
 
     const el = fixture.nativeElement as HTMLElement;
-    el.querySelector<HTMLButtonElement>('[aria-label="文字を拡大"]')!.click();
+    el.querySelector<HTMLButtonElement>('[aria-label="文字を次へ"]')!.click();
     fixture.detectChanges();
     expect(TestBed.inject(Typography).size().pt).toBe(14);
     expect(el.textContent).toContain('14pt');

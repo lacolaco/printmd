@@ -34,12 +34,22 @@ export class StyleVariables {
   /** 全設定のカスタムプロパティ。組み上がりに影響する導出はこれを源とする */
   readonly all = computed<CustomProperties>(() => this.registered.flatMap((read) => read()));
 
+  /** 直前に書いた名前。供給が消えたら消し戻すために覚える */
+  private written: readonly string[] = [];
+
   constructor() {
     // ここは DOM 書き込みのみ
     effect(() => this.write(this.all()));
   }
 
   private write(properties: CustomProperties): void {
+    const names = properties.map(([name]) => name);
+    this.written.filter((name) => !names.includes(name)).forEach((name) => this.clear(name));
     properties.forEach(([name, value]) => this.root.style.setProperty(name, value));
+    this.written = names;
+  }
+
+  private clear(name: string): void {
+    this.root.style.removeProperty(name);
   }
 }
