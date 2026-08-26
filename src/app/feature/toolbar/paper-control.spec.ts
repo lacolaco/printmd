@@ -25,7 +25,7 @@ async function render(selected: PaperFormat) {
   fixture.detectChanges();
   await fixture.whenStable();
   const el = fixture.nativeElement as HTMLElement;
-  const buttons = [...el.querySelectorAll<HTMLButtonElement>('[role="radio"]')];
+  const buttons = [...el.querySelectorAll<HTMLButtonElement>('[ngToolbarWidgetGroup] button')];
   return { fixture, el, buttons };
 }
 
@@ -36,12 +36,17 @@ describe('PaperControl', () => {
     expect(labels).toEqual(PAPERS.map((paper) => paper.label));
   });
 
-  it('どの書式でも選択状態が aria-checked に表れる', async () => {
+  it('選べる書式に role="radio" は付けない (矢印キーで選択は動かないため)', async () => {
+    const { buttons } = await render(PAPERS[0]);
+    expect(buttons.every((button) => button.getAttribute('role') !== 'radio')).toBe(true);
+  });
+
+  it('どの書式でも選択状態が aria-pressed に表れる', async () => {
     for (const paper of PAPERS) {
       const { buttons } = await render(paper);
-      const checked = buttons.filter((button) => button.getAttribute('aria-checked') === 'true');
-      expect(checked).toHaveLength(1);
-      expect(checked[0].textContent?.trim()).toBe(paper.label);
+      const pressed = buttons.filter((button) => button.getAttribute('aria-pressed') === 'true');
+      expect(pressed).toHaveLength(1);
+      expect(pressed[0].textContent?.trim()).toBe(paper.label);
     }
   });
 
@@ -51,5 +56,13 @@ describe('PaperControl', () => {
     buttons[buttons.length - 1].click();
     fixture.detectChanges();
     expect(fixture.componentInstance.selected()).toBe(other);
+  });
+
+  it('インスタンスごとに label の id が異なる (複数描画しても参照が衝突しない)', async () => {
+    const { fixture: a } = await render(PAPERS[0]);
+    const { fixture: b } = await render(PAPERS[0]);
+    const idOf = (fixture: typeof a) =>
+      (fixture.nativeElement as HTMLElement).querySelector('span')!.id;
+    expect(idOf(a)).not.toBe(idOf(b));
   });
 });

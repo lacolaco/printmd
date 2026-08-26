@@ -7,7 +7,7 @@
 - `Breaks.pagination` は (doc, 指定, 用紙書式) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (計測用の領域は観測可能な状態を残さない)。`pageCount` はその total
 - `Breaks.ids` は linkedSignal: Manuscripts.files に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelViewModel の message / WorkspaceViewModel の sheetOpen) は省略
-- 用紙書式は `Paper` (format / select)。`format` は書き込み可能で、`PaperControl` (Toolbar 配下) が radiogroup のボタン列 (click / keydown) から直接読み書きする。書式は `PaperFormat` の値オブジェクトで、版面・段の刻み・CSS 表現を自分で答える。書式を要する導出 (ページ組・表示倍率・シート描画) はすべてこの signal を源とする
+- 用紙書式は `Paper` (format / select)。`format` は書き込み可能で、`PaperControl` (Toolbar 配下) が aria-pressed のトグルボタン列 (click / keydown) から直接読み書きする。書式は `PaperFormat` の値オブジェクトで、版面・段の刻み・CSS 表現を自分で答える。書式を要する導出 (ページ組・表示倍率・シート描画) はすべてこの signal を源とする
 - `Paper` の effect は書式を DOM へ書くだけ (html のカスタムプロパティと `@page` 規則)
 - `Zoom.step` は linkedSignal: `Paper.format` を source とし、書式が変われば段送りを捨ててその紙に収まる段へ組み直す
 - 表示倍率は `Zoom` (index / value / label / stepBy / isSteppable)。初期段の決定と段送りの算術は同居する純関数が担う
@@ -56,6 +56,9 @@ flowchart LR
 
   subgraph AppC["App"]
     T2{{空状態 ↔ 作業画面の切替}}
+  end
+
+  subgraph HeaderC["Header"]
     T7{{印刷ボタンの出し分け}}
   end
 
@@ -84,7 +87,7 @@ flowchart LR
   S1 -- "source 連動:<br/>追記=維持 / 構造変更=リセット" --> S2
   A2 -- toggle --> S2
   A3 -- stepBy --> V1
-  A4 -- "Signal Forms 経由" --> S6
+  A4 -- "click / keydown 経由" --> S6
   S6 -- "source 連動: 収まる段へ組み直す" --> V1
   S6 --> AE2
   AE2 --> D3

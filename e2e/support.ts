@@ -30,8 +30,8 @@ export async function selectPaper(page: Page, paper: PaperFormat): Promise<void>
 }
 
 async function labelOf(page: Page): Promise<string> {
-  const checked = page.locator('[aria-label="表示設定"] [role="radio"][aria-checked="true"]');
-  return (await checked.textContent())?.trim() ?? '';
+  const pressed = page.locator('[aria-label="表示設定"] button[aria-pressed="true"]');
+  return (await pressed.textContent())?.trim() ?? '';
 }
 
 /** 寸法は CSS 変数だけで先に変わるため、シートが差し替わったことを関門にする */
@@ -39,9 +39,9 @@ async function switchTo(page: Page, paper: PaperFormat): Promise<void> {
   await page.evaluate(() =>
     document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
   );
-  await page.getByRole('radio', { name: paper.label }).click();
-  await expect(page.getByRole('radio', { name: paper.label })).toHaveAttribute(
-    'aria-checked',
+  await page.getByRole('button', { name: paper.label, exact: true }).click();
+  await expect(page.getByRole('button', { name: paper.label, exact: true })).toHaveAttribute(
+    'aria-pressed',
     'true',
   );
   await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);

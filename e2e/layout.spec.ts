@@ -43,7 +43,7 @@ for (const width of [320, 375]) {
         '.app-logo',
         '.app-print-button',
         '[aria-label="表示設定"] [role="status"]',
-        '[aria-label="表示設定"] [role="radiogroup"]',
+        '[aria-label="表示設定"] [ngToolbarWidgetGroup]',
         '[aria-label="縮小"]',
         '[aria-label="拡大"]',
       ];

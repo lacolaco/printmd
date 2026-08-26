@@ -17,6 +17,10 @@ class FakeMermaidRenderer extends MermaidRenderer {
   }
 }
 
+function paperButtons(el: HTMLElement): HTMLButtonElement[] {
+  return [...el.querySelectorAll<HTMLButtonElement>('[ngToolbarWidgetGroup] button')];
+}
+
 describe('Toolbar', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -46,7 +50,7 @@ describe('Toolbar', () => {
 
     const other = PAPERS[PAPERS.length - 1];
     const el = fixture.nativeElement as HTMLElement;
-    const buttons = [...el.querySelectorAll<HTMLButtonElement>('[role="radio"]')];
+    const buttons = paperButtons(el);
     expect(buttons.map((button) => button.textContent?.trim())).toEqual(
       PAPERS.map((paper) => paper.label),
     );
@@ -92,7 +96,7 @@ describe('Toolbar', () => {
     const user = userEvent.setup();
 
     const other = PAPERS[PAPERS.length - 1];
-    const buttons = [...el.querySelectorAll<HTMLButtonElement>('[role="radio"]')];
+    const buttons = paperButtons(el);
     buttons[buttons.length - 1].focus();
 
     await user.keyboard('{Enter}');
@@ -114,5 +118,42 @@ describe('Toolbar', () => {
     fixture.detectChanges();
 
     expect(TestBed.inject(Zoom).label()).toBe('75%');
+  });
+
+  it('Enter を長押し (repeat) しても縮小は 1 刻みしか進まない', async () => {
+    const fixture = TestBed.createComponent(Toolbar);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+
+    const shrink = el.querySelector<HTMLButtonElement>('[aria-label="縮小"]')!;
+    shrink.focus();
+    shrink.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    shrink.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, repeat: true }),
+    );
+    shrink.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, repeat: true }),
+    );
+    fixture.detectChanges();
+
+    expect(TestBed.inject(Zoom).label()).toBe('75%');
+  });
+
+  it('Space を長押し (repeat) しても用紙の選択は 1 回しか反映されない', async () => {
+    const fixture = TestBed.createComponent(Toolbar);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+
+    const other = paperButtons(el)[PAPERS.length - 1];
+    other.focus();
+    other.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    other.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, repeat: true }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(TestBed.inject(Paper).format()).toBe(PAPERS[PAPERS.length - 1]);
+    expect(other.getAttribute('aria-pressed')).toBe('true');
   });
 });

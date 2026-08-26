@@ -148,7 +148,7 @@ input[type='checkbox']:not(:disabled) {
   border-color: var(--line);
   color: var(--sumi);
 }
-.app-toolbar button:hover {
+.app-toolbar button:hover:not([aria-pressed='true']) {
   background: #eceef0;
 }
 .app-workspace {
