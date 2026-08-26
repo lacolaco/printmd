@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { A4, DEFAULT_PAPER, PAPERS } from './paper-catalog';
+import { A4, PAPERS } from './paper-catalog';
 
 describe('paper-catalog', () => {
   it('A4 の紙寸法と余白', () => {
@@ -7,7 +7,7 @@ describe('paper-catalog', () => {
   });
 
   it('どの書式も表示名と正の版面を持つ', () => {
-    PAPERS.forEach((paper) => {
+    PAPERS.formats.forEach((paper) => {
       expect(paper.label).not.toBe('');
       expect(paper.content.width).toBeGreaterThan(0);
       expect(paper.content.height).toBeGreaterThan(0);
@@ -15,10 +15,10 @@ describe('paper-catalog', () => {
   });
 
   it('表示名は書式を一意に指す (select の値に使う)', () => {
-    expect(new Set(PAPERS.map((paper) => paper.label)).size).toBe(PAPERS.length);
+    expect(new Set(PAPERS.formats.map((paper) => paper.label)).size).toBe(PAPERS.formats.length);
   });
 
   it('既定は一覧の先頭', () => {
-    expect(DEFAULT_PAPER).toBe(PAPERS[0]);
+    expect(PAPERS.initial).toBe(PAPERS.formats[0]);
   });
 });

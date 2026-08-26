@@ -54,7 +54,7 @@ test('ファイル境界で次のファイルが新しいシートの先頭か�
 });
 
 /** 書式ごとに、窓の下でストリップをずらす量がその書式の刻みに一致する */
-for (const paper of PAPERS) {
+for (const paper of PAPERS.formats) {
   test(`段送りの量が選んだ書式の刻みに一致する (${paper.label})`, async ({ page }) => {
     await page.goto('/');
     await importMarkdown(page, 'long.md', `# 長い原稿\n\n${'本文の段落である。'.repeat(900)}\n`);

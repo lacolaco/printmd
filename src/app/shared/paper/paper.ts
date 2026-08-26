@@ -1,5 +1,5 @@
 import { DOCUMENT, Service, effect, inject, signal } from '@angular/core';
-import { DEFAULT_PAPER } from './paper-catalog';
+import { PAPERS } from './paper-catalog';
 import { PageRule } from './page-rule';
 import { StyleVariables } from '../layout/style-variables';
 import type { PaperFormat } from './paper-format';
@@ -14,7 +14,7 @@ export class Paper {
   private readonly rule = new PageRule(inject(DOCUMENT));
 
   /** 現在の用紙書式。Signal Forms の模型として書き込みも受ける */
-  readonly format = signal<PaperFormat>(DEFAULT_PAPER);
+  readonly format = signal<PaperFormat>(PAPERS.initial);
 
   constructor() {
     inject(StyleVariables).register(() => this.format().variables());

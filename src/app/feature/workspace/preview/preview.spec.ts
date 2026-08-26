@@ -130,7 +130,7 @@ describe('Preview', () => {
     zoomState.stepBy(-1);
     fixture.detectChanges();
     const host = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[style]');
-    expect(zoomState.label()).toBe('75%');
+    expect(zoomState.value()).toBe(0.75);
     expect(host?.style.zoom).toBe('0.75');
   });
 
