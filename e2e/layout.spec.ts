@@ -12,7 +12,7 @@ test('狭い画面 + 200% ズームでもパネルが画面外へ押し出され
 
   const zoomIn = page.locator('[aria-label="拡大"]');
   for (let i = 0; i < 3; i++) await zoomIn.click();
-  await expect(page.locator('header')).toContainText('200%');
+  await expect(page.locator('[role="toolbar"]')).toContainText('200%');
 
   // 文書全体は横に溢れない
   const docScrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
@@ -30,25 +30,25 @@ test('狭い画面 + 200% ズームでもパネルが画面外へ押し出され
 });
 
 /**
- * 表示操作の帯は広い幅では中央へ絶対配置され、狭い幅では通常フローへ戻る。
- * 1 行に入らなければ折り返し、操作面を隠したり互いに被せたりしない
+ * 表示操作の帯 (ヘッダ直下、プレビュー直上) は 1 行に入らなければ折り返し、
+ * 操作面を隠したり互いに被せたりしない
  */
 for (const width of [320, 375]) {
-  test(`${width}px 幅でヘッダの操作面が隠れず互いに覆い合わない`, async ({ page }) => {
+  test(`${width}px 幅で帯の操作面が隠れず互いに覆い合わない`, async ({ page }) => {
     await page.setViewportSize({ width, height: 700 });
     await page.goto('/');
     await importMarkdown(page, 'header.md', '# 見出し\n\n本文である。');
 
-    const header = await page.evaluate(() => {
+    const layout = await page.evaluate(() => {
       const selectors = [
         '.app-logo',
-        'header [role="status"]',
-        'header select',
+        '.app-print-button',
+        '[role="toolbar"] [role="status"]',
+        '[role="toolbar"] select',
         '[aria-label="縮小"]',
         '[aria-label="拡大"]',
-        '.app-print-button',
       ];
-      const band = document.querySelector('header [role="status"]')!.parentElement!;
+      const band = document.querySelector('[role="toolbar"]')!;
       const rects = selectors.map((selector) => ({
         selector,
         box: document.querySelector(selector)!.getBoundingClientRect(),
@@ -69,9 +69,9 @@ for (const width of [320, 375]) {
       return { overlaps, clipped, spill: band.scrollWidth - band.clientWidth };
     });
 
-    expect(header.overlaps).toEqual([]);
-    expect(header.clipped).toEqual([]);
-    expect(header.spill).toBeLessThanOrEqual(0);
+    expect(layout.overlaps).toEqual([]);
+    expect(layout.clipped).toEqual([]);
+    expect(layout.spill).toBeLessThanOrEqual(0);
 
     const docScrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     expect(docScrollWidth).toBeLessThanOrEqual(width);

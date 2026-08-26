@@ -10,7 +10,7 @@ import type { PaperFormat } from '../../shared/paper/paper-format';
   host: { class: 'flex items-center' },
   template: `
     <label class="flex items-center gap-1">
-      <span class="sr-only">用紙サイズ</span>
+      <span>用紙</span>
       <select class="rounded px-1 py-0.5 hover:bg-stone-200" [formField]="field">
         @for (paper of papers; track paper.label) {
           <option>{{ paper.label }}</option>

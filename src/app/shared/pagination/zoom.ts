@@ -1,4 +1,4 @@
-import { Service, computed, inject, linkedSignal } from '@angular/core';
+import { Service, computed, inject, linkedSignal, type WritableSignal } from '@angular/core';
 import type { PaperFormat } from '../paper/paper-format';
 import { Paper } from '../paper/paper';
 
@@ -45,11 +45,12 @@ function startupStep(format: PaperFormat): number {
 }
 
 /** 段を delta ぶん送る (両端で頭打ち) */
-function stepped(step: number, delta: -1 | 1): number {
+export function stepped(step: number, delta: -1 | 1): number {
   return Math.min(ZOOMS.length - 1, Math.max(0, step + delta));
 }
 
-function isAtLimit(step: number, delta: -1 | 1): boolean {
+/** delta 方向へもう送れないか */
+export function isAtLimit(step: number, delta: -1 | 1): boolean {
   return delta === -1 ? step === 0 : step === ZOOMS.length - 1;
 }
 
@@ -64,8 +65,8 @@ export class Zoom {
     computation: (format) => startupStep(format),
   });
 
-  /** 現在の段 (ZOOMS の添字) */
-  readonly index = this.step.asReadonly();
+  /** 現在の段 (ZOOMS の添字)。Signal Forms の模型として書き込みも受ける */
+  readonly index: WritableSignal<number> = this.step;
   /** 表示倍率 (1 = 紙の実寸) */
   readonly value = computed(() => ZOOMS[this.index()]);
   /** 表示用の百分率文言 */

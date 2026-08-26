@@ -4,13 +4,13 @@
 
 - 逆流 (effect からの signal 書き込み)・循環: なし
 - `renderedDocument` は resource: Manuscripts.files を params とする async 導出 (Converter サービスが markdown 変換 + mermaid SVG 化 + キャッシュを担う)。`rendering` はその isLoading
-- `Breaks.pagination` は (doc, 指定, 組み上がりの設定) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (計測用の領域は観測可能な状態を残さない)。`pageCount` はその total
+- `Breaks.pagination` は (doc, 指定, 組み上がりの設定) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (計測用の領域は観測可能な状態を残さない)。設定は画面 CSS を経由して組み上がりに効くため、依存として読むだけで測定へは渡さない (寸法そのものは段の刻み計算のため書式から受け取る)。`pageCount` はその total
 - `Breaks.ids` は linkedSignal: Manuscripts.files に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelViewModel の message / WorkspaceViewModel の sheetOpen) は省略
 - 用紙書式は `Paper` (format / select)。`format` は書き込み可能で、`PaperControl` が自身の Signal Forms のフィールド越しに読み書きする (表示名との変換は transformedValue の parse / format)。書式は `PaperFormat` の値オブジェクトで、版面・段の刻み・CSS 表現を自分で答える。書式を要する導出 (ページ組・表示倍率・シート描画) はすべてこの signal を源とする
 - `Paper` の effect は `@page` 規則を DOM へ書くだけ。画面 CSS への寸法の供給は `StyleVariables` へ委ねる
 - 紙面の組み上がりを決める設定は `StyleVariables` が束ねる。設定は `provideLayoutSetting` で DI へ登録し、`all` computed が全設定のカスタムプロパティを畳んで effect が html へ書く。`Breaks.pagination` はこの `all` を読むので、設定が増えても `breaks.ts` は変わらない (拡張点)
-- `Zoom.step` は linkedSignal: `Paper.format` を source とし、書式が変われば段送りを捨ててその紙に収まる段へ組み直す
+- `Zoom.step` は linkedSignal: `Paper.format` を source とし、書式が変われば段送りを捨ててその紙に収まる段へ組み直す。`index` として書き込み可能なまま公開し、`ZoomControl` が自身の Signal Forms のフィールド越しに読み書きする (段送りの算術は zoom.ts の純関数 stepped / isAtLimit)
 - 表示倍率は `Zoom` (index / value / label / stepBy / isSteppable)。初期段の決定と段送りの算術は同居する純関数が担う
 
 ```mermaid
@@ -41,7 +41,7 @@ flowchart LR
 
   subgraph PaperS["Paper"]
     S6((format))
-    AE2[effect<br/>@page 規則の反映]
+    AE2[effect<br/>書式の反映]
   end
 
   subgraph StyleS["StyleVariables"]
@@ -50,18 +50,22 @@ flowchart LR
   end
 
   subgraph ZoomS["Zoom"]
-    V1((step<br/>linkedSignal))
+    V1((index<br/>linkedSignal))
     VC1[/value/]
     VC2[/label/]
   end
 
-  subgraph HeaderC["Header (PaperControl / ZoomControl)"]
-    HC1[/status<br/>HeaderViewModel/]
-    T1{{ヘッダ: 頁数/ズーム/印刷}}
+  subgraph ToolbarC["Toolbar (PaperControl / ZoomControl)"]
+    HC1[/status<br/>ToolbarViewModel/]
+    T1{{帯: 頁数/用紙/倍率}}
+  end
+
+  subgraph HeaderC["Header"]
+    T7{{ヘッダ: ロゴ/印刷}}
   end
 
   subgraph AppC["App"]
-    T2{{空状態 ↔ 作業画面の切替}}
+    T2{{空状態 ↔ 作業画面の切替<br/>(帯の出し分けも同じ判定)}}
   end
 
   subgraph PrintC["PrintRoot"]
@@ -82,24 +86,24 @@ flowchart LR
   subgraph DOM["DOM シンク"]
     D1[(print-root<br/>唯一の文書実体)]
     D2[(sheets<br/>クローン群)]
-    D3[(html のカスタムプロパティ)]
-    D4[(@page 規則)]
+    D3[(html のカスタムプロパティ<br/>+ @page 規則)]
+    D4[(html のカスタムプロパティ<br/>--base-font-size)]
   end
 
   A1 -- "add / remove /<br/>nudge / reorder" --> S1
   S1 -- "source 連動:<br/>追記=維持 / 構造変更=リセット" --> S2
   A2 -- toggle --> S2
-  A3 -- stepBy --> V1
+  A3 -- "Signal Forms 経由" --> V1
   A4 -- "Signal Forms 経由" --> S6
   S6 -- "source 連動: 収まる段へ組み直す" --> V1
   S6 --> AE2
-  AE2 --> D4
-  S6 -- "provideLayoutSetting で登録" --> VS1
-  VS1 --> AE3
-  AE3 --> D3
-  VS1 --> V3
+  AE2 --> D3
   S6 --> V3
   S6 --> PE1
+  S6 -- "provideLayoutSetting で登録" --> VS1
+  VS1 --> AE3
+  AE3 --> D4
+  VS1 --> V3
 
   S1 -- "params → loader<br/>(Converter: markdown 変換 +<br/>mermaid SVG 化 + キャッシュ)" --> S4
   S4 --> S3
@@ -133,6 +137,7 @@ flowchart LR
   HC1 --> T1
   VC2 --> T1
   C1 --> T1
+  C1 --> T7
 
   classDef sig fill:#fcd34d,stroke:#b45309,color:#1c1917
   classDef comp fill:#bae6fd,stroke:#0369a1,color:#0c4a6e
@@ -147,7 +152,7 @@ flowchart LR
   class S2,V1 linked
   class C1,S3,VC1,VC2,HC1,V2,V3,VS1 comp
   class AE1,AE2,AE3,PE1 eff
-  class T1,T2,T3,T4,T5,T6 tmpl
+  class T1,T2,T3,T4,T5,T6,T7 tmpl
   class D1,D2,D3,D4 dom
 ```
 
