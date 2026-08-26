@@ -46,6 +46,8 @@ for (const width of [320, 375]) {
         '[role="toolbar"] [role="status"]',
         '[aria-label^="用紙"][aria-label$="を前へ"]',
         '[aria-label^="用紙"][aria-label$="を次へ"]',
+        '[aria-label^="文字"][aria-label$="を前へ"]',
+        '[aria-label^="文字"][aria-label$="を次へ"]',
         '[aria-label^="倍率"][aria-label$="を前へ"]',
         '[aria-label^="倍率"][aria-label$="を次へ"]',
       ];

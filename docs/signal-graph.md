@@ -9,7 +9,8 @@
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelViewModel の message / WorkspaceViewModel の sheetOpen) は省略
 - 用紙書式は `Paper` (format / select)。`format` は書き込み可能で、帯の `StepControl` が自身の Signal Forms のフィールド越しに読み書きする。書式は `PaperFormat` の値オブジェクトで、版面・段の刻み・CSS 表現を自分で答える。書式を要する導出 (ページ組・表示倍率・シート描画) はすべてこの signal を源とする
 - `Paper` の effect は `@page` 規則を DOM へ書くだけ。画面 CSS への寸法の供給は `StyleVariables` へ委ねる
-- 選べるもの (用紙書式・表示倍率) はどれも段の一覧 (`Steps`) と現在の段の signal で表す。段送りの算術と表示名は一覧が答え、操作面は 1 つの `StepControl` で足りる (増やすときに操作面を書き足さない)
+- 本文のベース文字サイズは `Typography` (size / stepBy)。`size` は書き込み可能で、帯の `StepControl` が自身の Signal Forms のフィールド越しに読み書きする。段は `provideBaseFontSize` で組み上がりの設定として登録し、`.markdown-body` の `font-size` がそのカスタムプロパティを読む (画面・印刷は同じ CSS を経由するので同じ組み上がりを見る)
+- 選べるもの (用紙書式・文字サイズ・表示倍率) はどれも段の一覧 (`Steps`) と現在の段の signal で表す。段送りの算術と表示名は一覧が答え、操作面は 1 つの `StepControl` で足りる (増やすときに操作面を書き足さない)
 - 紙面の組み上がりを決める設定は `StyleVariables` が束ねる。設定は `provideLayoutSetting` で DI へ登録し、`all` computed が全設定のカスタムプロパティを畳んで effect が html へ書く。`Breaks.pagination` はこの `all` を読むので、設定が増えても `breaks.ts` は変わらない (拡張点)
 - `Zoom.value` は linkedSignal: `Paper.format` を source とし、書式が変われば段送りを捨ててその紙に収まる段へ組み直す。書き込み可能なまま公開し、帯の `StepControl` が自身の Signal Forms のフィールド越しに読み書きする (収まる段の探索は同居する純関数 fittingLevel)
 
@@ -20,6 +21,7 @@ flowchart LR
     A2([改ページのチェック])
     A3([ズーム − / ＋])
     A4([用紙書式の選択])
+    A5([文字サイズ − / ＋])
   end
 
   subgraph ManuscriptsS["Manuscripts"]
@@ -44,6 +46,10 @@ flowchart LR
     AE2[effect<br/>書式の反映]
   end
 
+  subgraph TypographyS["Typography"]
+    S7((size))
+  end
+
   subgraph StyleS["StyleVariables"]
     VS1[/all<br/>登録された設定を畳む/]
     AE3[effect<br/>カスタムプロパティの書き込み]
@@ -53,9 +59,9 @@ flowchart LR
     V1((value<br/>linkedSignal))
   end
 
-  subgraph ToolbarC["Toolbar (StepControl × 2)"]
+  subgraph ToolbarC["Toolbar (StepControl × 3)"]
     HC1[/status<br/>ToolbarViewModel/]
-    T1{{帯: 頁数/用紙/倍率}}
+    T1{{帯: 頁数/用紙/文字サイズ/倍率}}
   end
 
   subgraph HeaderC["Header"]
@@ -98,7 +104,9 @@ flowchart LR
   AE2 --> D3
   S6 --> V3
   S6 --> PE1
+  A5 -- "Signal Forms 経由" --> S7
   S6 -- "provideLayoutSetting で登録" --> VS1
+  S7 -- "provideLayoutSetting で登録" --> VS1
   VS1 --> AE3
   AE3 --> D4
   VS1 --> V3
@@ -142,7 +150,7 @@ flowchart LR
   classDef dom fill:#e7e5e4,stroke:#57534e
   classDef res fill:#99f6e4,stroke:#0f766e,color:#134e4a
   classDef linked fill:#f5d0fe,stroke:#a21caf,color:#4a044e
-  class S1,S5,S6 sig
+  class S1,S5,S6,S7 sig
   class S4 res
 
   class S2,V1 linked
