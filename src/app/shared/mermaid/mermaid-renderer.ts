@@ -1,5 +1,5 @@
 import { Service } from '@angular/core';
-import { isNonEmpty } from '../collections';
+import { isNonEmpty } from '../support/collections';
 import type { MermaidBlock } from '../markdown/render-markdown';
 
 export type MermaidOutcome =

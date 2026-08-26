@@ -1,5 +1,5 @@
 import { Service, computed, inject, linkedSignal } from '@angular/core';
-import { isPrefixOf } from '../collections';
+import { isPrefixOf } from '../support/collections';
 import { ConversionPipeline } from '../conversion-pipeline';
 import { Manuscripts } from '../manuscript/manuscripts';
 import { Paper } from '../paper/paper';
