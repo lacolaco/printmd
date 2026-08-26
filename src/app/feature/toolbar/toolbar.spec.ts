@@ -5,6 +5,7 @@ import { Manuscripts } from '../../shared/manuscript/manuscripts';
 import { PAPERS } from '../../shared/paper/paper-catalog';
 import { Paper } from '../../shared/paper/paper';
 import { Zoom } from '../../shared/pagination/zoom';
+import { Typography } from '../../shared/typography/typography';
 import { Toolbar } from './toolbar';
 
 class FakeMermaidRenderer extends MermaidRenderer {
@@ -31,7 +32,7 @@ describe('Toolbar', () => {
     expect(el.querySelector('[role="toolbar"]')).not.toBeNull();
   });
 
-  it('頁数・用紙・倍率を表示し、ズーム操作が Zoom に反映される', async () => {
+  it('頁数・用紙・文字サイズ・倍率を表示し、ズーム操作が Zoom に反映される', async () => {
     const manuscripts = TestBed.inject(Manuscripts);
     await manuscripts.add([{ name: 'a.md', text: () => Promise.resolve('# A\n\n本文') }]);
 
@@ -62,5 +63,20 @@ describe('Toolbar', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(TestBed.inject(Paper).format()).toBe(other);
+  });
+
+  it('文字サイズの操作が Typography に反映される', async () => {
+    const manuscripts = TestBed.inject(Manuscripts);
+    await manuscripts.add([{ name: 'a.md', text: () => Promise.resolve('# A\n\n本文') }]);
+
+    const fixture = TestBed.createComponent(Toolbar);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    el.querySelector<HTMLButtonElement>('[aria-label="文字を拡大"]')!.click();
+    fixture.detectChanges();
+    expect(TestBed.inject(Typography).size().pt).toBe(14);
+    expect(el.textContent).toContain('14pt');
   });
 });

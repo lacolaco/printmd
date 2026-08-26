@@ -15,6 +15,13 @@ input[type='checkbox']:not(:disabled) {
   cursor: pointer;
 }
 
+/* 本文のベース文字サイズ。画面のプレビュー・計測領域・印刷対象はすべてこの規則を
+   通るので、画面と紙が同じ組み上がりを見る。値は font-catalog が唯一の情報源で、
+   StyleVariables がカスタムプロパティとして供給する */
+.markdown-body {
+  font-size: var(--base-font-size);
+}
+
 /* Tailwind preflight は ul の list-style を消すが、github-markdown-css は
    ul のマーカーを UA 既定 (disc/circle/square) に依存しているため復元する */
 .markdown-body ul {

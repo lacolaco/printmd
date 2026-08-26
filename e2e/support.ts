@@ -47,6 +47,29 @@ async function switchTo(page: Page, paper: PaperFormat): Promise<void> {
     .toBeCloseTo(toPx(paper.page.width), -1);
 }
 
+async function fontSizePt(page: Page): Promise<number> {
+  const text = await page.locator('[role="toolbar"]').innerText();
+  const match = /([\d.]+)pt/.exec(text);
+  if (!match) throw new Error(`文字サイズ表示が読めない: ${text}`);
+  return Number(match[1]);
+}
+
+/** 帯の文字サイズ操作で段送りし、目的の pt に届くまで紙面の組み直しを待つ */
+export async function selectFontSize(page: Page, targetPt: number): Promise<void> {
+  for (let guard = 0; guard < 10 && (await fontSizePt(page)) !== targetPt; guard++) {
+    const current = await fontSizePt(page);
+    await page.evaluate(() =>
+      document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
+    );
+    await page.click(
+      current < targetPt ? '[aria-label="文字を拡大"]' : '[aria-label="文字を縮小"]',
+    );
+    await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);
+    await page.locator('.sheet .clip .mc').first().waitFor();
+  }
+  await expect.poll(() => fontSizePt(page)).toBe(targetPt);
+}
+
 /** 1 枚目のシートの、表示倍率を戻した実寸 (CSS px) */
 export async function sheetSizePx(page: Page): Promise<{ width: number; height: number }> {
   return page.evaluate(() => {

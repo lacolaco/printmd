@@ -1,13 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { Toolbar as AriaToolbar } from '@angular/aria/toolbar';
+import { FontSizeControl } from './font-size-control';
 import { PaperControl } from './paper-control';
 import { ToolbarViewModel } from './toolbar.vm';
 import { ZoomControl } from './zoom-control';
 
-/** プレビュー直上の表示操作の帯: 頁数 / 用紙 / 倍率 */
+/** プレビュー直上の表示操作の帯: 頁数 / 用紙 / 文字サイズ / 倍率 */
 @Component({
   selector: 'app-toolbar',
-  imports: [AriaToolbar, PaperControl, ZoomControl],
+  imports: [AriaToolbar, FontSizeControl, PaperControl, ZoomControl],
   providers: [ToolbarViewModel],
   host: { class: 'shrink-0' },
   template: `
@@ -19,6 +20,8 @@ import { ZoomControl } from './zoom-control';
       <span role="status" aria-live="polite">{{ vm.status() }}</span>
       <span aria-hidden="true" class="opacity-40">|</span>
       <app-paper-control [(selected)]="vm.format" />
+      <span aria-hidden="true" class="opacity-40">|</span>
+      <app-font-size-control [(selected)]="vm.fontSize" />
       <span aria-hidden="true" class="opacity-40">|</span>
       <app-zoom-control [(selected)]="vm.zoomIndex" />
     </div>

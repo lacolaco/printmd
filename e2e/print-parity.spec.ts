@@ -5,11 +5,13 @@ import {
   printPdfPageSize,
   printPdfPageTexts,
   readPageCount,
+  selectFontSize,
   selectPaper,
   sheetSizePx,
 } from './support';
 import { toPx } from '../src/app/shared/paper/units';
-import { PAPERS } from '../src/app/shared/paper/paper-catalog';
+import { DEFAULT_PAPER, PAPERS } from '../src/app/shared/paper/paper-catalog';
+import { SIZES } from '../src/app/shared/typography/font-catalog';
 
 /**
  * 中核保証の検証: プレビューが見せるページ割りと、印刷 (PDF 化) の実出力が
@@ -94,6 +96,33 @@ test('選んだ用紙書式が画面と印刷 PDF の紙寸法になる', async 
     expect(sheet.height).toBeCloseTo(toPx(paper.page.height), -1);
   }
 });
+
+for (const size of [SIZES[0], SIZES[SIZES.length - 1]]) {
+  test(`プレビューのページ割りが印刷 PDF と一致する (文字サイズ ${size.label})`, async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await importMarkdown(page, 'font-size.md', buildManuscript());
+    await selectFontSize(page, size.pt);
+
+    const previewCount = await readPageCount(page);
+    const previewPages = await previewHeadingPages(page, DEFAULT_PAPER);
+
+    const pdfTexts = await printPdfPageTexts(page);
+    expect(pdfTexts.length).toBe(previewCount);
+
+    const printPages: Record<string, number> = {};
+    pdfTexts.forEach((text, index) => {
+      const normalized = text.replaceAll(/\s+/g, '');
+      for (let s = 1; s <= 10; s++) {
+        const key = `節 ${s}`;
+        if (!(key in printPages) && normalized.includes(`節${s}`)) printPages[key] = index + 1;
+      }
+    });
+
+    expect(printPages).toEqual(previewPages);
+  });
+}
 
 test('GitHub 体裁の要素が描画される', async ({ page }) => {
   await page.goto('/');
