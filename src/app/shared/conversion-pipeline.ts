@@ -1,5 +1,5 @@
 import { Service, computed, inject, resource } from '@angular/core';
-import { isNonEmpty } from './collections';
+import { isNonEmpty } from './support/collections';
 import { Converter } from './manuscript/converter';
 import { Manuscripts } from './manuscript/manuscripts';
 import type { RenderedDocument } from './markdown/rendered-document';
