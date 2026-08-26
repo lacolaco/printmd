@@ -1,5 +1,5 @@
 import { Service, computed, inject, signal } from '@angular/core';
-import { isNonEmpty } from '../collections';
+import { isNonEmpty } from '../support/collections';
 import { FileOrder } from './file-order';
 import { Importer } from './importer';
 import type { ManuscriptFile } from './manuscript';
@@ -21,7 +21,7 @@ export class Manuscripts {
   readonly files = this.list.asReadonly();
   /** 直近の取り込みで生じた警告文 */
   readonly warnings = this.notices.asReadonly();
-  /** 原稿が 1 つでもあるか。画面切替とヘッダの表示判断に使う */
+  /** 原稿が 1 つでもあるか。画面切替と、帯や印刷ボタンの表示判断に使う */
   readonly isNonEmpty = computed(() => this.files().length > 0);
 
   /** 取り込み入力を読み出して末尾へ追加する。警告は上書きで掲示する */

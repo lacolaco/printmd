@@ -1,4 +1,4 @@
-import { ifDefined } from '../optional';
+import { ifDefined } from '../support/optional';
 import type { Block } from './block';
 import { groupBlocks, type FileGroup } from './block-groups';
 

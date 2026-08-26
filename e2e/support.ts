@@ -16,35 +16,37 @@ export async function importMarkdown(page: Page, name: string, content: string):
 }
 
 /**
- * ヘッダの用紙セレクタで書式を選び、紙面が組み直されるまで待つ。
- * 既に目的の書式が選ばれていて別の書式があるなら、結線を毎回踏むためにそこを経由する
+ * 帯の用紙の段送りで書式を選び、紙面が組み直されるまで待つ。
+ * 実クリックで送る (帯の中の操作面が実際に操作できることも同時に確かめる)
  */
 export async function selectPaper(page: Page, paper: PaperFormat): Promise<void> {
-  const detour = PAPERS.find((other) => other !== paper);
-  if (detour !== undefined && (await labelOf(page)) === paper.label) {
-    await switchTo(page, detour);
+  const target = PAPERS.items.indexOf(paper);
+  // 既に目的の書式なら、結線を毎回踏むために隣を経由してから戻る
+  if ((await paperIndex(page)) === target) {
+    await stepPaper(page, target === 0 ? 1 : -1);
   }
-  if ((await labelOf(page)) !== paper.label) {
-    await switchTo(page, paper);
+  for (let guard = 0; guard < PAPERS.items.length && (await paperIndex(page)) !== target; guard++) {
+    await stepPaper(page, (await paperIndex(page)) < target ? 1 : -1);
   }
-}
-
-async function labelOf(page: Page): Promise<string> {
-  return page.locator('header select').inputValue();
-}
-
-/** 寸法は CSS 変数だけで先に変わるため、シートが差し替わったことを関門にする */
-async function switchTo(page: Page, paper: PaperFormat): Promise<void> {
-  await page.evaluate(() =>
-    document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
-  );
-  await page.selectOption('header select', { label: paper.label });
-  await expect(page.locator('header select')).toHaveValue(paper.label);
-  await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);
-  await page.locator('.sheet .clip .mc').first().waitFor();
+  await expect.poll(() => paperIndex(page)).toBe(target);
   await expect
     .poll(async () => (await sheetSizePx(page)).width)
     .toBeCloseTo(toPx(paper.page.width), -1);
+}
+
+async function paperIndex(page: Page): Promise<number> {
+  const label = await page.locator('[role="toolbar"]').innerText();
+  return PAPERS.items.findIndex((paper) => label.includes(paper.label));
+}
+
+/** 寸法は CSS 変数だけで先に変わるため、シートが差し替わったことを関門にする */
+async function stepPaper(page: Page, delta: -1 | 1): Promise<void> {
+  await page.evaluate(() =>
+    document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
+  );
+  await page.click(delta === 1 ? '[aria-label="用紙を次へ"]' : '[aria-label="用紙を前へ"]');
+  await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);
+  await page.locator('.sheet .clip .mc').first().waitFor();
 }
 
 /** 1 枚目のシートの、表示倍率を戻した実寸 (CSS px) */
@@ -58,9 +60,9 @@ export async function sheetSizePx(page: Page): Promise<{ width: number; height: 
   });
 }
 
-/** ツールバーのページ数表示を数値で返す */
+/** 帯のページ数表示を数値で返す */
 export async function readPageCount(page: Page): Promise<number> {
-  const text = await page.locator('header [role="status"]').textContent();
+  const text = await page.locator('[role="toolbar"] [role="status"]').textContent();
   const match = /(\d+)ページ/.exec(text ?? '');
   if (!match) throw new Error(`ページ数表示が読めない: ${text}`);
   return Number(match[1]);
