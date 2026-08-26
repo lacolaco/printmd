@@ -41,6 +41,15 @@ describe('PaperControl', () => {
     expect(buttons.every((button) => button.getAttribute('role') !== 'radio')).toBe(true);
   });
 
+  it('ボタン列の親に role="group" を持ち、ラベルの id を参照できる', async () => {
+    const { el } = await render(PAPERS[0]);
+    const group = el.querySelector('[ngToolbarWidgetGroup]')!;
+    const labelId = group.getAttribute('aria-labelledby');
+    expect(group.getAttribute('role')).toBe('group');
+    expect(labelId).not.toBeNull();
+    expect(el.querySelector(`#${labelId}`)?.textContent).toBe('用紙');
+  });
+
   it('どの書式でも選択状態が aria-pressed に表れる', async () => {
     for (const paper of PAPERS) {
       const { buttons } = await render(paper);

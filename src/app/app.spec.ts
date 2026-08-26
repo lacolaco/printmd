@@ -52,6 +52,7 @@ describe('App', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('.app-empty-drop')).not.toBeNull();
     expect(el.querySelector('app-file-panel')).toBeNull();
+    expect(el.querySelector('app-toolbar')).toBeNull();
   });
 
   it('原稿を取り込むとプレビューと印刷用マスターを表示する', async () => {
@@ -65,6 +66,7 @@ describe('App', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('app-preview')).not.toBeNull();
     expect(el.querySelector('app-break-panel')).not.toBeNull();
+    expect(el.querySelector('app-toolbar')).not.toBeNull();
     expect(el.querySelector('.print-root h1')?.textContent).toBe('見出し');
   });
 

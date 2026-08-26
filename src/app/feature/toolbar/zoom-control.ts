@@ -5,8 +5,10 @@ import { ToolbarWidget } from '@angular/aria/toolbar';
  * ズームの段送り操作面。表示と可否を受け取り、操作をイベントで返すだけ。
  * Toolbar は Enter / Space を自前の選択へ割り当てて button の既定動作を止めるため、
  * 段送りはボタン自身の keydown で受ける (段送りは選択ではなくアクションなので、
- * Toolbar の選択模型からは結果を読まない)。長押しの repeat では既定動作が止まらず
- * click が合成されるので、repeat 中は降りて二重発火を避ける
+ * Toolbar の選択模型からは結果を読まない)。ただし Toolbar は repeat の keydown までは
+ * 既定動作を止めない (KeyboardEventManager の既定が ignoreRepeat) ため、長押しで
+ * keydown 由来と合成 click 由来の 2 経路が走ってしまう。ここで無条件に preventDefault
+ * して click の合成そのものを断ち、発火は repeat でないときだけ行う
  */
 @Component({
   selector: 'app-zoom-control',
@@ -46,7 +48,14 @@ export class ZoomControl {
   readonly grow = output();
 
   protected onKeydown(event: KeyboardEvent, action: OutputEmitterRef<void>): void {
-    if (!event.repeat && (event.key === 'Enter' || event.key === ' ')) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.emitUnlessRepeat(event.repeat, action);
+    }
+  }
+
+  protected emitUnlessRepeat(repeat: boolean, action: OutputEmitterRef<void>): void {
+    if (!repeat) {
       action.emit();
     }
   }

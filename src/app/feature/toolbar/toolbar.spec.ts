@@ -128,15 +128,26 @@ describe('Toolbar', () => {
 
     const shrink = el.querySelector<HTMLButtonElement>('[aria-label="縮小"]')!;
     shrink.focus();
-    shrink.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-    shrink.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, repeat: true }),
-    );
-    shrink.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, repeat: true }),
-    );
+    const first = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+    const repeat1 = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      bubbles: true,
+      cancelable: true,
+      repeat: true,
+    });
+    const repeat2 = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      bubbles: true,
+      cancelable: true,
+      repeat: true,
+    });
+    shrink.dispatchEvent(first);
+    shrink.dispatchEvent(repeat1);
+    shrink.dispatchEvent(repeat2);
     fixture.detectChanges();
 
+    // repeat の keydown も、native の click 合成を断つため必ず preventDefault される
+    expect([first, repeat1, repeat2].every((event) => event.defaultPrevented)).toBe(true);
     expect(TestBed.inject(Zoom).label()).toBe('75%');
   });
 
@@ -148,11 +159,20 @@ describe('Toolbar', () => {
 
     const other = paperButtons(el)[PAPERS.length - 1];
     other.focus();
-    other.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
-    other.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, repeat: true }));
+    const first = new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true });
+    const repeat = new KeyboardEvent('keydown', {
+      key: ' ',
+      bubbles: true,
+      cancelable: true,
+      repeat: true,
+    });
+    other.dispatchEvent(first);
+    other.dispatchEvent(repeat);
     fixture.detectChanges();
     await fixture.whenStable();
 
+    expect(first.defaultPrevented).toBe(true);
+    expect(repeat.defaultPrevented).toBe(true);
     expect(TestBed.inject(Paper).format()).toBe(PAPERS[PAPERS.length - 1]);
     expect(other.getAttribute('aria-pressed')).toBe('true');
   });

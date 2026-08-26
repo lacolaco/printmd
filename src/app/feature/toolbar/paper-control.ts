@@ -11,6 +11,8 @@ import type { PaperFormat } from '../../shared/paper/paper-format';
  * role は radiogroup / radio ではなく aria-pressed にする。Toolbar の矢印キーは
  * ロービング移動だけを担い選択を動かさないため、radio の約束と食い違う
  * (排他であることは ngToolbarWidgetGroup が構造で示す)。
+ * ngToolbarWidgetGroup は host に role を持たず role=generic になり、
+ * generic への aria-labelledby は ARIA 1.2 で無視されるため role="group" を足す。
  * 選択の確定も選択状態も Toolbar の value 模型には載せない。帯には選択の意味を
  * 持たないアクションの widget (ズームの段送り) も並び、帯ひとつの value 配列に
  * 両者が混ざると書式を取り出せなくなるためである
@@ -21,7 +23,7 @@ import type { PaperFormat } from '../../shared/paper/paper-format';
   host: { class: 'flex items-center gap-1' },
   template: `
     <span [id]="labelId">用紙</span>
-    <div ngToolbarWidgetGroup [attr.aria-labelledby]="labelId" class="flex">
+    <div ngToolbarWidgetGroup role="group" [attr.aria-labelledby]="labelId" class="flex">
       @for (paper of papers; track paper.label) {
         <button
           type="button"
@@ -48,11 +50,20 @@ export class PaperControl {
   protected readonly labelId = inject(_IdGenerator).getId('paper-control-label-');
 
   /**
-   * Enter / Space での選択。Toolbar が button の既定動作を止めるため click は届かない。
-   * ただし長押しの repeat では止まらず click が合成されるので、repeat 中は降りる
+   * Enter / Space での選択。Toolbar は repeat の keydown までは既定動作を止めない
+   * (KeyboardEventManager の既定が ignoreRepeat) ため、長押しで keydown 由来と
+   * 合成 click 由来の 2 経路が走ってしまう。ここで無条件に preventDefault して
+   * click の合成そのものを断ち、選択は repeat でないときだけ行う
    */
   protected pick(paper: PaperFormat, event: KeyboardEvent): void {
-    if (!event.repeat && (event.key === 'Enter' || event.key === ' ')) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.selectUnlessRepeat(paper, event.repeat);
+    }
+  }
+
+  protected selectUnlessRepeat(paper: PaperFormat, repeat: boolean): void {
+    if (!repeat) {
       this.selected.set(paper);
     }
   }

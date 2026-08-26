@@ -38,7 +38,7 @@ for (const width of [320, 375]) {
     await page.goto('/');
     await importMarkdown(page, 'header.md', '# 見出し\n\n本文である。');
 
-    const toolbar = await page.evaluate(() => {
+    const bands = await page.evaluate(() => {
       const selectors = [
         '.app-logo',
         '.app-print-button',
@@ -47,7 +47,8 @@ for (const width of [320, 375]) {
         '[aria-label="縮小"]',
         '[aria-label="拡大"]',
       ];
-      const band = document.querySelector('[aria-label="表示設定"]')!;
+      const header = document.querySelector('.app-header')!;
+      const toolbar = document.querySelector('[aria-label="表示設定"]')!;
       const rects = selectors.map((selector) => ({
         selector,
         box: document.querySelector(selector)!.getBoundingClientRect(),
@@ -65,12 +66,18 @@ for (const width of [320, 375]) {
       const clipped = rects
         .filter(({ box }) => box.left < 0 || box.right > window.innerWidth || box.width === 0)
         .map(({ selector }) => selector);
-      return { overlaps, clipped, spill: band.scrollWidth - band.clientWidth };
+      return {
+        overlaps,
+        clipped,
+        headerSpill: header.scrollWidth - header.clientWidth,
+        toolbarSpill: toolbar.scrollWidth - toolbar.clientWidth,
+      };
     });
 
-    expect(toolbar.overlaps).toEqual([]);
-    expect(toolbar.clipped).toEqual([]);
-    expect(toolbar.spill).toBeLessThanOrEqual(0);
+    expect(bands.overlaps).toEqual([]);
+    expect(bands.clipped).toEqual([]);
+    expect(bands.headerSpill).toBeLessThanOrEqual(0);
+    expect(bands.toolbarSpill).toBeLessThanOrEqual(0);
 
     const docScrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     expect(docScrollWidth).toBeLessThanOrEqual(width);
