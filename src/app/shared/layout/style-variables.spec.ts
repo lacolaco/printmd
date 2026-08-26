@@ -47,4 +47,17 @@ describe('StyleVariables', () => {
     TestBed.flushEffects();
     expect(doc.documentElement.style.getPropertyValue('--a')).toBe('14pt');
   });
+
+  it('供給が消えた名前は消し戻す (残って紙面に効き続けない)', () => {
+    const supplied = signal(true);
+    const { doc } = inDocument([
+      provideLayoutSetting(() => () => (supplied() ? [['--a', '1mm']] : [])),
+    ]);
+    TestBed.flushEffects();
+    expect(doc.documentElement.style.getPropertyValue('--a')).toBe('1mm');
+
+    supplied.set(false);
+    TestBed.flushEffects();
+    expect(doc.documentElement.style.getPropertyValue('--a')).toBe('');
+  });
 });
