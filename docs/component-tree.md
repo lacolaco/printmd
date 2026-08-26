@@ -5,10 +5,11 @@
 
 ```mermaid
 flowchart TB
-  APP["App<br/><small>画面骨格: ヘッダ / 画面切替 / 印刷対象</small>"]
-  HEADER["Header<br/><small>ロゴ / 表示操作の帯 / 印刷 (コンテナ)</small>"]
+  APP["App<br/><small>画面骨格: ヘッダ / ツールバー / 画面切替 / 印刷対象</small>"]
+  HEADER["Header<br/><small>ロゴ / 印刷 (コンテナ)</small>"]
+  TOOLBAR["Toolbar<br/><small>表示操作の帯: 頁数 / 用紙書式 / 表示倍率 (コンテナ)</small>"]
   ZOOMC["ZoomControl<br/><small>ズームの段送り操作面 (プレーン)</small>"]
-  PAPERC["PaperControl<br/><small>用紙書式の選択面<br/>(Signal Forms のフィールドで select を束ねる)</small>"]
+  PAPERC["PaperControl<br/><small>用紙書式の選択面<br/>(ngToolbarWidgetGroup の radiogroup で束ねる)</small>"]
   WS["Workspace<br/><small>作業画面: md+ は 2 カラム、スマートフォン幅は<br/>シングルカラム + ボトムシート (開閉状態を所有)。<br/>追加取り込みのドロップ受け</small>"]
   PREVIEW["Preview<br/><small>シート面の結線 (寸法は用紙書式)。描画は<br/>SheetRenderer に委譲 (遅延実体化)</small>"]
   FILEP["FilePanel<br/><small>原稿の取り込み・並べ替え・削除<br/>(読み上げは FilePanelState)</small>"]
@@ -21,8 +22,9 @@ flowchart TB
   PRINT["PrintRoot<br/><small>印刷対象 (変換済み文書の掲示)</small>"]
 
   APP --> HEADER
-  HEADER --> ZOOMC
-  HEADER --> PAPERC
+  APP -->|"原稿あり"| TOOLBAR
+  TOOLBAR --> ZOOMC
+  TOOLBAR --> PAPERC
   APP --> FOOTER
   APP -->|"原稿あり"| WS
   APP -->|"空状態"| DROP
@@ -39,9 +41,10 @@ flowchart TB
   classDef leaf fill:#e0f2fe,stroke:#0369a1
   class APP shell
   class WS layout
-  class HEADER,ZOOMC,PAPERC,PREVIEW,FILEP,BREAKP,FOOTER,DROP,PRINT leaf
+  class HEADER,TOOLBAR,ZOOMC,PAPERC,PREVIEW,FILEP,BREAKP,FOOTER,DROP,PRINT leaf
 ```
 
 - 画面領域の責務で階層化: App は骨格、Workspace が作業画面と右カラム (調整パネル) を所有する
-- コンテナは自身のビューモデル (CQS: state query と command) だけを注入し、VM がドメインサービス (Manuscripts / Breaks / ConversionPipeline / Paper / Zoom) を仲介する。プレーンなコンポーネントは input/output だけで疎通し VM を持たない。input/output は Header の active (原稿有無の判断は App が持つ) や FileAddInput の selected など最小限
+- コンテナは自身のビューモデル (CQS: state query と command) だけを注入し、VM がドメインサービス (Manuscripts / Breaks / ConversionPipeline / Paper / Zoom) を仲介する。プレーンなコンポーネントは input/output だけで疎通し VM を持たない。input/output は FileAddInput の selected など最小限
+- Toolbar は表示操作 (頁数 / 用紙書式 / 表示倍率) をヘッダから切り出した独立の帯で、原稿があるときだけ App が Header の下・Workspace の上に置く。ヘッダは Header の isActive (原稿有無) が出し分ける印刷ボタンだけを持つ
 - リアクティブ構造は [signal-graph.md](./signal-graph.md) を参照

@@ -16,7 +16,7 @@ export async function importMarkdown(page: Page, name: string, content: string):
 }
 
 /**
- * ヘッダの用紙セレクタで書式を選び、紙面が組み直されるまで待つ。
+ * ツールバーの用紙ボタンで書式を選び、紙面が組み直されるまで待つ。
  * 既に目的の書式が選ばれていて別の書式があるなら、結線を毎回踏むためにそこを経由する
  */
 export async function selectPaper(page: Page, paper: PaperFormat): Promise<void> {
@@ -30,7 +30,8 @@ export async function selectPaper(page: Page, paper: PaperFormat): Promise<void>
 }
 
 async function labelOf(page: Page): Promise<string> {
-  return page.locator('header select').inputValue();
+  const checked = page.locator('[aria-label="表示設定"] [role="radio"][aria-checked="true"]');
+  return (await checked.textContent())?.trim() ?? '';
 }
 
 /** 寸法は CSS 変数だけで先に変わるため、シートが差し替わったことを関門にする */
@@ -38,8 +39,11 @@ async function switchTo(page: Page, paper: PaperFormat): Promise<void> {
   await page.evaluate(() =>
     document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
   );
-  await page.selectOption('header select', { label: paper.label });
-  await expect(page.locator('header select')).toHaveValue(paper.label);
+  await page.getByRole('radio', { name: paper.label }).click();
+  await expect(page.getByRole('radio', { name: paper.label })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  );
   await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);
   await page.locator('.sheet .clip .mc').first().waitFor();
   await expect
@@ -60,7 +64,7 @@ export async function sheetSizePx(page: Page): Promise<{ width: number; height: 
 
 /** ツールバーのページ数表示を数値で返す */
 export async function readPageCount(page: Page): Promise<number> {
-  const text = await page.locator('header [role="status"]').textContent();
+  const text = await page.locator('[aria-label="表示設定"] [role="status"]').textContent();
   const match = /(\d+)ページ/.exec(text ?? '');
   if (!match) throw new Error(`ページ数表示が読めない: ${text}`);
   return Number(match[1]);
