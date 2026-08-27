@@ -3,6 +3,7 @@ import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { toPx } from '../src/app/shared/paper/units';
 import type { PaperFormat } from '../src/app/shared/paper/paper-format';
 import { PAPERS } from '../src/app/shared/paper/paper-catalog';
+import { SIZES } from '../src/app/shared/typography/font-catalog';
 
 /** Markdown 文字列をファイル入力へ流し込み、プレビューの構築を待つ */
 export async function importMarkdown(page: Page, name: string, content: string): Promise<void> {
@@ -45,6 +46,35 @@ async function switchTo(page: Page, paper: PaperFormat): Promise<void> {
   await expect
     .poll(async () => (await sheetSizePx(page)).width)
     .toBeCloseTo(toPx(paper.page.width), -1);
+}
+
+async function fontSizePt(page: Page): Promise<number> {
+  const text = await page.locator('.app-toolbar').innerText();
+  const match = /([\d.]+)pt/.exec(text);
+  if (!match) throw new Error(`文字サイズ表示が読めない: ${text}`);
+  return Number(match[1]);
+}
+
+/** ツールバーのボタンで文字サイズを変え、目的のポイント数に届くまで紙面の組み直しを待つ */
+export async function selectFontSize(page: Page, targetPt: number): Promise<void> {
+  for (
+    let guard = 0;
+    guard < SIZES.sizes.length && (await fontSizePt(page)) !== targetPt;
+    guard++
+  ) {
+    const current = await fontSizePt(page);
+    await page.evaluate(() =>
+      document.querySelectorAll('.sheet').forEach((sheet) => sheet.setAttribute('data-stale', '')),
+    );
+    await page.click(
+      current < targetPt
+        ? '[aria-label^="文字"][aria-label$="を大きく"]'
+        : '[aria-label^="文字"][aria-label$="を小さく"]',
+    );
+    await expect.poll(() => page.locator('.sheet[data-stale]').count()).toBe(0);
+    await page.locator('.sheet .clip .mc').first().waitFor();
+  }
+  await expect.poll(() => fontSizePt(page)).toBe(targetPt);
 }
 
 /** 1 枚目のシートの、表示倍率を戻した実寸 (CSS px) */
