@@ -24,7 +24,7 @@ describe('App', () => {
     vi.restoreAllMocks();
   });
 
-  it('空状態のヘッダはロゴのみで、印刷ボタンは出さない (刷るものがない)', async () => {
+  it('空状態はロゴのみで、印刷ボタンは出さない (刷るものがない)', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -43,6 +43,22 @@ describe('App', () => {
     const el = fixture.nativeElement as HTMLElement;
     el.querySelector<HTMLButtonElement>('.app-print-button')?.click();
     expect(printSpy).toHaveBeenCalled();
+  });
+
+  it('原稿がなければ表示操作の帯を出さない (操作する紙面がない)', async () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-toolbar')).toBeNull();
+  });
+
+  it('原稿があれば表示操作の帯を出す', async () => {
+    const editor = TestBed.inject(Manuscripts);
+    await editor.add([{ name: 'a.md', text: () => Promise.resolve('# A') }]);
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-toolbar')).not.toBeNull();
   });
 
   it('原稿がなければ全面ドロップゾーンを表示する', async () => {

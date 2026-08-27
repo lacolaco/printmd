@@ -1,12 +1,13 @@
 # コンポーネントツリー
 
-各コンポーネントの配置と責務。トップレベルは `src/app/feature/` (機能 = header / workspace / import / print / footer) と `src/app/shared/` (機能横断のドメイン) の 2 つ。feature 内のディレクトリ構造はこのツリーの親子関係をそのまま写し、コンポーネントの協力オブジェクト (SheetRenderer など) とコンテナのビューモデル (`xxx.vm.ts`) は、それを使うコンポーネントと同じディレクトリに置く。状態とその操作は責務単位のドメインサービス (Manuscripts / Breaks / ConversionPipeline / Paper / Zoom) が一体で保有し、shared のドメインディレクトリに置く。
+各コンポーネントの配置と責務。トップレベルは `src/app/feature/` (機能 = header / toolbar / workspace / import / print / footer) と `src/app/shared/` (機能横断のドメイン) の 2 つ。feature 内のディレクトリ構造はこのツリーの親子関係をそのまま写し、コンポーネントの協力オブジェクト (SheetRenderer など) とコンテナのビューモデル (`xxx.vm.ts`) は、それを使うコンポーネントと同じディレクトリに置く。状態とその操作は責務単位のドメインサービス (Manuscripts / Breaks / ConversionPipeline / Paper / Zoom) が一体で保有し、shared のドメインディレクトリに置く。
 **コンポーネントの追加・削除・責務変更のコミットでは、この図と docs/signal-graph.md を同じコミットで更新すること** (CLAUDE.md の生きたドキュメント規則)。
 
 ```mermaid
 flowchart TB
-  APP["App<br/><small>画面骨格: ヘッダ / 画面切替 / 印刷対象</small>"]
-  HEADER["Header<br/><small>ロゴ / 表示操作の帯 / 印刷 (コンテナ)</small>"]
+  APP["App<br/><small>画面骨格: ヘッダ / 表示操作の帯 / 画面切替 / 印刷対象</small>"]
+  HEADER["Header<br/><small>ロゴ / 印刷 (コンテナ)</small>"]
+  TOOLBAR["Toolbar<br/><small>プレビュー直上の表示操作の帯:<br/>頁数 / 用紙 / 表示倍率 (コンテナ)</small>"]
   ZOOMC["ZoomControl<br/><small>ズームの段送り操作面 (プレーン)</small>"]
   PAPERC["PaperControl<br/><small>用紙書式の選択面<br/>(Signal Forms のフィールドで select を束ねる)</small>"]
   WS["Workspace<br/><small>作業画面: md+ は 2 カラム、スマートフォン幅は<br/>シングルカラム + ボトムシート (開閉状態を所有)。<br/>追加取り込みのドロップ受け</small>"]
@@ -21,8 +22,9 @@ flowchart TB
   PRINT["PrintRoot<br/><small>印刷対象 (変換済み文書の掲示)</small>"]
 
   APP --> HEADER
-  HEADER --> ZOOMC
-  HEADER --> PAPERC
+  APP -->|"原稿あり"| TOOLBAR
+  TOOLBAR --> ZOOMC
+  TOOLBAR --> PAPERC
   APP --> FOOTER
   APP -->|"原稿あり"| WS
   APP -->|"空状態"| DROP
@@ -39,9 +41,9 @@ flowchart TB
   classDef leaf fill:#e0f2fe,stroke:#0369a1
   class APP shell
   class WS layout
-  class HEADER,ZOOMC,PAPERC,PREVIEW,FILEP,BREAKP,FOOTER,DROP,PRINT leaf
+  class HEADER,TOOLBAR,ZOOMC,PAPERC,PREVIEW,FILEP,BREAKP,FOOTER,DROP,PRINT leaf
 ```
 
-- 画面領域の責務で階層化: App は骨格、Workspace が作業画面と右カラム (調整パネル) を所有する
-- コンテナは自身のビューモデル (CQS: state query と command) だけを注入し、VM がドメインサービス (Manuscripts / Breaks / ConversionPipeline / Paper / Zoom) を仲介する。プレーンなコンポーネントは input/output だけで疎通し VM を持たない。input/output は Header の active (原稿有無の判断は App が持つ) や FileAddInput の selected など最小限
+- 画面領域の責務で階層化: App は骨格、Workspace が作業画面と右カラム (調整パネル) を所有する。表示操作の帯は原稿があるときだけヘッダの下・作業画面の上に出る (Header は常時表示でロゴを持ち、原稿があれば印刷ボタンも出す)
+- コンテナは自身のビューモデル (CQS: state query と command) だけを注入し、VM がドメインサービス (Manuscripts / Breaks / ConversionPipeline / Paper / Zoom) を仲介する。プレーンなコンポーネントは input/output だけで疎通し VM を持たない。input/output は ZoomControl の表示と可否や FileAddInput の selected など最小限。用紙の select はロービング focus のツールバーの外に置く (Toolbar のホストが pointerdown を preventDefault するとポップアップが開かない)
 - リアクティブ構造は [signal-graph.md](./signal-graph.md) を参照
