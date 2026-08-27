@@ -3,6 +3,7 @@ import { isPrefixOf } from '../support/collections';
 import { ConversionPipeline } from '../conversion-pipeline';
 import { Manuscripts } from '../manuscript/manuscripts';
 import { Paper } from '../paper/paper';
+import { Typography } from '../typography/typography';
 import { measurePagination } from './measure-pagination';
 import type { ManuscriptFile } from '../manuscript/manuscript';
 
@@ -21,6 +22,7 @@ export class Breaks {
   private readonly manuscripts = inject(Manuscripts);
   private readonly pipeline = inject(ConversionPipeline);
   private readonly paper = inject(Paper);
+  private readonly typography = inject(Typography);
 
   /**
    * ID は位置由来 (f{n}b{m}) のため、ファイルの削除・並べ替えでは同じ ID が
@@ -48,6 +50,8 @@ export class Breaks {
    * メモ化された導出値 (実測は画面外の領域で行うが観測可能な状態を残さない)
    */
   readonly pagination = computed(() => {
+    // 文字サイズは画面 CSS を経由して段の埋まり方に効くため、依存として読む
+    this.typography.size();
     const doc = this.pipeline.renderedDocument();
     return doc === null ? null : measurePagination(doc, this.ids(), this.paper.format());
   });
