@@ -43,6 +43,8 @@ for (const width of [320, 375]) {
         '.app-logo',
         '.app-toolbar [role="status"]',
         '.app-toolbar select',
+        '[aria-label^="文字"][aria-label$="を小さく"]',
+        '[aria-label^="文字"][aria-label$="を大きく"]',
         '[aria-label="縮小"]',
         '[aria-label="拡大"]',
         '.app-print-button',

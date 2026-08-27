@@ -9,7 +9,7 @@
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelViewModel の message / WorkspaceViewModel の sheetOpen) は省略
 - 用紙書式は `Paper` (format / select)。`format` は書き込み可能で、ツールバーの `PaperControl` が自身の Signal Forms のフィールド越しに読み書きする (表示名との変換は transformedValue の parse / format)。書式は `PaperFormat` の値オブジェクトで、版面・段の刻み・CSS 表現を自分で答える。書式を要する導出 (ページ組・表示倍率・シート描画) はすべてこの signal を源とする
 - `Paper` の effect は書式を DOM へ書くだけ (html のカスタムプロパティと `@page` 規則)
-- 本文のベース文字サイズは `Typography` (size / changeBy / isChangeable)。単位を `pt` とする数値で、刻みに乗らない値も持てる。下限・上限・刻みは同じファイルの `FONT_SIZE` が唯一の情報源である。effect が html のカスタムプロパティへ書き、`.markdown-body` の `font-size` がそれを読む
+- 本文のベース文字サイズは `Typography` (size / changeBy / isChangeable)。単位を `pt` とする数値で、刻みに乗らない値も持てる。下限・上限・刻みは同じファイルの `FONT_SIZE` が唯一の情報源である。effect が html のカスタムプロパティへ書き、`.markdown-body` の `font-size` がそれを読む。ツールバーの `FontSizeControl` は自身のビューモデル越しに現在値を読み、変更を命じる
 - `Zoom.step` は linkedSignal: `Paper.format` を source とし、書式が変われば段送りを捨ててその紙に収まる段へ組み直す
 - 表示倍率は `Zoom` (index / value / label / stepBy / isSteppable)。初期段の決定と段送りの算術は同居する純関数が担う
 
@@ -20,6 +20,7 @@ flowchart LR
     A2([改ページのチェック])
     A3([ズーム − / ＋])
     A4([用紙書式の選択])
+    A5([文字 − / ＋])
   end
 
   subgraph ManuscriptsS["Manuscripts"]
@@ -55,9 +56,9 @@ flowchart LR
     VC2[/label/]
   end
 
-  subgraph ToolbarC["Toolbar (PaperControl / ZoomControl)"]
+  subgraph ToolbarC["Toolbar (PaperControl / FontSizeControl / ZoomControl)"]
     HC1[/status<br/>ToolbarViewModel/]
-    T1{{ツールバー: 頁数/用紙/ズーム}}
+    T1{{ツールバー: 頁数/用紙/文字/ズーム}}
   end
 
   subgraph HeaderC["Header"]
@@ -100,6 +101,7 @@ flowchart LR
   AE2 --> D3
   S6 --> V3
   S6 --> PE1
+  A5 -- changeBy --> S7
   S7 --> AE4
   AE4 --> D4
   S7 --> V3
