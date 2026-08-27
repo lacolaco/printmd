@@ -7,7 +7,7 @@
 - `Breaks.pagination` は (doc, 指定, 用紙書式) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (計測用の領域は観測可能な状態を残さない)。`pageCount` はその total
 - `Breaks.ids` は linkedSignal: Manuscripts.files に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelViewModel の message / WorkspaceViewModel の sheetOpen) は省略
-- 用紙書式は `Paper` (format / select)。`format` は書き込み可能で、`PaperControl` が自身の Signal Forms のフィールド越しに読み書きする (表示名との変換は transformedValue の parse / format)。書式は `PaperFormat` の値オブジェクトで、版面・段の刻み・CSS 表現を自分で答える。書式を要する導出 (ページ組・表示倍率・シート描画) はすべてこの signal を源とする
+- 用紙書式は `Paper` (format / select)。`format` は書き込み可能で、ツールバーの `PaperControl` が自身の Signal Forms のフィールド越しに読み書きする (表示名との変換は transformedValue の parse / format)。書式は `PaperFormat` の値オブジェクトで、版面・段の刻み・CSS 表現を自分で答える。書式を要する導出 (ページ組・表示倍率・シート描画) はすべてこの signal を源とする
 - `Paper` の effect は書式を DOM へ書くだけ (html のカスタムプロパティと `@page` 規則)
 - `Zoom.step` は linkedSignal: `Paper.format` を source とし、書式が変われば段送りを捨ててその紙に収まる段へ組み直す
 - 表示倍率は `Zoom` (index / value / label / stepBy / isSteppable)。初期段の決定と段送りの算術は同居する純関数が担う
@@ -49,13 +49,17 @@ flowchart LR
     VC2[/label/]
   end
 
-  subgraph HeaderC["Header (PaperControl / ZoomControl)"]
-    HC1[/status<br/>HeaderViewModel/]
-    T1{{ヘッダ: 頁数/ズーム/印刷}}
+  subgraph ToolbarC["Toolbar (PaperControl / ZoomControl)"]
+    HC1[/status<br/>ToolbarViewModel/]
+    T1{{ツールバー: 頁数/用紙/ズーム}}
+  end
+
+  subgraph HeaderC["Header"]
+    T7{{ヘッダ: ロゴ/印刷}}
   end
 
   subgraph AppC["App"]
-    T2{{空状態 ↔ 作業画面の切替}}
+    T2{{空状態 ↔ 作業画面の切替<br/>(帯の出し分けも同じ判定)}}
   end
 
   subgraph PrintC["PrintRoot"]
@@ -122,6 +126,7 @@ flowchart LR
   HC1 --> T1
   VC2 --> T1
   C1 --> T1
+  C1 --> T7
 
   classDef sig fill:#fcd34d,stroke:#b45309,color:#1c1917
   classDef comp fill:#bae6fd,stroke:#0369a1,color:#0c4a6e
@@ -136,7 +141,7 @@ flowchart LR
   class S2,V1 linked
   class C1,S3,VC1,VC2,HC1,V2,V3 comp
   class AE1,AE2,PE1 eff
-  class T1,T2,T3,T4,T5,T6 tmpl
+  class T1,T2,T3,T4,T5,T6,T7 tmpl
   class D1,D2,D3 dom
 ```
 

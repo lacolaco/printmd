@@ -128,7 +128,6 @@ input[type='checkbox']:not(:disabled) {
   color: var(--sumi);
 }
 .app-header {
-  position: relative;
   background: var(--paper-white);
   border-color: var(--line);
 }
@@ -148,8 +147,11 @@ input[type='checkbox']:not(:disabled) {
   border-color: var(--line);
   color: var(--sumi);
 }
-.app-toolbar button:hover {
+.app-toolbar button:not([aria-disabled='true']):hover {
   background: #eceef0;
+}
+.app-toolbar button[aria-disabled='true'] {
+  cursor: default;
 }
 .app-workspace {
   background: var(--desk);

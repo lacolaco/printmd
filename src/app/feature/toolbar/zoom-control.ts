@@ -8,7 +8,7 @@ import { ToolbarWidget } from '@angular/aria/toolbar';
   host: { class: 'contents' },
   template: `
     <button
-      class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
+      class="rounded px-2 py-0.5 aria-disabled:opacity-30"
       ngToolbarWidget
       value="zoom-out"
       [disabled]="!isShrinkable()"
@@ -19,7 +19,7 @@ import { ToolbarWidget } from '@angular/aria/toolbar';
     </button>
     <span class="w-10 text-center">{{ label() }}</span>
     <button
-      class="rounded px-2 py-0.5 hover:bg-stone-200 aria-disabled:opacity-30"
+      class="rounded px-2 py-0.5 aria-disabled:opacity-30"
       ngToolbarWidget
       value="zoom-in"
       [disabled]="!isGrowable()"
