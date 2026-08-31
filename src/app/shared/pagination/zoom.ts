@@ -1,4 +1,5 @@
 import { Service, computed, inject, linkedSignal } from '@angular/core';
+import { Direction } from '../support/direction';
 import type { PaperFormat } from '../paper/paper-format';
 import { Paper } from '../paper/paper';
 
@@ -45,12 +46,12 @@ function startupStep(format: PaperFormat): number {
 }
 
 /** 段を delta ぶん送る (両端で頭打ち) */
-function stepped(step: number, delta: -1 | 1): number {
+function stepped(step: number, delta: Direction): number {
   return Math.min(ZOOMS.length - 1, Math.max(0, step + delta));
 }
 
-function isAtLimit(step: number, delta: -1 | 1): boolean {
-  return delta === -1 ? step === 0 : step === ZOOMS.length - 1;
+function isAtLimit(step: number, delta: Direction): boolean {
+  return delta === Direction.Backward ? step === 0 : step === ZOOMS.length - 1;
 }
 
 /** 表示倍率。100% = 紙の実寸。段の保有と段送り・可否・表示文言を担う */
@@ -72,12 +73,12 @@ export class Zoom {
   readonly label = computed(() => `${Math.round(this.value() * 100)}%`);
 
   /** 段を delta ぶん送る (両端で頭打ち) */
-  stepBy(delta: -1 | 1): void {
+  stepBy(delta: Direction): void {
     this.step.set(stepped(this.index(), delta));
   }
 
   /** delta 方向へまだ段を送れるか */
-  isSteppable(delta: -1 | 1): boolean {
+  isSteppable(delta: Direction): boolean {
     return !isAtLimit(this.index(), delta);
   }
 }

@@ -1,4 +1,5 @@
 import { DOCUMENT, Service, effect, inject, signal, type WritableSignal } from '@angular/core';
+import type { Direction } from '../support/direction';
 
 /**
  * 本文のベース文字サイズの下限・上限・刻み (単位 pt)。
@@ -30,12 +31,12 @@ export class Typography {
   }
 
   /** delta ぶん刻みを進める (下限と上限で頭打ち) */
-  changeBy(delta: -1 | 1): void {
+  changeBy(delta: Direction): void {
     this.size.set(clamped(this.size() + delta * FONT_SIZE.step));
   }
 
   /** delta 方向へまだ変えられるか */
-  isChangeable(delta: -1 | 1): boolean {
+  isChangeable(delta: Direction): boolean {
     return clamped(this.size() + delta * FONT_SIZE.step) !== this.size();
   }
 

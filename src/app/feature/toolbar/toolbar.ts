@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Toolbar as AriaToolbar } from '@angular/aria/toolbar';
+import { Direction } from '../../shared/support/direction';
 import { PaperControl } from './paper-control';
 import { ToolbarViewModel } from './toolbar.vm';
 import { ZoomControl } from './zoom-control';
@@ -24,8 +25,8 @@ import { ZoomControl } from './zoom-control';
           [label]="vm.zoomLabel()"
           [isShrinkable]="vm.isShrinkable()"
           [isGrowable]="vm.isGrowable()"
-          (shrink)="vm.stepBy(-1)"
-          (grow)="vm.stepBy(1)"
+          (shrink)="vm.stepBy(backward)"
+          (grow)="vm.stepBy(forward)"
         />
       </div>
     </div>
@@ -33,4 +34,6 @@ import { ZoomControl } from './zoom-control';
 })
 export class Toolbar {
   protected readonly vm = inject(ToolbarViewModel);
+  protected readonly backward = Direction.Backward;
+  protected readonly forward = Direction.Forward;
 }

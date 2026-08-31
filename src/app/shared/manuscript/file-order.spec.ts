@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { FileOrder } from './file-order';
 import type { ManuscriptFile } from './manuscript';
+import { Direction } from '../support/direction';
 
 function file(id: number): ManuscriptFile {
   return { id, name: `${id}.md`, content: '' };
@@ -14,7 +15,7 @@ describe('FileOrder.isMovable', () => {
   });
 
   it('同じ位置への移動はできない', () => {
-    expect(new FileOrder(items).isMovable(1, 1)).toBe(false);
+    expect(new FileOrder(items).isMovable(1, Direction.Forward)).toBe(false);
   });
 
   it('負の位置は範囲外として移動できない', () => {

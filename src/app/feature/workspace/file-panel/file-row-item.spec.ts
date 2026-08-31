@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
 import { FileRowItem } from './file-row-item';
+import { Direction } from '../../../shared/support/direction';
 
 @Component({
   imports: [FileRowItem],
@@ -33,8 +34,8 @@ describe('FileRowItem', () => {
     const fixture = render();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('a.md');
-    el.querySelector<HTMLButtonElement>('[data-move-dir="-1"]')!.click();
-    el.querySelector<HTMLButtonElement>('[data-move-dir="1"]')!.click();
+    el.querySelector<HTMLButtonElement>(`[data-move-dir="${Direction.Backward}"]`)!.click();
+    el.querySelector<HTMLButtonElement>(`[data-move-dir="${Direction.Forward}"]`)!.click();
     expect(fixture.componentInstance.moves).toEqual([-1, 1]);
     el.querySelector<HTMLButtonElement>('[aria-label="a.mdを取り除く"]')!.click();
     expect(fixture.componentInstance.removes).toBe(1);
@@ -42,9 +43,15 @@ describe('FileRowItem', () => {
 
   it('先頭では上へ、末尾では下へのボタンが無効になる', () => {
     const first = render(true, false).nativeElement as HTMLElement;
-    expect(first.querySelector<HTMLButtonElement>('[data-move-dir="-1"]')!.disabled).toBe(true);
-    expect(first.querySelector<HTMLButtonElement>('[data-move-dir="1"]')!.disabled).toBe(false);
+    expect(
+      first.querySelector<HTMLButtonElement>(`[data-move-dir="${Direction.Backward}"]`)!.disabled,
+    ).toBe(true);
+    expect(
+      first.querySelector<HTMLButtonElement>(`[data-move-dir="${Direction.Forward}"]`)!.disabled,
+    ).toBe(false);
     const last = render(false, true).nativeElement as HTMLElement;
-    expect(last.querySelector<HTMLButtonElement>('[data-move-dir="1"]')!.disabled).toBe(true);
+    expect(
+      last.querySelector<HTMLButtonElement>(`[data-move-dir="${Direction.Forward}"]`)!.disabled,
+    ).toBe(true);
   });
 });

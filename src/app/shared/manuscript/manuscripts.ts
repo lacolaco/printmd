@@ -1,5 +1,6 @@
 import { Service, computed, inject, signal } from '@angular/core';
 import { isNonEmpty } from '../support/collections';
+import type { Direction } from '../support/direction';
 import { FileOrder } from './file-order';
 import { Importer } from './importer';
 import type { ManuscriptFile } from './manuscript';
@@ -46,7 +47,7 @@ export class Manuscripts {
   }
 
   /** 指定 ID の原稿を delta 方向へ 1 つ動かせるか */
-  isMovable(id: number, delta: -1 | 1): boolean {
+  isMovable(id: number, delta: Direction): boolean {
     return new FileOrder(this.files()).isNudgeable(id, delta);
   }
 
@@ -56,7 +57,7 @@ export class Manuscripts {
   }
 
   /** ファイルを 1 つ上/下へ動かす。動けるかは isMovable で先に問い合わせる */
-  nudge(id: number, delta: -1 | 1): void {
+  nudge(id: number, delta: Direction): void {
     const index = this.files().findIndex((f) => f.id === id);
     this.reorder(index, index + delta);
   }

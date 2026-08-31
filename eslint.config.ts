@@ -18,6 +18,7 @@ import { noSwitch } from './tools/eslint-rules/functions/no-switch';
 import { pureConditions } from './tools/eslint-rules/functions/pure-conditions';
 import { componentSignature } from './tools/eslint-rules/angular/component-signature';
 import { injectableJsdoc } from './tools/eslint-rules/angular/injectable-jsdoc';
+import { namedParamUnions } from './tools/eslint-rules/angular/named-param-unions';
 import { vmSignature } from './tools/eslint-rules/angular/vm-signature';
 import { noStateOnlyService } from './tools/eslint-rules/structure/no-state-only-service';
 
@@ -91,6 +92,7 @@ export default defineConfig([
           'pure-conditions': pureConditions,
           'component-signature': componentSignature,
           'injectable-jsdoc': injectableJsdoc,
+          'named-param-unions': namedParamUnions,
           'vm-signature': vmSignature,
           'no-state-only-service': noStateOnlyService,
         },
@@ -125,6 +127,7 @@ export default defineConfig([
       'printmd/pure-conditions': 'error',
       'printmd/component-signature': 'error',
       'printmd/injectable-jsdoc': 'error',
+      'printmd/named-param-unions': 'error',
       'printmd/vm-signature': 'error',
       'printmd/no-state-only-service': 'error',
       // requireDefaultForNonUnion は printmd/no-switch の default 禁止と意図的に矛盾させる。
