@@ -15,6 +15,70 @@ input[type='checkbox']:not(:disabled) {
   cursor: pointer;
 }
 
+/* 本文のベース文字サイズ。画面のプレビュー・計測領域・印刷対象はすべてこの規則を
+   通るので、画面と紙が同じ組み方を見る。値は Typography がカスタムプロパティとして
+   書き込む。ここに既定値を置くと定義が 2 か所に分かれる */
+.markdown-body {
+  font-size: var(--base-font-size);
+}
+
+/* github-markdown-css はブロックの余白を rem で書くが、rem はルートの文字サイズを
+   見るのでベースを変えても追随しない。紙面の余白を文字サイズに比例させるため、
+   ページ割りを左右する余白をベース基準へ置き換える。
+   em ではなくベースからの calc にするのは、em が要素自身の文字サイズを見るためで、
+   それでは見出しやコードブロック (85% 縮小) の余白が元の値から動いてしまう。
+   この形なら既定の 12pt = 16px で元の rem 値と一致する */
+.markdown-body p,
+.markdown-body blockquote,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body dl,
+.markdown-body table,
+.markdown-body pre,
+.markdown-body details {
+  margin-bottom: var(--base-font-size);
+}
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  margin-top: calc(var(--base-font-size) * 1.5);
+  margin-bottom: var(--base-font-size);
+}
+.markdown-body .highlight pre,
+.markdown-body pre {
+  padding: var(--base-font-size);
+}
+.markdown-body li > p {
+  margin-top: var(--base-font-size);
+}
+.markdown-body blockquote {
+  padding: 0 var(--base-font-size);
+}
+.markdown-body dl dd {
+  padding: 0 var(--base-font-size);
+  margin-bottom: var(--base-font-size);
+}
+.markdown-body hr {
+  margin: calc(var(--base-font-size) * 1.5) 0;
+}
+.markdown-body .highlight,
+.markdown-body .markdown-alert {
+  margin-bottom: var(--base-font-size);
+}
+.markdown-body .markdown-alert {
+  padding: calc(var(--base-font-size) * 0.5) var(--base-font-size);
+}
+.markdown-body dl dt,
+.markdown-body .footnotes ol ul {
+  margin-top: var(--base-font-size);
+}
+.markdown-body .footnotes {
+  font-size: calc(var(--base-font-size) * 0.75);
+}
+
 /* Tailwind preflight は ul の list-style を消すが、github-markdown-css は
    ul のマーカーを UA 既定 (disc/circle/square) に依存しているため復元する */
 .markdown-body ul {
@@ -128,6 +192,7 @@ input[type='checkbox']:not(:disabled) {
   color: var(--sumi);
 }
 .app-header {
+  position: relative;
   background: var(--paper-white);
   border-color: var(--line);
 }

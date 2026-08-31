@@ -4,11 +4,12 @@
 
 - 逆流 (effect からの signal 書き込み)・循環: なし
 - `renderedDocument` は resource: Manuscripts.files を params とする async 導出 (Converter サービスが markdown 変換 + mermaid SVG 化 + キャッシュを担う)。`rendering` はその isLoading
-- `Breaks.pagination` は (doc, 指定, 用紙書式) からの計測つき computed。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (計測用の領域は観測可能な状態を残さない)。`pageCount` はその total
+- `Breaks.pagination` は (doc, 指定, 用紙書式, 文字サイズ) からの計測つき computed。文字サイズは画面 CSS を経由して段の埋まり方に効くため、依存として読むだけで測定へは渡さない。強制改ページ位置で文書をセグメント (独立した段組ストリップ) に分割し、セグメントごとに実測する (計測用の領域は観測可能な状態を残さない)。`pageCount` はその total
 - `Breaks.ids` は linkedSignal: Manuscripts.files に連動し、末尾への追記では維持・構造変更ではリセット
 - パネル内で完結するローカル UI state (dragOver / draggingIndex / FilePanelViewModel の message / WorkspaceViewModel の sheetOpen) は省略
 - 用紙書式は `Paper` (format / select)。`format` は書き込み可能で、ツールバーの `PaperControl` が自身の Signal Forms のフィールド越しに読み書きする (表示名との変換は transformedValue の parse / format)。書式は `PaperFormat` の値オブジェクトで、版面・段の刻み・CSS 表現を自分で答える。書式を要する導出 (ページ組・表示倍率・シート描画) はすべてこの signal を源とする
 - `Paper` の effect は書式を DOM へ書くだけ (html のカスタムプロパティと `@page` 規則)
+- 本文のベース文字サイズは `Typography` (size / changeBy / isChangeable)。単位を `pt` とする数値で、刻みに乗らない値も持てる。下限・上限・刻みは同じファイルの `FONT_SIZE` が唯一の情報源である。effect が html のカスタムプロパティへ書き、`.markdown-body` の `font-size` がそれを読む
 - `Zoom.step` は linkedSignal: `Paper.format` を source とし、書式が変われば段送りを捨ててその紙に収まる段へ組み直す
 - 表示倍率は `Zoom` (index / value / label / stepBy / isSteppable)。初期段の決定と段送りの算術は同居する純関数が担う
 
@@ -41,6 +42,11 @@ flowchart LR
   subgraph PaperS["Paper"]
     S6((format))
     AE2[effect<br/>書式の反映]
+  end
+
+  subgraph TypoS["Typography"]
+    S7((size))
+    AE4[effect<br/>文字サイズの反映]
   end
 
   subgraph ZoomS["Zoom"]
@@ -81,6 +87,7 @@ flowchart LR
     D1[(print-root<br/>唯一の文書実体)]
     D2[(sheets<br/>クローン群)]
     D3[(html のカスタムプロパティ<br/>+ @page 規則)]
+    D4[(html の --base-font-size)]
   end
 
   A1 -- "add / remove /<br/>nudge / reorder" --> S1
@@ -93,6 +100,9 @@ flowchart LR
   AE2 --> D3
   S6 --> V3
   S6 --> PE1
+  S7 --> AE4
+  AE4 --> D4
+  S7 --> V3
 
   S1 -- "params → loader<br/>(Converter: markdown 変換 +<br/>mermaid SVG 化 + キャッシュ)" --> S4
   S4 --> S3
@@ -135,14 +145,14 @@ flowchart LR
   classDef dom fill:#e7e5e4,stroke:#57534e
   classDef res fill:#99f6e4,stroke:#0f766e,color:#134e4a
   classDef linked fill:#f5d0fe,stroke:#a21caf,color:#4a044e
-  class S1,S5,S6 sig
+  class S1,S5,S6,S7 sig
   class S4 res
 
   class S2,V1 linked
   class C1,S3,VC1,VC2,HC1,V2,V3 comp
-  class AE1,AE2,PE1 eff
+  class AE1,AE2,AE4,PE1 eff
   class T1,T2,T3,T4,T5,T6,T7 tmpl
-  class D1,D2,D3 dom
+  class D1,D2,D3,D4 dom
 ```
 
 凡例: 丸 = writable signal ・ 紫丸 = linkedSignal ・ 青緑 = resource (async 導出) ・ 平行四辺形 = computed ・ 黒 = effect (DOM 書き込みのみ) ・ 六角 = テンプレートバインディング ・ 点線 = 命令的な書き込み
