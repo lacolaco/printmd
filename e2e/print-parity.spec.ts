@@ -5,11 +5,12 @@ import {
   printPdfPageSize,
   printPdfPageTexts,
   readPageCount,
+  selectFontSize,
   selectPaper,
   sheetSizePx,
 } from './support';
 import { toPx } from '../src/app/shared/paper/units';
-import { PAPERS } from '../src/app/shared/paper/paper-catalog';
+import { DEFAULT_PAPER, PAPERS } from '../src/app/shared/paper/paper-catalog';
 
 /**
  * 中核保証の検証: プレビューが見せるページ割りと、印刷 (PDF 化) の実出力が
@@ -18,9 +19,25 @@ import { PAPERS } from '../src/app/shared/paper/paper-catalog';
  * 突き合わせる。選べる用紙書式のすべてで成り立たなければならない。
  */
 
+/** 原稿に置く節の数。PDF 側の照合もこの数から導く */
+const SECTIONS = 10;
+
+/** 実 PDF の各ページ本文から、節見出しの初出ページ番号を取り出す */
+function printedHeadingPages(pdfTexts: readonly string[]): Record<string, number> {
+  const pages: Record<string, number> = {};
+  pdfTexts.forEach((text, index) => {
+    const normalized = text.replaceAll(/\s+/g, '');
+    for (let s = 1; s <= SECTIONS; s++) {
+      const key = `節 ${s}`;
+      if (!(key in pages) && normalized.includes(`節${s}`)) pages[key] = index + 1;
+    }
+  });
+  return pages;
+}
+
 function buildManuscript(): string {
   const md = ['# 印刷一致検証', ''];
-  for (let s = 1; s <= 10; s++) {
+  for (let s = 1; s <= SECTIONS; s++) {
     md.push(`## 節 ${s}`, '');
     md.push(
       '印刷とプレビューの一致を検証する本文の段落である。日本語の文章を並べて高さを作る。'.repeat(
@@ -62,17 +79,7 @@ for (const paper of PAPERS) {
     const pdfTexts = await printPdfPageTexts(page);
     expect(pdfTexts.length).toBe(previewCount);
 
-    // 実 PDF 側の各見出しの初出ページ
-    const printPages: Record<string, number> = {};
-    pdfTexts.forEach((text, index) => {
-      const normalized = text.replaceAll(/\s+/g, '');
-      for (let s = 1; s <= 10; s++) {
-        const key = `節 ${s}`;
-        if (!(key in printPages) && normalized.includes(`節${s}`)) printPages[key] = index + 1;
-      }
-    });
-
-    expect(printPages).toEqual(previewPages);
+    expect(printedHeadingPages(pdfTexts)).toEqual(previewPages);
 
     // 強制改ページ先はページ先頭 (= その見出しでページが始まる)
     const forcedPage = previewPages['節 6'];
@@ -93,6 +100,70 @@ test('選んだ用紙書式が画面と印刷 PDF の紙寸法になる', async 
     expect(sheet.width).toBeCloseTo(toPx(paper.page.width), -1);
     expect(sheet.height).toBeCloseTo(toPx(paper.page.height), -1);
   }
+});
+
+// 代表として小さい側と大きい側を取る。刻みの全域を回すと PDF 化の回数が要る
+for (const size of [9, 14]) {
+  test(`プレビューのページ割りが印刷 PDF と一致する (文字サイズ ${size}pt)`, async ({ page }) => {
+    await page.goto('/');
+    await importMarkdown(page, 'font-size.md', buildManuscript());
+    await selectFontSize(page, size);
+
+    const previewCount = await readPageCount(page);
+    const previewPages = await previewHeadingPages(page, DEFAULT_PAPER);
+
+    const pdfTexts = await printPdfPageTexts(page);
+    expect(pdfTexts.length).toBe(previewCount);
+
+    expect(printedHeadingPages(pdfTexts)).toEqual(previewPages);
+  });
+}
+
+/**
+ * ページ割りを左右する余白は、どのブロックでも文字サイズに比例しなければならない。
+ * 一部だけ rem に取り残されると、その分だけ紙面の詰まり方が文字サイズと食い違う
+ */
+test('ブロックの余白が文字サイズに比例する', async ({ page }) => {
+  await page.goto('/');
+  await importMarkdown(
+    page,
+    'spacing.md',
+    '# 余白\n\n段落である。\n\n---\n\n段落である。\n\n```ts\nconst x = 1;\n```\n\n> 引用である。\n\n末尾の段落である。\n',
+  );
+
+  const read = () =>
+    page.evaluate(() => {
+      const of = (selector: string, prop: string) => {
+        const el = document.querySelector(`.print-root ${selector}`);
+        return el === null ? null : Number.parseFloat(getComputedStyle(el).getPropertyValue(prop));
+      };
+      return {
+        base: Number.parseFloat(
+          getComputedStyle(document.querySelector('.print-root > *')!).fontSize,
+        ),
+        hr: of('hr', 'margin-top'),
+        p: of('p', 'margin-bottom'),
+        pre: of('pre', 'margin-bottom'),
+        blockquote: of('blockquote', 'margin-bottom'),
+        h1: of('h1', 'margin-bottom'),
+      };
+    });
+
+  const [small, large] = [9, 14];
+  await selectFontSize(page, small);
+  const atSmall = await read();
+  await selectFontSize(page, large);
+  const atLarge = await read();
+
+  const ratio = large / small;
+  for (const key of ['hr', 'p', 'pre', 'blockquote', 'h1'] as const) {
+    expect(atSmall[key], `${key} が読めない`).not.toBeNull();
+    expect(atLarge[key]! / atSmall[key]!, `${key} の余白が文字サイズに比例しない`).toBeCloseTo(
+      ratio,
+      1,
+    );
+  }
+  expect(atLarge.base / atSmall.base).toBeCloseTo(ratio, 1);
 });
 
 test('GitHub 体裁の要素が描画される', async ({ page }) => {
