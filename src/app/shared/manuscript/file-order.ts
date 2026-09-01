@@ -1,3 +1,4 @@
+import type { Direction } from '../support/direction';
 import type { ManuscriptFile } from './manuscript';
 
 /** 原稿ファイル列の純粋操作 */
@@ -13,7 +14,7 @@ export class FileOrder {
     return from !== to && from >= 0 && to >= 0 && from < length && to < length;
   }
 
-  isNudgeable(id: number, delta: -1 | 1): boolean {
+  isNudgeable(id: number, delta: Direction): boolean {
     const index = this.items.findIndex((file) => file.id === id);
     return this.isMovable(index, index + delta);
   }

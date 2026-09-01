@@ -5,6 +5,7 @@ import { Paper } from '../paper/paper';
 import { PaperFormat } from '../paper/paper-format';
 import { mm } from '../paper/units';
 import { ZOOMS, Zoom, defaultZoomIndex } from './zoom';
+import { Direction } from '../support/direction';
 
 /** A4 より大きい紙。カタログに何が並んでいても成り立たせるためこの場で組む */
 const LARGE = new PaperFormat('大', { width: mm(297), height: mm(420), margin: mm(20) });
@@ -50,7 +51,7 @@ describe('Zoom', () => {
     const zoom = TestBed.inject(Zoom);
     // 可用幅 976px: A4 (794px) は収まり、大 (1122px) は収まらない
     expect(ZOOMS[zoom.index()]).toBe(1);
-    zoom.stepBy(1);
+    zoom.stepBy(Direction.Forward);
     TestBed.inject(Paper).select(LARGE);
     expect(ZOOMS[zoom.index()]).toBe(0.75);
   });

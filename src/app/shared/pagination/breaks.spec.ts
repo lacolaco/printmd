@@ -6,6 +6,7 @@ import { Manuscripts } from '../manuscript/manuscripts';
 import { ConversionPipeline } from '../conversion-pipeline';
 import { Breaks } from './breaks';
 import type { Block } from '../markdown/block';
+import { Direction } from '../support/direction';
 
 class FakeMermaidRenderer extends MermaidRenderer {
   protected override loadModule(): Promise<MermaidLike> {
@@ -83,7 +84,7 @@ describe('Breaks', () => {
     await manuscripts.add([file('a.md', '# A'), file('b.md', '# B')]);
     await whenRendered();
     breaks.toggle(blocksOf()[0].id);
-    manuscripts.nudge(manuscripts.files()[0].id, 1);
+    manuscripts.nudge(manuscripts.files()[0].id, Direction.Forward);
     await whenRendered();
     expect(breaks.ids().size).toBe(0);
   });

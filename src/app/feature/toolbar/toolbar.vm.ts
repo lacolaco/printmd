@@ -3,6 +3,7 @@ import { Breaks } from '../../shared/pagination/breaks';
 import { ConversionPipeline } from '../../shared/conversion-pipeline';
 import { Paper } from '../../shared/paper/paper';
 import type { PaperFormat } from '../../shared/paper/paper-format';
+import { Direction } from '../../shared/support/direction';
 import { Zoom } from '../../shared/pagination/zoom';
 
 /** Toolbar のビューモデル。頁数文言・用紙書式・段送りの問い合わせと命令 */
@@ -18,9 +19,11 @@ export class ToolbarViewModel {
   /** 現在の表示倍率の文言 */
   readonly zoomLabel: Signal<string> = this.zoom.label;
   /** まだ縮小できるか */
-  readonly isShrinkable: Signal<boolean> = computed(() => this.zoom.isSteppable(-1));
+  readonly isShrinkable: Signal<boolean> = computed(() =>
+    this.zoom.isSteppable(Direction.Backward),
+  );
   /** まだ拡大できるか */
-  readonly isGrowable: Signal<boolean> = computed(() => this.zoom.isSteppable(1));
+  readonly isGrowable: Signal<boolean> = computed(() => this.zoom.isSteppable(Direction.Forward));
 
   /** 頁数と変換中を畳んだ読み上げ対象の文言 */
   readonly status: Signal<string> = computed(() => {
@@ -29,7 +32,7 @@ export class ToolbarViewModel {
   });
 
   /** 表示倍率の段を delta ぶん送る */
-  stepBy(delta: -1 | 1): void {
+  stepBy(delta: Direction): void {
     this.zoom.stepBy(delta);
   }
 }

@@ -6,6 +6,7 @@ import { Breaks } from '../../../shared/pagination/breaks';
 import { Manuscripts } from '../../../shared/manuscript/manuscripts';
 import { Zoom } from '../../../shared/pagination/zoom';
 import { Preview } from './preview';
+import { Direction } from '../../../shared/support/direction';
 
 class FakeMermaidRenderer extends MermaidRenderer {
   protected override loadModule(): Promise<MermaidLike> {
@@ -127,7 +128,7 @@ describe('Preview', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const zoomState = TestBed.inject(Zoom);
-    zoomState.stepBy(-1);
+    zoomState.stepBy(Direction.Backward);
     fixture.detectChanges();
     const host = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[style]');
     expect(zoomState.label()).toBe('75%');

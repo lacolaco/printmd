@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, type Signal } from '@angular/core';
 import { Manuscripts } from '../../../shared/manuscript/manuscripts';
+import type { Direction } from '../../../shared/support/direction';
 import type { ManuscriptFile } from '../../../shared/manuscript/manuscript';
 import type { ImportSource } from '../../../shared/manuscript/import-source';
 
@@ -30,7 +31,7 @@ export class FilePanelViewModel {
   }
 
   /** 原稿を 1 つ上/下へ動かし、読み上げ文を更新する。動けなければ何もしない */
-  move(id: number, name: string, delta: -1 | 1): void {
+  move(id: number, name: string, delta: Direction): void {
     if (this.manuscripts.isMovable(id, delta)) {
       this.manuscripts.nudge(id, delta);
       this.announce(

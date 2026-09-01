@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Manuscripts } from './manuscripts';
+import { Direction } from '../support/direction';
 
 function file(name: string, content: string) {
   return { name, text: () => Promise.resolve(content) };
@@ -61,14 +62,14 @@ describe('Manuscripts', () => {
     it('先頭は前方向へ動かせない', async () => {
       await manuscripts.add([file('a.md', '# A'), file('b.md', '# B')]);
       const [a] = manuscripts.files();
-      expect(manuscripts.isMovable(a.id, -1)).toBe(false);
+      expect(manuscripts.isMovable(a.id, Direction.Backward)).toBe(false);
     });
 
     it('中間の要素はどちらの方向にも動かせる', async () => {
       await manuscripts.add([file('a.md', '# A'), file('b.md', '# B'), file('c.md', '# C')]);
       const [, b] = manuscripts.files();
-      expect(manuscripts.isMovable(b.id, -1)).toBe(true);
-      expect(manuscripts.isMovable(b.id, 1)).toBe(true);
+      expect(manuscripts.isMovable(b.id, Direction.Backward)).toBe(true);
+      expect(manuscripts.isMovable(b.id, Direction.Forward)).toBe(true);
     });
 
     it('位置が変わる並べ替えは isReorderable が true を返す', async () => {
@@ -86,7 +87,7 @@ describe('Manuscripts', () => {
     it('nudge は指定 ID を delta 方向へ 1 つ動かす', async () => {
       await manuscripts.add([file('a.md', '# A'), file('b.md', '# B')]);
       const [a] = manuscripts.files();
-      manuscripts.nudge(a.id, 1);
+      manuscripts.nudge(a.id, Direction.Forward);
       expect(manuscripts.files().map((f) => f.name)).toEqual(['b.md', 'a.md']);
     });
 

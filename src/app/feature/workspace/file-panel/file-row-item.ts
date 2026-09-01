@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { CdkDragHandle } from '@angular/cdk/drag-drop';
+import { Direction } from '../../../shared/support/direction';
 import type { ManuscriptFile } from '../../../shared/manuscript/manuscript';
 
 /** 原稿ファイルの 1 行。ドラッグハンドル・上下移動・削除の操作面 */
@@ -18,9 +19,9 @@ import type { ManuscriptFile } from '../../../shared/manuscript/manuscript';
       class="rounded p-1 text-stone-500 hover:bg-stone-100 disabled:opacity-30"
       [attr.aria-label]="file().name + 'を上へ移動'"
       [attr.data-move-file]="file().id"
-      data-move-dir="-1"
+      [attr.data-move-dir]="backward"
       [disabled]="isFirst()"
-      (click)="moved.emit(-1)"
+      (click)="moved.emit(backward)"
     >
       ↑
     </button>
@@ -29,9 +30,9 @@ import type { ManuscriptFile } from '../../../shared/manuscript/manuscript';
       class="rounded p-1 text-stone-500 hover:bg-stone-100 disabled:opacity-30"
       [attr.aria-label]="file().name + 'を下へ移動'"
       [attr.data-move-file]="file().id"
-      data-move-dir="1"
+      [attr.data-move-dir]="forward"
       [disabled]="isLast()"
-      (click)="moved.emit(1)"
+      (click)="moved.emit(forward)"
     >
       ↓
     </button>
@@ -46,9 +47,11 @@ import type { ManuscriptFile } from '../../../shared/manuscript/manuscript';
   `,
 })
 export class FileRowItem {
+  protected readonly backward = Direction.Backward;
+  protected readonly forward = Direction.Forward;
   readonly file = input.required<ManuscriptFile>();
   readonly isFirst = input.required<boolean>();
   readonly isLast = input.required<boolean>();
-  readonly moved = output<-1 | 1>();
+  readonly moved = output<Direction>();
   readonly removed = output<void>();
 }

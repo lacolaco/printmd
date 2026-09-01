@@ -1,5 +1,6 @@
 import { CdkDrag, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, Injector, inject } from '@angular/core';
+import type { Direction } from '../../../shared/support/direction';
 import { FilePanelViewModel } from './file-panel.vm';
 import { FileAddInput } from './file-add-input';
 import { FileRowItem } from './file-row-item';
@@ -52,7 +53,7 @@ export class FilePanel {
     this.vm.reorder(event.previousIndex, event.currentIndex);
   }
 
-  protected move(id: number, name: string, delta: -1 | 1): void {
+  protected move(id: number, name: string, delta: Direction): void {
     this.vm.move(id, name, delta);
     focusLater(this.injector, this.elementRef.nativeElement, id, delta);
   }
