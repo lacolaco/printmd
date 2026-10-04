@@ -3,22 +3,15 @@ import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import angular from 'angular-eslint';
 import stylistic from '@stylistic/eslint-plugin';
-import { callOrPass } from './tools/eslint-rules/functions/call-or-pass';
-import { ifOnlyAtStart } from './tools/eslint-rules/functions/if-only-at-start';
-import { inlineShortTemplates } from './tools/eslint-rules/angular/inline-short-templates';
+import stoicAngular from 'eslint-plugin-stoic-angular';
 import { maxDirectoryEntries } from './tools/eslint-rules/structure/max-directory-entries';
-import { maxFunctionLines } from './tools/eslint-rules/functions/max-function-lines';
-import { noClassInheritance } from './tools/eslint-rules/classes/no-class-inheritance';
 import { noCommonAffixes } from './tools/eslint-rules/classes/no-common-affixes';
 import { noDataClump } from './tools/eslint-rules/classes/no-data-clump';
-import { noElse } from './tools/eslint-rules/functions/no-else';
 import { noGetterSetter } from './tools/eslint-rules/classes/no-getter-setter';
 import { noSingleImplementationInterface } from './tools/eslint-rules/classes/no-single-implementation-interface';
-import { noSwitch } from './tools/eslint-rules/functions/no-switch';
 import { pureConditions } from './tools/eslint-rules/functions/pure-conditions';
 import { componentSignature } from './tools/eslint-rules/angular/component-signature';
 import { injectableJsdoc } from './tools/eslint-rules/angular/injectable-jsdoc';
-import { namedParamUnions } from './tools/eslint-rules/angular/named-param-unions';
 import { vmSignature } from './tools/eslint-rules/angular/vm-signature';
 import { noStateOnlyService } from './tools/eslint-rules/structure/no-state-only-service';
 
@@ -77,60 +70,61 @@ export default defineConfig([
       '@stylistic': stylistic,
       printmd: {
         rules: {
-          'call-or-pass': callOrPass,
-          'if-only-at-start': ifOnlyAtStart,
-          'inline-short-templates': inlineShortTemplates,
           'max-directory-entries': maxDirectoryEntries,
-          'max-function-lines': maxFunctionLines,
-          'no-class-inheritance': noClassInheritance,
           'no-common-affixes': noCommonAffixes,
           'no-data-clump': noDataClump,
-          'no-else': noElse,
           'no-getter-setter': noGetterSetter,
           'no-single-implementation-interface': noSingleImplementationInterface,
-          'no-switch': noSwitch,
           'pure-conditions': pureConditions,
           'component-signature': componentSignature,
           'injectable-jsdoc': injectableJsdoc,
-          'named-param-unions': namedParamUnions,
           'vm-signature': vmSignature,
           'no-state-only-service': noStateOnlyService,
         },
       },
     },
-    rules: {
-      'printmd/inline-short-templates': ['error', { maxLines: 20 }],
-    },
   },
   {
-    // 5 行ルールは実装コードに適用する (テストのコールバック本体は対象外)
+    files: ['**/*.ts'],
+    extends: [stoicAngular.configure({ 'prefer-inline-template': { maxLines: 20 } })],
+  },
+  {
+    // 5 行ルールなどは実装コードに適用する (テストのコールバック本体は対象外)
+    files: ['src/**/*.ts', 'tools/**/*.ts'],
+    ignores: ['**/*.spec.ts'],
+    extends: [
+      stoicAngular.configure({
+        'call-or-pass': true,
+        complexity: 5,
+        'if-only-at-start': true,
+        'max-function-lines': { maxLines: 5 },
+        'no-class-inheritance': true,
+        'no-else': true,
+        'no-inline-union': true,
+        'no-sequences': { allowInParentheses: false },
+        'no-switch': true,
+      }),
+    ],
+  },
+  {
     files: ['src/**/*.ts', 'tools/**/*.ts'],
     ignores: ['**/*.spec.ts'],
     rules: {
-      complexity: ['error', { max: 5 }],
       curly: ['error', 'all'],
       'max-classes-per-file': ['error', 1],
-      'no-sequences': ['error', { allowInParentheses: false }],
       '@stylistic/max-statements-per-line': ['error', { max: 1 }],
-      'printmd/call-or-pass': 'error',
-      'printmd/if-only-at-start': 'error',
       'printmd/max-directory-entries': 'error',
-      'printmd/max-function-lines': ['error', { maxLines: 5 }],
-      'printmd/no-class-inheritance': 'error',
       'printmd/no-common-affixes': 'error',
       'printmd/no-data-clump': 'error',
       'no-void': 'error',
-      'printmd/no-else': 'error',
       'printmd/no-getter-setter': 'error',
       'printmd/no-single-implementation-interface': 'error',
-      'printmd/no-switch': 'error',
       'printmd/pure-conditions': 'error',
       'printmd/component-signature': 'error',
       'printmd/injectable-jsdoc': 'error',
-      'printmd/named-param-unions': 'error',
       'printmd/vm-signature': 'error',
       'printmd/no-state-only-service': 'error',
-      // requireDefaultForNonUnion は printmd/no-switch の default 禁止と意図的に矛盾させる。
+      // requireDefaultForNonUnion は stoic-angular/no-switch の default 禁止と意図的に矛盾させる。
       // 両立不能にすることで、union 型以外を対象とする switch は書けない
       '@typescript-eslint/switch-exhaustiveness-check': [
         'error',
