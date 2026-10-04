@@ -14,9 +14,9 @@ function isLiteralAlias(statement: ts.Statement): statement is ts.TypeAliasDecla
 }
 
 /** 対象はモジュール内で形を定義した型だけ (interface とオブジェクトリテラル型の別名) */
-function isOwnShape(
-  statement: ts.Statement,
-): statement is ts.InterfaceDeclaration | ts.TypeAliasDeclaration {
+type OwnShape = ts.InterfaceDeclaration | ts.TypeAliasDeclaration;
+
+function isOwnShape(statement: ts.Statement): statement is OwnShape {
   return ts.isInterfaceDeclaration(statement) || isLiteralAlias(statement);
 }
 
