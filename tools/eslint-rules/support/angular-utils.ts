@@ -28,19 +28,15 @@ export function fromCore(services: Services, expression: TSESTree.Node): string 
   return originOf(symbol).includes('@angular/core') ? name : undefined;
 }
 
-export function isDecorated(
-  services: Services,
-  node: TSESTree.ClassDeclaration | TSESTree.ClassExpression,
-  expected: string,
-): boolean {
+export type ClassNode = TSESTree.ClassDeclaration | TSESTree.ClassExpression;
+
+export function isDecorated(services: Services, node: ClassNode, expected: string): boolean {
   return node.decorators.some((decorator) => fromCore(services, decorator.expression) === expected);
 }
 
 /** クラスメンバー (parent = ClassBody) からその所属クラスを得る */
-export function enclosingClass(
-  node: TSESTree.Node,
-): TSESTree.ClassDeclaration | TSESTree.ClassExpression {
-  return node.parent?.parent as TSESTree.ClassDeclaration | TSESTree.ClassExpression;
+export function enclosingClass(node: TSESTree.Node): ClassNode {
+  return node.parent?.parent as ClassNode;
 }
 
 export function resolvedSymbol(services: Services, node: TSESTree.Node): ts.Symbol | undefined {
@@ -51,9 +47,6 @@ export function originOf(symbol: ts.Symbol | undefined): string {
   return symbol?.declarations?.[0]?.getSourceFile().fileName ?? '';
 }
 
-export function isAngularComponent(
-  services: Services,
-  node: TSESTree.ClassDeclaration | TSESTree.ClassExpression,
-): boolean {
+export function isAngularComponent(services: Services, node: ClassNode): boolean {
   return isDecorated(services, node, 'Component');
 }

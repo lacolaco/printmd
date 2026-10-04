@@ -78,9 +78,9 @@ function keyOf(member: TSESTree.ClassElement): TSESTree.Node | undefined {
   return isNamed?.key;
 }
 
-function isNamed(
-  key: TSESTree.Node | undefined,
-): key is TSESTree.Identifier | TSESTree.PrivateIdentifier {
+type NameNode = TSESTree.Identifier | TSESTree.PrivateIdentifier;
+
+function isNamed(key: TSESTree.Node | undefined): key is NameNode {
   return key?.type === 'Identifier' || key?.type === 'PrivateIdentifier';
 }
 

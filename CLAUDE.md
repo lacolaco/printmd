@@ -21,7 +21,7 @@ printmd のプロジェクト規範。
 
 ## コーディング規律
 
-- コーディング規律は lint で決定論的に強制する (`eslint.config.ts` と `tools/eslint-rules/` が唯一の定義)。規律を文書へ書き写さない。lint で表現できない規律だけをここへ書く。
+- コーディング規律は lint で決定論的に強制する (`eslint.config.ts` と、そこで有効にする `tools/eslint-rules/` と `eslint-plugin-stoic-angular` のルールが唯一の定義)。規律を文書へ書き写さない。lint で表現できない規律だけをここへ書く。
 
 ## 検証
 

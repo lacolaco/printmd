@@ -1,19 +1,21 @@
 import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils';
-import { enclosingClass } from '../support/angular-utils';
+import { enclosingClass, type ClassNode } from '../support/angular-utils';
 
 type MessageIds = 'querySignature' | 'commandSignature';
 
 type Context = Parameters<Parameters<typeof ESLintUtils.RuleCreator.withoutDocs>[0]['create']>[0];
 
+type Member = TSESTree.PropertyDefinition | TSESTree.MethodDefinition;
+
 /** query として公開してよい型 */
 const QUERIES: readonly string[] = ['Signal', 'WritableSignal'];
 
-function isModelClass(cls: TSESTree.ClassDeclaration | TSESTree.ClassExpression): boolean {
+function isModelClass(cls: ClassNode): boolean {
   const { id } = cls;
   return (id?.name ?? '').endsWith('ViewModel');
 }
 
-function isExempt(member: TSESTree.PropertyDefinition | TSESTree.MethodDefinition): boolean {
+function isExempt(member: Member): boolean {
   return isHidden(member) || !isModelClass(enclosingClass(member));
 }
 
@@ -43,7 +45,7 @@ function isCommand(annotation: TSESTree.TypeNode | undefined): boolean {
   return type === 'TSVoidKeyword' || isSettledVoid(annotation);
 }
 
-function isHidden(member: TSESTree.PropertyDefinition | TSESTree.MethodDefinition): boolean {
+function isHidden(member: Member): boolean {
   return member.accessibility === 'private' || member.key.type === 'PrivateIdentifier';
 }
 

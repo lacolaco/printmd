@@ -1,6 +1,8 @@
 import { RenderedDocument } from './rendered-document';
 import type { Block, BlockKind, FileFragment } from './block';
 
+type Origin = Pick<Block, 'fileIndex' | 'fileName' | 'isFileBoundary'>;
+
 const KIND_BY_TAG: Readonly<Record<string, BlockKind>> = {
   H1: 'heading',
   H2: 'heading',
@@ -86,10 +88,7 @@ class Assembly {
     return { id, ...meta, ...this.originOf(fragment, position) };
   }
 
-  private originOf(
-    fragment: FileFragment,
-    position: number,
-  ): Pick<Block, 'fileIndex' | 'fileName' | 'isFileBoundary'> {
+  private originOf(fragment: FileFragment, position: number): Origin {
     const { fileIndex: origin, fileName: name } = fragment;
     return { fileIndex: origin, fileName: name, isFileBoundary: origin > 0 && position === 0 };
   }
