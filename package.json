@@ -33,7 +33,7 @@
     "dompurify": "^3.4.13",
     "github-markdown-css": "^5.9.0",
     "highlight.js": "^11.12.0",
-    "markdown-it": "^15.0.0",
+    "markdown-it": "^15.0.2",
     "markdown-it-task-lists": "^2.1.1",
     "mermaid": "^11.16.1",
     "rxjs": "~7.8.0",
